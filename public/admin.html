@@ -17,9 +17,10 @@
           extend: {
             colors: {
               flag: {
-                black: '#2563EB', blacksoft: '#2563EB', charcoal: '#2563EB',
-                red: '#2563EB', redbright: '#2563EB', reddeep: '#2563EB',
-                gold: '#2563EB', goldsoft: '#2563EB',
+                black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
+                red: '#2563EB', redbright: '#3B82F6', reddeep: '#1D4ED8',
+                gold: '#38BDF8', goldsoft: '#7DD3FC',
+                accent: '#FF7A45', accentbright: '#FF9466', accentdeep: '#E85A2A',
                 cream: '#F5F8FC', paper: '#FFFFFF', ink: '#1E293B'
               }
             },
@@ -151,8 +152,8 @@
                             <div class="text-xs text-flag-ink/50">أعضاء نشطون</div>
                         </div>
                         <div class="de-card rounded-2xl p-5">
-                            <div class="h-10 w-10 rounded-lg bg-flag-red/10 flex items-center justify-center mb-3">
-                                <i class="fas fa-circle-xmark text-flag-red"></i>
+                            <div class="h-10 w-10 rounded-lg bg-red-50 flex items-center justify-center mb-3">
+                                <i class="fas fa-circle-xmark text-red-600"></i>
                             </div>
                             <div class="text-2xl font-display font-bold text-flag-ink" x-text="stats.rejected"></div>
                             <div class="text-xs text-flag-ink/50">مرفوضون</div>
@@ -264,7 +265,7 @@
                                                         <i class="fas fa-check"></i>
                                                     </button>
                                                     <button x-show="m.membership_status !== 'rejected'" @click="reject(m.id)"
-                                                            class="h-8 w-8 rounded-lg bg-flag-red/10 text-flag-red hover:bg-flag-red/20 transition-colors" title="رفض">
+                                                            class="h-8 w-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors" title="رفض">
                                                         <i class="fas fa-xmark"></i>
                                                     </button>
                                                     <button x-show="m.membership_status !== 'pending'" @click="resetMember(m.id)"
@@ -272,7 +273,7 @@
                                                         <i class="fas fa-rotate-left"></i>
                                                     </button>
                                                     <button @click="confirmDelete(m)"
-                                                            class="h-8 w-8 rounded-lg bg-flag-black/5 text-flag-ink/40 hover:bg-flag-red/10 hover:text-flag-red transition-colors" title="حذف">
+                                                            class="h-8 w-8 rounded-lg bg-flag-black/5 text-flag-ink/40 hover:bg-red-50 hover:text-red-600 transition-colors" title="حذف">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </div>
@@ -358,7 +359,7 @@
         <div class="de-card w-full max-w-sm overflow-hidden" @click.outside="deleteTarget = null">
             <div class="de-flag-ribbon"></div>
             <div class="p-6 text-center">
-                <div class="h-12 w-12 rounded-full bg-flag-red/10 text-flag-red flex items-center justify-center mx-auto mb-4">
+                <div class="h-12 w-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-trash"></i>
                 </div>
                 <h3 class="font-display font-semibold text-flag-ink mb-2">حذف العضو نهائيًا؟</h3>
@@ -573,7 +574,7 @@
 
                 statusBadgeClass(status) {
                     if (status === 'active') return 'bg-emerald-100 text-emerald-800 border border-emerald-200';
-                    if (status === 'rejected') return 'bg-flag-red/10 text-flag-red border border-flag-red/25';
+                    if (status === 'rejected') return 'bg-red-50 text-red-600 border border-red-200';
                     return 'de-badge-gold';
                 },
 

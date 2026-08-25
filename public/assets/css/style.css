@@ -1,22 +1,26 @@
 /* ==========================================================================
    Ausbildungsaufnahme Test Prep — Design System
-   Palette drawn from the Bundesflagge: Schwarz / Rot / Gold
+   Navy (structure/dark) + two-tone Blue (brand/badges) + Coral accent
+   (buttons only) + white/neutral base.
    ========================================================================== */
 
 :root {
-  --de-black: #2563EB;
-  --de-black-soft: #2563EB;
-  --de-charcoal: #2563EB;
+  --de-black: #0E2A4C;
+  --de-black-soft: #163B63;
+  --de-charcoal: #1F4C78;
   --de-red: #2563EB;
-  --de-red-bright: #2563EB;
-  --de-red-deep: #2563EB;
-  --de-gold: #2563EB;
-  --de-gold-soft: #2563EB;
+  --de-red-bright: #3B82F6;
+  --de-red-deep: #1D4ED8;
+  --de-gold: #38BDF8;
+  --de-gold-soft: #7DD3FC;
+  --de-accent: #FF7A45;
+  --de-accent-bright: #FF9466;
+  --de-accent-deep: #E85A2A;
   --de-cream: #F5F8FC;
   --de-paper: #FFFFFF;
   --de-ink: #1E293B;
 
-  --shadow-stamp: 0 20px 45px rgba(37,99,235, 0.18);
+  --shadow-stamp: 0 20px 45px rgba(14,42,76, 0.18);
 }
 
 html {
@@ -33,27 +37,27 @@ body {
    -------------------------------------------------------------------- */
 .de-paper-bg {
   background-color: var(--de-cream);
-  background-image: radial-gradient(circle at 1px 1px, rgba(37,99,235,0.06) 1px, transparent 0);
+  background-image: radial-gradient(circle at 1px 1px, rgba(30,41,59,0.05) 1px, transparent 0);
   background-size: 22px 22px;
 }
 
 .de-dark-bg {
   background-color: var(--de-black);
   background-image:
-    radial-gradient(circle at 20% 20%, rgba(37,99,235,0.18), transparent 45%),
-    radial-gradient(circle at 80% 0%, rgba(37,99,235,0.10), transparent 40%),
+    radial-gradient(circle at 20% 20%, rgba(56,189,248,0.16), transparent 45%),
+    radial-gradient(circle at 80% 0%, rgba(255,122,69,0.10), transparent 40%),
     radial-gradient(circle at 1px 1px, rgba(255,255,255,0.045) 1px, transparent 0);
   background-size: auto, auto, 24px 24px;
 }
 
-/* Light counterpart to .de-dark-bg, for headers/hero sections that no
-   longer use a dark background. Same soft red/gold glows, light base. */
+/* Light counterpart to .de-dark-bg, for headers/hero sections that use a
+   light background instead. */
 .de-light-bg {
   background-color: var(--de-paper);
   background-image:
-    radial-gradient(circle at 15% 15%, rgba(37,99,235,0.07), transparent 45%),
-    radial-gradient(circle at 85% 0%, rgba(37,99,235,0.14), transparent 40%),
-    radial-gradient(circle at 1px 1px, rgba(37,99,235,0.035) 1px, transparent 0);
+    radial-gradient(circle at 15% 15%, rgba(37,99,235,0.06), transparent 45%),
+    radial-gradient(circle at 85% 0%, rgba(56,189,248,0.12), transparent 40%),
+    radial-gradient(circle at 1px 1px, rgba(30,41,59,0.035) 1px, transparent 0);
   background-size: auto, auto, 24px 24px;
 }
 
@@ -72,7 +76,7 @@ body {
 
 /* --------------------------------------------------------------------
    Flag ribbon: the signature structural device.
-   A thin animated black/red/gold band used as a divider & accent.
+   A thin animated navy/blue/sky-blue band used as a divider & accent.
    -------------------------------------------------------------------- */
 .de-flag-ribbon {
   height: 6px;
@@ -117,8 +121,8 @@ body {
   box-shadow: 0 0 0 3px rgba(255,255,255,0.15);
 }
 
-/* Gold-on-dark is the default; on a light background gold text fails
-   contrast, so this modifier swaps it to the red tone instead. */
+/* White is the default (for dark/navy backgrounds); on a light background
+   this modifier swaps it to the primary blue instead. */
 .de-stamp-onlight {
   border-color: var(--de-red);
   color: var(--de-red);
@@ -142,16 +146,16 @@ body {
    -------------------------------------------------------------------- */
 .de-card {
   background: var(--de-paper);
-  border: 1px solid rgba(37,99,235,0.08);
+  border: 1px solid rgba(30,41,59,0.08);
   border-radius: 18px;
-  box-shadow: 0 1px 2px rgba(37,99,235,0.04);
+  box-shadow: 0 1px 2px rgba(30,41,59,0.05);
   transition: transform 0.35s cubic-bezier(.2,.8,.2,1), box-shadow 0.35s ease, border-color 0.35s ease;
 }
 
 .de-card:hover {
   transform: translateY(-6px);
   box-shadow: var(--shadow-stamp);
-  border-color: rgba(37,99,235,0.25);
+  border-color: rgba(37,99,235,0.3);
 }
 
 .de-card-dark {
@@ -175,7 +179,9 @@ body {
 }
 
 /* --------------------------------------------------------------------
-   Buttons
+   Buttons. Accent (coral) is reserved for primary/converting actions
+   only -- everything else (ghost) stays neutral/blue so the accent
+   actually stands out.
    -------------------------------------------------------------------- */
 .de-btn {
   position: relative;
@@ -196,23 +202,23 @@ body {
 }
 
 .de-btn-primary {
-  background: linear-gradient(135deg, var(--de-red-bright), var(--de-red-deep));
+  background: linear-gradient(135deg, var(--de-accent-bright), var(--de-accent-deep));
   color: white;
-  box-shadow: 0 10px 25px rgba(37,99,235,0.35);
+  box-shadow: 0 10px 25px rgba(255,122,69,0.35);
 }
 .de-btn-primary:hover {
   transform: translateY(-3px);
-  box-shadow: 0 16px 32px rgba(37,99,235,0.45);
+  box-shadow: 0 16px 32px rgba(255,122,69,0.45);
 }
 
 .de-btn-gold {
-  background: linear-gradient(135deg, var(--de-gold-soft), var(--de-gold));
+  background: linear-gradient(135deg, var(--de-accent), var(--de-accent-deep));
   color: white;
-  box-shadow: 0 10px 25px rgba(37,99,235,0.30);
+  box-shadow: 0 10px 25px rgba(255,122,69,0.30);
 }
 .de-btn-gold:hover {
   transform: translateY(-3px);
-  box-shadow: 0 16px 32px rgba(37,99,235,0.4);
+  box-shadow: 0 16px 32px rgba(255,122,69,0.4);
 }
 
 .de-btn-ghost {
@@ -243,7 +249,8 @@ body {
 }
 
 /* --------------------------------------------------------------------
-   Badges (B1 / B2 / stats) — official document / ID-card style
+   Badges (B1 / B2 / stats) — official document / ID-card style.
+   Two blue tones give badges some variety without touching the accent.
    -------------------------------------------------------------------- */
 .de-badge {
   font-family: 'JetBrains Mono', monospace;
@@ -255,9 +262,9 @@ body {
 }
 
 .de-badge-gold {
-  background: rgba(37,99,235,0.14);
-  color: var(--de-red);
-  border: 1px solid rgba(37,99,235,0.5);
+  background: rgba(56,189,248,0.16);
+  color: var(--de-red-deep);
+  border: 1px solid rgba(56,189,248,0.5);
 }
 
 .de-badge-red {
@@ -316,8 +323,8 @@ body {
   animation: glowPulse 2.6s ease-in-out infinite;
 }
 @keyframes glowPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.35); }
-  50% { box-shadow: 0 0 0 10px rgba(37,99,235,0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,122,69,0.35); }
+  50% { box-shadow: 0 0 0 10px rgba(255,122,69,0); }
 }
 
 /* Eagle-mark style corner accent used on the hero / dark sections */

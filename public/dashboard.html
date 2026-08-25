@@ -20,9 +20,10 @@
           extend: {
             colors: {
               flag: {
-                black: '#2563EB', blacksoft: '#2563EB', charcoal: '#2563EB',
-                red: '#2563EB', redbright: '#2563EB', reddeep: '#2563EB',
-                gold: '#2563EB', goldsoft: '#2563EB',
+                black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
+                red: '#2563EB', redbright: '#3B82F6', reddeep: '#1D4ED8',
+                gold: '#38BDF8', goldsoft: '#7DD3FC',
+                accent: '#FF7A45', accentbright: '#FF9466', accentdeep: '#E85A2A',
                 cream: '#F5F8FC', paper: '#FFFFFF', ink: '#1E293B'
               }
             },
@@ -66,7 +67,7 @@
                     </template>
                     <template x-if="gateStatus === 'rejected'">
                         <div>
-                            <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5" style="border-color:#2563EB;color:#2563EB;"><i class="fas fa-circle-xmark"></i></span>
+                            <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5" style="border-color:#DC2626;color:#DC2626;"><i class="fas fa-circle-xmark"></i></span>
                             <h1 class="font-display text-xl font-bold text-flag-ink mb-3">تعذّر تفعيل حسابك</h1>
                             <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">
                                 لم تتم الموافقة على عضويتك. تواصل معنا على
@@ -198,7 +199,7 @@
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center justify-between gap-2 mb-1">
                                         <h3 class="font-medium text-flag-ink truncate" x-text="attempt.test_title"></h3>
-                                        <span class="de-badge flex-shrink-0" :class="attempt.passed ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-flag-red/10 text-flag-red border border-flag-red/25'"
+                                        <span class="de-badge flex-shrink-0" :class="attempt.passed ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-600 border border-red-200'"
                                               x-text="attempt.passed ? 'ناجح' : 'راسب'"></span>
                                     </div>
                                     <p class="text-xs text-flag-ink/50">
@@ -260,7 +261,7 @@
                                         <tr class="hover:bg-flag-cream/60 transition-colors">
                                             <td class="px-5 py-4 font-medium text-flag-ink" x-text="attempt.test_title"></td>
                                             <td class="px-5 py-4">
-                                                <span class="de-badge" :class="attempt.passed ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-flag-red/10 text-flag-red border border-flag-red/25'"
+                                                <span class="de-badge" :class="attempt.passed ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-red-50 text-red-600 border border-red-200'"
                                                       x-text="attempt.score_percentage + '%'"></span>
                                             </td>
                                             <td class="px-5 py-4 text-flag-ink/50 text-xs font-mono hidden sm:table-cell" x-text="formatDate(attempt.completed_at)"></td>
@@ -388,9 +389,9 @@
             <div class="p-6 text-center overflow-y-auto" x-show="testResults" x-cloak>
                 <template x-if="testResults">
                     <div>
-                        <i class="fas fa-chart-bar text-4xl mb-3" :class="testResults.passed ? 'text-emerald-600' : 'text-flag-red'"></i>
+                        <i class="fas fa-chart-bar text-4xl mb-3" :class="testResults.passed ? 'text-emerald-600' : 'text-red-600'"></i>
                         <div class="text-3xl font-display font-bold mb-1" x-text="testResults.score_percentage + '%'"></div>
-                        <p class="text-sm font-medium mb-6" :class="testResults.passed ? 'text-emerald-700' : 'text-flag-red'"
+                        <p class="text-sm font-medium mb-6" :class="testResults.passed ? 'text-emerald-700' : 'text-red-600'"
                            x-text="testResults.passed ? 'ناجح' : 'راسب'"></p>
 
                         <div class="grid grid-cols-2 gap-3 text-sm text-start max-w-sm mx-auto mb-6">
@@ -414,7 +415,7 @@
                         <div class="text-start space-y-3 max-w-xl mx-auto mb-8">
                             <h4 class="font-display font-semibold text-flag-ink text-sm mb-2">مراجعة الأسئلة</h4>
                             <template x-for="q in testResults.questions_review" :key="q.id">
-                                <div class="de-card rounded-xl p-4" :style="{ borderInlineStartWidth: '4px', borderInlineStartColor: q.is_correct ? '#059669' : '#2563EB' }">
+                                <div class="de-card rounded-xl p-4" :style="{ borderInlineStartWidth: '4px', borderInlineStartColor: q.is_correct ? '#059669' : '#DC2626' }">
                                     <span class="de-badge de-badge-gold mb-2 inline-block" x-show="q.section_name" x-text="q.section_name"></span>
                                     <p class="text-sm font-medium text-flag-ink mb-2" x-text="q.question_text"></p>
                                     <p class="text-xs text-flag-ink/60">إجابتك: <span x-text="q.selected_answer_text || '—'"></span></p>
@@ -463,7 +464,7 @@
                 <template x-if="selectedAttemptDetail">
                     <div>
                         <div class="text-3xl font-display font-bold mb-1" x-text="selectedAttemptDetail.score_percentage + '%'"></div>
-                        <p class="text-sm font-medium mb-6" :class="selectedAttemptDetail.passed ? 'text-emerald-700' : 'text-flag-red'"
+                        <p class="text-sm font-medium mb-6" :class="selectedAttemptDetail.passed ? 'text-emerald-700' : 'text-red-600'"
                            x-text="selectedAttemptDetail.passed ? 'ناجح' : 'راسب'"></p>
 
                         <div class="grid grid-cols-2 gap-3 text-sm text-start max-w-sm mx-auto mb-6">
@@ -486,7 +487,7 @@
                         <div class="text-start space-y-3 max-w-xl mx-auto">
                             <h4 class="font-display font-semibold text-flag-ink text-sm mb-2">مراجعة الأسئلة</h4>
                             <template x-for="q in selectedAttemptDetail.questions_review" :key="q.id">
-                                <div class="de-card rounded-xl p-4" :style="{ borderInlineStartWidth: '4px', borderInlineStartColor: q.is_correct ? '#059669' : '#2563EB' }">
+                                <div class="de-card rounded-xl p-4" :style="{ borderInlineStartWidth: '4px', borderInlineStartColor: q.is_correct ? '#059669' : '#DC2626' }">
                                     <span class="de-badge de-badge-gold mb-2 inline-block" x-show="q.section_name" x-text="q.section_name"></span>
                                     <p class="text-sm font-medium text-flag-ink mb-2" x-text="q.question_text"></p>
                                     <p class="text-xs text-flag-ink/60">إجابتك: <span x-text="q.selected_answer_text || '—'"></span></p>
