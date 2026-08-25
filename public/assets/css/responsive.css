@@ -1,0 +1,31 @@
+/* Fine-tuning that Tailwind's utility breakpoints don't cover */
+
+@media (max-width: 640px) {
+  .de-stamp {
+    transform: rotate(-6deg) scale(0.85);
+  }
+  .de-flag-ribbon.animate {
+    animation-duration: 5s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .de-flag-ribbon.animate,
+  .de-float,
+  .de-float-delay,
+  .de-glow-pulse,
+  .de-marquee-track,
+  .de-stamp-in {
+    animation: none !important;
+  }
+}
+
+@media print {
+  header, footer, .de-flag-ribbon, .de-corner-mark {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}

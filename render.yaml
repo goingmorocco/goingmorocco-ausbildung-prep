@@ -1,0 +1,22 @@
+# Deploy config for Render (render.com). Push this repo to GitHub, then on
+# Render: New -> Blueprint -> connect the repo -> Render reads this file
+# and sets everything up automatically. Free tier available.
+#
+# After the first deploy, set JWT_SECRET in the Render dashboard
+# (Environment tab) to a real random value -- see .env.example for how to
+# generate one. Optionally set OPENAI_API_KEY too if you plan to run
+# `npm run audio` (can also just be run locally and the resulting files
+# committed instead, see README).
+
+services:
+  - type: web
+    name: ausbildung-test-prep
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: JWT_SECRET
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false

@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم - إعداد اختبار Ausbildungsaufnahme</title>
+    <meta name="description" content="لوحة التحكم الشخصية لمتابعة تقدمك في تحضير اختبارات Ausbildungsaufnahme">
+    <meta name="robots" content="noindex, nofollow">
+
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              flag: {
+                black: '#2563EB', blacksoft: '#2563EB', charcoal: '#2563EB',
+                red: '#2563EB', redbright: '#2563EB', reddeep: '#2563EB',
+                gold: '#2563EB', goldsoft: '#2563EB',
+                cream: '#F5F8FC', paper: '#FFFFFF', ink: '#1E293B'
+              }
+            },
+            fontFamily: {
+              display: ['"Space Grotesk"', 'sans-serif'],
+              arabic: ['Cairo', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'monospace']
+            }
+          }
+        }
+      }
+    </script>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>[x-cloak]{display:none !important;}</style>
+</head>
+<body class="font-arabic de-paper-bg text-flag-ink antialiased min-h-screen" x-data="dashboardApp()" x-init="init()">
+
+    <!-- ============ LOADING ============ -->
+    <div x-show="!authChecked" class="min-h-screen flex items-center justify-center de-dark-bg text-white">
+        <i class="fas fa-circle-notch fa-spin text-2xl"></i>
+    </div>
+
+    <!-- ============ MEMBERSHIP GATE (pending / rejected) ============ -->
+    <template x-if="authChecked && user && gateStatus !== 'ok'">
+        <div class="min-h-screen de-dark-bg flex items-center justify-center p-4">
+            <div class="de-card w-full max-w-md overflow-hidden text-center">
+                <div class="de-flag-ribbon"></div>
+                <div class="p-8">
+                    <template x-if="gateStatus === 'pending'">
+                        <div>
+                            <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5"><i class="fas fa-hourglass-half"></i></span>
+                            <h1 class="font-display text-xl font-bold text-flag-ink mb-3">حسابك قيد المراجعة</h1>
+                            <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">
+                                شكرًا لتسجيلك! سيقوم فريقنا بتفعيل وصولك الكامل بعد تأكيد الدفع. عادة ما تتم المراجعة خلال 24 ساعة.
+                            </p>
+                        </div>
+                    </template>
+                    <template x-if="gateStatus === 'rejected'">
+                        <div>
+                            <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5" style="border-color:#2563EB;color:#2563EB;"><i class="fas fa-circle-xmark"></i></span>
+                            <h1 class="font-display text-xl font-bold text-flag-ink mb-3">تعذّر تفعيل حسابك</h1>
+                            <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">
+                                لم تتم الموافقة على عضويتك. تواصل معنا على
+                                <a href="mailto:info@ausbildung-test-prep.com" class="text-flag-red">info@ausbildung-test-prep.com</a>
+                                لمزيد من المعلومات.
+                            </p>
+                        </div>
+                    </template>
+                    <button @click="logout()" class="de-btn w-full text-sm py-3" style="background:#EEEAE0;color:#1E293B;">
+                        <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============ DASHBOARD ============ -->
+    <template x-if="authChecked && user && gateStatus === 'ok'">
+        <div>
+            <!-- Header -->
+            <header class="sticky top-0 z-30">
+                <div class="de-light-bg text-flag-ink shadow-sm border-b border-black/5">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="flex justify-between h-16 items-center">
+                            <a href="/" class="flex items-center gap-3">
+                                <span class="de-stamp de-stamp-onlight h-10 w-10 text-xs"><i class="fas fa-landmark"></i></span>
+                                <span class="font-display font-semibold hidden sm:block">Ausbildungsaufnahme</span>
+                            </a>
+
+                            <div class="hidden md:flex items-center gap-4">
+                                <div class="flex items-center gap-2">
+                                    <span class="de-avatar h-9 w-9 text-xs" x-text="initials(user.full_name)"></span>
+                                    <div class="leading-tight">
+                                        <div class="text-sm font-medium" x-text="user.full_name"></div>
+                                        <div class="text-xs text-flag-ink/50" x-text="user.email"></div>
+                                    </div>
+                                </div>
+
+                                <span class="de-badge" :class="subscription && subscription.status === 'active' ? 'de-badge-gold' : ''" style="background:rgba(37,99,235,0.1);color:#2563EB;border:1px solid rgba(37,99,235,0.3);" x-show="!(subscription && subscription.status === 'active')">
+                                    غير مفعّل
+                                </span>
+                                <span class="de-badge de-badge-gold" x-show="subscription && subscription.status === 'active'">نشط</span>
+
+                                <button @click="showSubscriptionModal = true" class="de-btn de-btn-gold text-xs py-2 px-4">
+                                    <i class="fas fa-credit-card"></i> الاشتراك
+                                </button>
+                                <button @click="showLogoutConfirm = true" class="text-flag-ink/50 hover:text-flag-red transition-colors text-sm" title="تسجيل الخروج">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                </button>
+                            </div>
+
+                            <button @click="showMobileMenu = !showMobileMenu" class="md:hidden h-10 w-10 rounded-full border border-black/10">
+                                <i class="fas" :class="showMobileMenu ? 'fa-times' : 'fa-bars'"></i>
+                            </button>
+                        </div>
+
+                        <div x-show="showMobileMenu" x-cloak x-transition class="md:hidden pb-4">
+                            <div class="de-card rounded-2xl p-4 space-y-3">
+                                <div class="flex items-center gap-2 pb-3 border-b border-black/10">
+                                    <span class="de-avatar h-9 w-9 text-xs" x-text="initials(user.full_name)"></span>
+                                    <div class="leading-tight">
+                                        <div class="text-sm font-medium" x-text="user.full_name"></div>
+                                        <div class="text-xs text-flag-ink/50" x-text="user.email"></div>
+                                    </div>
+                                </div>
+                                <button @click="showSubscriptionModal = true; showMobileMenu = false" class="de-btn de-btn-gold w-full text-sm py-2">
+                                    <i class="fas fa-credit-card"></i> الاشتراك
+                                </button>
+                                <button @click="showLogoutConfirm = true; showMobileMenu = false" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#1E293B;">
+                                    <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Welcome banner -->
+                <div class="de-card-dark text-white rounded-2xl p-6 mb-8 relative overflow-hidden">
+                    <div class="de-corner-mark top-4 end-4 rounded-tr-xl border-b-0 border-s-0 hidden sm:block"></div>
+                    <div class="flex items-center gap-4">
+                        <div class="h-12 w-12 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-user-graduate text-flag-gold text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-display text-xl font-bold mb-1">مرحبًا، <span x-text="user.full_name"></span>!</h2>
+                            <p class="text-sm text-white/70">جاهز لبدء استعدادك لاختبارات Ausbildungsaufnahme اليوم؟</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="grid sm:grid-cols-3 gap-4 mb-8">
+                    <div class="de-card rounded-2xl p-5">
+                        <div class="h-10 w-10 rounded-lg bg-flag-red/10 flex items-center justify-center mb-3">
+                            <i class="fas fa-clipboard-list text-flag-red"></i>
+                        </div>
+                        <div class="text-2xl font-display font-bold text-flag-ink" x-text="testAttempts.filter(a => a.completed_at).length"></div>
+                        <div class="text-xs text-flag-ink/50">اختبارات مكتملة</div>
+                    </div>
+                    <div class="de-card rounded-2xl p-5">
+                        <div class="h-10 w-10 rounded-lg bg-flag-gold/15 flex items-center justify-center mb-3">
+                            <i class="fas fa-chart-line text-flag-ink"></i>
+                        </div>
+                        <div class="text-2xl font-display font-bold text-flag-ink" x-text="averageScore().toFixed(0) + '%'"></div>
+                        <div class="text-xs text-flag-ink/50">متوسط النتيجة</div>
+                    </div>
+                    <div class="de-card rounded-2xl p-5">
+                        <div class="h-10 w-10 rounded-lg bg-flag-black/5 flex items-center justify-center mb-3">
+                            <i class="fas fa-calendar-alt text-flag-ink/60"></i>
+                        </div>
+                        <div class="text-2xl font-display font-bold text-flag-ink" x-text="daysUntilRenewal()"></div>
+                        <div class="text-xs text-flag-ink/50">يوم حتى تجديد الاشتراك</div>
+                    </div>
+                </div>
+
+                <!-- Recent activity -->
+                <div class="mb-10">
+                    <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
+                        <i class="fas fa-clock-rotate-left text-flag-red me-2"></i> النشاط الأخير
+                    </h2>
+                    <div class="de-card rounded-2xl overflow-hidden divide-y divide-black/5">
+                        <template x-for="attempt in testAttempts.slice(0, 5)" :key="attempt.id">
+                            <button @click="viewAttempt(attempt.id)" class="w-full text-start p-4 sm:p-5 flex items-center gap-4 hover:bg-flag-cream/60 transition-colors">
+                                <div class="h-10 w-10 rounded-full bg-flag-red/10 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-clipboard-check text-flag-red"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center justify-between gap-2 mb-1">
+                                        <h3 class="font-medium text-flag-ink truncate" x-text="attempt.test_title"></h3>
+                                        <span class="de-badge flex-shrink-0" :class="attempt.passed ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-flag-red/10 text-flag-red border border-flag-red/25'"
+                                              x-text="attempt.passed ? 'ناجح' : 'راسب'"></span>
+                                    </div>
+                                    <p class="text-xs text-flag-ink/50">
+                                        النتيجة: <span x-text="attempt.score_percentage + '%'"></span>
+                                        · <span x-text="formatDate(attempt.completed_at)"></span>
+                                    </p>
+                                </div>
+                                <i class="fas fa-chevron-left text-flag-ink/20 flex-shrink-0"></i>
+                            </button>
+                        </template>
+                        <div x-show="testAttempts.length === 0" class="p-8 text-center text-sm text-flag-ink/40">
+                            لم تخض أي اختبار بعد — ابدأ بواحد من الاختبارات المتاحة أدناه
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Available tests -->
+                <div id="available-tests" class="mb-10">
+                    <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
+                        <i class="fas fa-play text-flag-red me-2"></i> الاختبارات المتاحة
+                    </h2>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        <template x-for="test in availableTests" :key="test.id">
+                            <div class="de-card de-ticket-edge rounded-2xl p-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <h3 class="font-display font-semibold text-flag-ink" x-text="test.title"></h3>
+                                    <span class="de-badge de-badge-red" x-text="test.level"></span>
+                                </div>
+                                <p class="text-sm text-flag-ink/60 mb-4" x-text="test.description"></p>
+                                <p class="text-xs text-flag-ink/40 font-mono mb-5">
+                                    <i class="fas fa-list-check"></i> <span x-text="test.trial_question_count"></span> سؤال بنفس بنية وأقسام الاختبار الرسمي
+                                </p>
+                                <button @click="startTest(test)" class="de-btn de-btn-primary w-full text-sm py-2.5">
+                                    <i class="fas fa-play"></i> ابدأ الاختبار
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Full history -->
+                <div id="test-history">
+                    <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
+                        <i class="fas fa-list text-flag-red me-2"></i> سجل الاختبارات الكامل
+                    </h2>
+                    <div class="de-card rounded-2xl overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="bg-flag-cream text-flag-ink/50 text-xs">
+                                        <th class="text-start px-5 py-3 font-medium">الاختبار</th>
+                                        <th class="text-start px-5 py-3 font-medium">النتيجة</th>
+                                        <th class="text-start px-5 py-3 font-medium hidden sm:table-cell">التاريخ</th>
+                                        <th class="text-start px-5 py-3 font-medium"></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-black/5">
+                                    <template x-for="attempt in testAttempts" :key="'row-' + attempt.id">
+                                        <tr class="hover:bg-flag-cream/60 transition-colors">
+                                            <td class="px-5 py-4 font-medium text-flag-ink" x-text="attempt.test_title"></td>
+                                            <td class="px-5 py-4">
+                                                <span class="de-badge" :class="attempt.passed ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-flag-red/10 text-flag-red border border-flag-red/25'"
+                                                      x-text="attempt.score_percentage + '%'"></span>
+                                            </td>
+                                            <td class="px-5 py-4 text-flag-ink/50 text-xs font-mono hidden sm:table-cell" x-text="formatDate(attempt.completed_at)"></td>
+                                            <td class="px-5 py-4">
+                                                <button @click="viewAttempt(attempt.id)" class="text-flag-red hover:text-flag-reddeep text-xs font-medium">
+                                                    عرض التفاصيل
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                            <div x-show="testAttempts.length === 0" class="p-10 text-center text-sm text-flag-ink/40">
+                                لا يوجد سجل اختبارات بعد
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </template>
+
+    <!-- ============ Test-taking modal ============ -->
+    <div x-show="showTestModal" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
+        <div class="de-card w-full max-w-2xl overflow-hidden max-h-[92vh] flex flex-col">
+            <div class="de-flag-ribbon"></div>
+            <div class="flex items-center justify-between px-6 py-4 border-b border-black/10 flex-shrink-0">
+                <h3 class="font-display font-semibold text-flag-ink" x-text="activeTest ? activeTest.title : 'جارٍ التحميل...'"></h3>
+                <button @click="closeTestModal()" class="text-flag-ink/40 hover:text-flag-red"><i class="fas fa-times"></i></button>
+            </div>
+
+            <!-- Question view -->
+            <div class="p-6 overflow-y-auto" x-show="activeTest && !testResults">
+                <div class="mb-4 flex items-center justify-between bg-flag-cream rounded-lg p-3">
+                    <span class="text-xs text-flag-ink/50">الوقت المتبقي</span>
+                    <span class="font-mono text-lg font-semibold text-flag-red" x-text="formatCountdown(timeLeftSeconds)"></span>
+                </div>
+
+                <template x-if="activeTest">
+                    <div>
+                        <div class="mb-6">
+                            <div class="flex justify-between mb-2 text-xs text-flag-ink/50">
+                                <span>السؤال <span x-text="currentQuestionIndex + 1"></span> من <span x-text="gradedItems.length"></span></span>
+                                <span x-text="Math.round(((currentQuestionIndex + 1) / gradedItems.length) * 100) + '%'"></span>
+                            </div>
+                            <div class="w-full bg-black/10 rounded-full h-2">
+                                <div class="de-flag-ribbon rounded-full h-2" :style="{ width: (((currentQuestionIndex + 1) / gradedItems.length) * 100) + '%' }"></div>
+                            </div>
+                        </div>
+
+                        <template x-if="currentQuestion">
+                            <div>
+                                <div class="flex items-center gap-2 mb-3">
+                                    <span class="de-badge de-badge-red" x-text="currentQuestion.sectionName"></span>
+                                    <span class="text-xs text-flag-ink/40" x-show="currentQuestion.sectionOfficialMinutes">
+                                        <i class="fas fa-clock"></i> <span x-text="currentQuestion.sectionOfficialMinutes"></span> دقيقة في الاختبار الرسمي
+                                    </span>
+                                </div>
+                                <p class="text-xs text-flag-ink/50 mb-3" x-show="currentQuestion.sectionInstructions" x-text="currentQuestion.sectionInstructions"></p>
+
+                                <!-- Listening sections with real audio: play audio, transcript hidden behind a toggle (matches real exam conditions) -->
+                                <template x-if="currentQuestion.sectionType === 'listening' && currentQuestion.sectionAudioUrl && !audioFailed">
+                                    <div class="de-card rounded-xl p-4 mb-4 bg-flag-cream">
+                                        <audio :src="currentQuestion.sectionAudioUrl" controls preload="none"
+                                               @error="audioFailed = true; showTranscript = true"
+                                               class="w-full mb-3"></audio>
+                                        <button @click="showTranscript = !showTranscript" class="text-xs text-flag-red hover:text-flag-reddeep">
+                                            <i class="fas fa-file-lines"></i>
+                                            <span x-text="showTranscript ? 'إخفاء النص المكتوب' : 'إظهار النص المكتوب (بعد الاستماع يُفضّل)'"></span>
+                                        </button>
+                                        <p class="text-sm text-flag-ink/80 whitespace-pre-line mt-3" x-show="showTranscript" x-text="currentQuestion.sectionPassage"></p>
+                                    </div>
+                                </template>
+
+                                <!-- Reading/language sections, or listening without generated audio yet: show the passage directly -->
+                                <div class="de-card rounded-xl p-4 mb-4 bg-flag-cream"
+                                     x-show="currentQuestion.sectionPassage && !(currentQuestion.sectionType === 'listening' && currentQuestion.sectionAudioUrl && !audioFailed)">
+                                    <p class="text-xs text-flag-ink/40 mb-2" x-show="currentQuestion.sectionType === 'listening'">
+                                        <i class="fas fa-circle-info"></i> الاستماع الصوتي غير متاح بعد لهذا القسم — نص بديل للقراءة
+                                    </p>
+                                    <p class="text-sm text-flag-ink/80 whitespace-pre-line" x-text="currentQuestion.sectionPassage"></p>
+                                </div>
+
+                                <div class="de-card rounded-xl p-5 mb-6">
+                                    <p class="font-medium text-flag-ink mb-4" x-text="currentQuestion.question_text"></p>
+                                    <div class="space-y-2">
+                                        <template x-for="opt in currentQuestion.answers" :key="opt.id">
+                                            <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
+                                                   :class="selectedAnswers[currentQuestion.id] === opt.id ? 'border-flag-red bg-flag-red/5' : 'border-black/10 hover:border-black/20'"
+                                                   @click="selectedAnswers[currentQuestion.id] = opt.id">
+                                                <span class="h-4 w-4 rounded-full border flex-shrink-0"
+                                                      :class="selectedAnswers[currentQuestion.id] === opt.id ? 'border-flag-red bg-flag-red' : 'border-black/30'"></span>
+                                                <span class="text-sm text-flag-ink" x-text="opt.answer_text"></span>
+                                            </label>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+
+                        <div class="flex items-center justify-between gap-3">
+                            <button @click="currentQuestionIndex = Math.max(0, currentQuestionIndex - 1)"
+                                    :disabled="currentQuestionIndex === 0"
+                                    class="de-btn text-sm py-2 px-4 disabled:opacity-40" style="background:#EEEAE0;color:#1E293B;">
+                                <i class="fas fa-arrow-right"></i> السابق
+                            </button>
+
+                            <button x-show="currentQuestionIndex < gradedItems.length - 1"
+                                    @click="currentQuestionIndex = Math.min(gradedItems.length - 1, currentQuestionIndex + 1)"
+                                    class="de-btn text-sm py-2 px-4" style="background:#EEEAE0;color:#1E293B;">
+                                التالي <i class="fas fa-arrow-left"></i>
+                            </button>
+
+                            <button x-show="currentQuestionIndex === gradedItems.length - 1"
+                                    @click="submitAnswers()"
+                                    class="de-btn de-btn-primary text-sm py-2 px-5">
+                                <i class="fas fa-paper-plane"></i> إرسال الإجابات
+                            </button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Results view -->
+            <div class="p-6 text-center overflow-y-auto" x-show="testResults" x-cloak>
+                <template x-if="testResults">
+                    <div>
+                        <i class="fas fa-chart-bar text-4xl mb-3" :class="testResults.passed ? 'text-emerald-600' : 'text-flag-red'"></i>
+                        <div class="text-3xl font-display font-bold mb-1" x-text="testResults.score_percentage + '%'"></div>
+                        <p class="text-sm font-medium mb-6" :class="testResults.passed ? 'text-emerald-700' : 'text-flag-red'"
+                           x-text="testResults.passed ? 'ناجح' : 'راسب'"></p>
+
+                        <div class="grid grid-cols-2 gap-3 text-sm text-start max-w-sm mx-auto mb-6">
+                            <div class="de-card rounded-lg p-3">
+                                <div class="text-xs text-flag-ink/50 mb-1">الوقت المستغرق</div>
+                                <div class="font-medium" x-text="formatDuration(testResults.time_taken_seconds)"></div>
+                            </div>
+                            <div class="de-card rounded-lg p-3">
+                                <div class="text-xs text-flag-ink/50 mb-1">الإجابات الصحيحة</div>
+                                <div class="font-medium" x-text="testResults.correct_answers + '/' + testResults.total_questions"></div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-center gap-3 mb-6">
+                            <button @click="closeTestModal()" class="de-btn text-sm py-2.5 px-5" style="background:#EEEAE0;color:#1E293B;">إنهاء</button>
+                            <button @click="retakeTest()" class="de-btn de-btn-primary text-sm py-2.5 px-5">
+                                <i class="fas fa-rotate-right"></i> إعادة الاختبار
+                            </button>
+                        </div>
+
+                        <div class="text-start space-y-3 max-w-xl mx-auto mb-8">
+                            <h4 class="font-display font-semibold text-flag-ink text-sm mb-2">مراجعة الأسئلة</h4>
+                            <template x-for="q in testResults.questions_review" :key="q.id">
+                                <div class="de-card rounded-xl p-4" :style="{ borderInlineStartWidth: '4px', borderInlineStartColor: q.is_correct ? '#059669' : '#2563EB' }">
+                                    <span class="de-badge de-badge-gold mb-2 inline-block" x-show="q.section_name" x-text="q.section_name"></span>
+                                    <p class="text-sm font-medium text-flag-ink mb-2" x-text="q.question_text"></p>
+                                    <p class="text-xs text-flag-ink/60">إجابتك: <span x-text="q.selected_answer_text || '—'"></span></p>
+                                    <p class="text-xs text-flag-ink/60">الإجابة الصحيحة: <span x-text="q.correct_answer_text"></span></p>
+                                    <p class="text-xs text-flag-ink/40 italic mt-1" x-show="q.explanation" x-text="q.explanation"></p>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Ungraded writing practice, shown after the graded review -->
+                        <div class="text-start max-w-xl mx-auto" x-show="activeTest && activeTest.writing">
+                            <template x-if="activeTest && activeTest.writing">
+                                <div class="de-card rounded-xl p-5" style="border-color:rgba(37,99,235,0.4);">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="de-badge de-badge-gold" x-text="activeTest.writing.name"></span>
+                                        <span class="text-xs text-flag-ink/40">
+                                            <i class="fas fa-clock"></i> <span x-text="activeTest.writing.official_duration_minutes"></span> دقيقة في الاختبار الرسمي
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-flag-ink/50 mb-3" x-text="activeTest.writing.instructions"></p>
+                                    <p class="text-sm font-medium text-flag-ink whitespace-pre-line mb-3" x-text="activeTest.writing.prompt"></p>
+                                    <textarea x-model="writingDraft" rows="5" placeholder="اكتب إجابتك هنا (تدريب حر، لا يُرسل ولا يُقيَّم)..."
+                                              class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30 mb-3"></textarea>
+                                    <button @click="showWritingSample = !showWritingSample" class="de-btn text-xs py-2 px-4" style="background:#EEEAE0;color:#1E293B;">
+                                        <span x-text="showWritingSample ? 'إخفاء نموذج الإجابة' : 'إظهار نموذج الإجابة'"></span>
+                                    </button>
+                                    <div x-show="showWritingSample" x-cloak class="mt-3 p-3 rounded-lg bg-flag-cream text-sm text-flag-ink/80 whitespace-pre-line" x-text="activeTest.writing.sample_answer"></div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Attempt detail modal (from history) ============ -->
+    <div x-show="showAttemptDetailModal" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
+        <div class="de-card w-full max-w-2xl overflow-hidden max-h-[92vh] flex flex-col">
+            <div class="de-flag-ribbon"></div>
+            <div class="flex items-center justify-between px-6 py-4 border-b border-black/10 flex-shrink-0">
+                <h3 class="font-display font-semibold text-flag-ink" x-text="selectedAttemptDetail ? selectedAttemptDetail.test_title : ''"></h3>
+                <button @click="showAttemptDetailModal = false" class="text-flag-ink/40 hover:text-flag-red"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 text-center overflow-y-auto" x-show="selectedAttemptDetail">
+                <template x-if="selectedAttemptDetail">
+                    <div>
+                        <div class="text-3xl font-display font-bold mb-1" x-text="selectedAttemptDetail.score_percentage + '%'"></div>
+                        <p class="text-sm font-medium mb-6" :class="selectedAttemptDetail.passed ? 'text-emerald-700' : 'text-flag-red'"
+                           x-text="selectedAttemptDetail.passed ? 'ناجح' : 'راسب'"></p>
+
+                        <div class="grid grid-cols-2 gap-3 text-sm text-start max-w-sm mx-auto mb-6">
+                            <div class="de-card rounded-lg p-3">
+                                <div class="text-xs text-flag-ink/50 mb-1">الوقت المستغرق</div>
+                                <div class="font-medium" x-text="formatDuration(selectedAttemptDetail.time_taken_seconds)"></div>
+                            </div>
+                            <div class="de-card rounded-lg p-3">
+                                <div class="text-xs text-flag-ink/50 mb-1">تاريخ المحاولة</div>
+                                <div class="font-medium" x-text="formatDate(selectedAttemptDetail.completed_at)"></div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-center mb-6">
+                            <button @click="retakeAttempt(selectedAttemptDetail.test_id)" class="de-btn de-btn-primary text-sm py-2.5 px-5">
+                                <i class="fas fa-rotate-right"></i> إعادة الاختبار
+                            </button>
+                        </div>
+
+                        <div class="text-start space-y-3 max-w-xl mx-auto">
+                            <h4 class="font-display font-semibold text-flag-ink text-sm mb-2">مراجعة الأسئلة</h4>
+                            <template x-for="q in selectedAttemptDetail.questions_review" :key="q.id">
+                                <div class="de-card rounded-xl p-4" :style="{ borderInlineStartWidth: '4px', borderInlineStartColor: q.is_correct ? '#059669' : '#2563EB' }">
+                                    <span class="de-badge de-badge-gold mb-2 inline-block" x-show="q.section_name" x-text="q.section_name"></span>
+                                    <p class="text-sm font-medium text-flag-ink mb-2" x-text="q.question_text"></p>
+                                    <p class="text-xs text-flag-ink/60">إجابتك: <span x-text="q.selected_answer_text || '—'"></span></p>
+                                    <p class="text-xs text-flag-ink/60">الإجابة الصحيحة: <span x-text="q.correct_answer_text"></span></p>
+                                    <p class="text-xs text-flag-ink/40 italic mt-1" x-show="q.explanation" x-text="q.explanation"></p>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Subscription modal ============ -->
+    <div x-show="showSubscriptionModal" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
+        <div class="de-card w-full max-w-md overflow-hidden">
+            <div class="de-flag-ribbon"></div>
+            <div class="flex items-center justify-between px-6 py-4 border-b border-black/10">
+                <h3 class="font-display font-semibold text-flag-ink"><i class="fas fa-credit-card text-flag-red me-2"></i> حالة الاشتراك</h3>
+                <button @click="showSubscriptionModal = false" class="text-flag-ink/40 hover:text-flag-red"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 text-center">
+                <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5"><i class="fas fa-heart-pulse"></i></span>
+
+                <p class="text-sm text-flag-ink/70 mb-6">
+                    <template x-if="subscription && subscription.status === 'active'">
+                        <span>اشتراكك نشط حتى <span class="font-medium" x-text="formatDate(subscription.current_period_end)"></span></span>
+                    </template>
+                    <template x-if="!subscription || subscription.status !== 'active'">
+                        <span>لا يوجد اشتراك فعال حاليًا</span>
+                    </template>
+                </p>
+
+                <ul class="text-start space-y-3 mb-6 text-sm">
+                    <li class="flex items-center gap-2"><i class="fas fa-check-circle text-emerald-600"></i> وصول غير محدود لجميع الاختبارات</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check-circle text-emerald-600"></i> تقييم تفصيلي مع شرح الأخطاء</li>
+                    <li class="flex items-center gap-2"><i class="fas fa-check-circle text-emerald-600"></i> شهادة إتمام بعد كل اختبار</li>
+                </ul>
+
+                <button @click="renewSubscription()" :disabled="renewing" class="de-btn de-btn-primary w-full text-sm py-3 disabled:opacity-50">
+                    <span x-text="renewing ? 'جاري التجديد...' : 'تجديد الاشتراك (500 درهم / 3 أشهر)'"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Logout confirm ============ -->
+    <div x-show="showLogoutConfirm" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
+        <div class="de-card w-full max-w-sm overflow-hidden">
+            <div class="de-flag-ribbon"></div>
+            <div class="p-6 text-center">
+                <h3 class="font-display font-semibold text-flag-ink mb-2">تسجيل الخروج؟</h3>
+                <p class="text-sm text-flag-ink/60 mb-6">سيتم إنهاء جلستك الحالية.</p>
+                <div class="flex gap-3">
+                    <button @click="showLogoutConfirm = false" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#1E293B;">إلغاء</button>
+                    <button @click="logout()" class="de-btn de-btn-primary flex-1 text-sm py-2.5">نعم، خروج</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Toast ============ -->
+    <div x-show="toast" x-cloak x-transition class="fixed bottom-6 inset-x-0 flex justify-center z-50 px-4">
+        <div class="de-card px-5 py-3 rounded-xl flex items-center gap-2 text-sm shadow-xl">
+            <i class="fas fa-circle-check text-emerald-600"></i>
+            <span x-text="toast"></span>
+        </div>
+    </div>
+
+    <script>
+        function dashboardApp() {
+            return {
+                token: localStorage.getItem('auth_token') || null,
+                user: null,
+                authChecked: false,
+                gateStatus: 'loading', // pending | rejected | ok
+
+                subscription: null,
+                testAttempts: [],
+                availableTests: [],
+
+                showMobileMenu: false,
+                showSubscriptionModal: false,
+                showLogoutConfirm: false,
+                renewing: false,
+                toast: '',
+
+                // Test-taking state
+                activeTest: null,
+                activeAttemptId: null,
+                currentQuestionIndex: 0,
+                selectedAnswers: {},
+                showTestModal: false,
+                testResults: null,
+                timeLeftSeconds: 0,
+                timerHandle: null,
+                testStartedAt: null,
+                showWritingPractice: false,
+                writingDraft: '',
+                showWritingSample: false,
+                showTranscript: false,
+                audioFailed: false,
+
+                // Attempt detail modal
+                showAttemptDetailModal: false,
+                selectedAttemptDetail: null,
+
+                gradedItems: [],
+
+                get currentQuestion() {
+                    return this.gradedItems[this.currentQuestionIndex] || null;
+                },
+
+                async init() {
+                    if (!this.token) {
+                        window.location.href = '/';
+                        return;
+                    }
+                    try {
+                        const res = await fetch('/api/auth/status', { headers: this.authHeaders() });
+                        const data = await res.json();
+                        if (!data.authenticated) {
+                            localStorage.removeItem('auth_token');
+                            window.location.href = '/';
+                            return;
+                        }
+                        if (data.user.role === 'admin') {
+                            window.location.href = '/admin.html';
+                            return;
+                        }
+                        this.user = data.user;
+                        this.gateStatus = data.user.membership_status === 'active' ? 'ok' : data.user.membership_status;
+                        this.authChecked = true;
+
+                        if (this.gateStatus === 'ok') {
+                            this.loadDashboardData();
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        this.authChecked = true;
+                    }
+                },
+
+                authHeaders(json) {
+                    const headers = { 'Authorization': 'Bearer ' + this.token };
+                    if (json) headers['Content-Type'] = 'application/json';
+                    return headers;
+                },
+
+                async loadDashboardData() {
+                    try {
+                        const [subRes, attemptsRes, testsRes] = await Promise.all([
+                            fetch('/api/subscription/status', { headers: this.authHeaders() }),
+                            fetch('/api/tests/attempts', { headers: this.authHeaders() }),
+                            fetch('/api/tests', { headers: this.authHeaders() })
+                        ]);
+                        const subData = await subRes.json();
+                        if (subData.success) this.subscription = subData.subscription;
+
+                        const attemptsData = await attemptsRes.json();
+                        if (attemptsData.success) this.testAttempts = attemptsData.attempts;
+
+                        const testsData = await testsRes.json();
+                        if (testsData.success) this.availableTests = testsData.tests;
+                    } catch (e) {
+                        console.error('Error loading dashboard data:', e);
+                        this.showToast('تعذّر تحميل بعض بيانات لوحة التحكم');
+                    }
+                },
+
+                averageScore() {
+                    const completed = this.testAttempts.filter(a => a.score_percentage !== null && a.score_percentage !== undefined);
+                    if (completed.length === 0) return 0;
+                    return completed.reduce((sum, a) => sum + a.score_percentage, 0) / completed.length;
+                },
+
+                daysUntilRenewal() {
+                    if (!this.subscription || !this.subscription.current_period_end) return 0;
+                    const diff = new Date(this.subscription.current_period_end) - new Date();
+                    return Math.max(0, Math.ceil(diff / 86400000));
+                },
+
+                async startTest(test) {
+                    try {
+                        const startRes = await fetch('/api/tests/attempts', {
+                            method: 'POST', headers: this.authHeaders(true),
+                            body: JSON.stringify({ test_id: test.id })
+                        });
+                        const startData = await startRes.json();
+                        if (!startData.success) {
+                            this.showToast(startData.message || 'تعذّر بدء الاختبار');
+                            return;
+                        }
+                        this.activeAttemptId = startData.attempt.id;
+
+                        const detailRes = await fetch('/api/tests/' + test.id, { headers: this.authHeaders() });
+                        const detailData = await detailRes.json();
+                        const sections = (detailData.success && detailData.test.sections) ? detailData.test.sections : [];
+                        const flattened = [];
+                        sections.forEach(section => {
+                            section.items.forEach(item => {
+                                flattened.push({
+                                    ...item,
+                                    sectionName: section.name,
+                                    sectionType: section.type,
+                                    sectionInstructions: section.instructions,
+                                    sectionPassage: section.passage,
+                                    sectionAudioUrl: section.audio_url || null,
+                                    sectionOfficialMinutes: section.official_duration_minutes
+                                });
+                            });
+                        });
+                        if (!flattened.length) {
+                            this.showToast('لا توجد أسئلة متاحة لهذا الاختبار حاليًا');
+                            return;
+                        }
+
+                        this.activeTest = detailData.test;
+                        this.gradedItems = flattened;
+                        this.currentQuestionIndex = 0;
+                        this.selectedAnswers = {};
+                        this.testResults = null;
+                        this.showTestModal = true;
+                        this.showWritingPractice = false;
+                        this.writingDraft = '';
+                        this.showWritingSample = false;
+                        this.showTranscript = false;
+                        this.audioFailed = false;
+                        this.testStartedAt = Date.now();
+                        this.startTimer(Math.max(180, flattened.length * 90));
+                    } catch (e) {
+                        console.error(e);
+                        this.showToast('حدث خطأ أثناء بدء الاختبار');
+                    }
+                },
+
+                startTimer(seconds) {
+                    this.stopTimer();
+                    this.timeLeftSeconds = seconds;
+                    this.timerHandle = setInterval(() => {
+                        if (this.timeLeftSeconds <= 1) {
+                            this.timeLeftSeconds = 0;
+                            this.stopTimer();
+                            this.submitAnswers();
+                        } else {
+                            this.timeLeftSeconds--;
+                        }
+                    }, 1000);
+                },
+
+                stopTimer() {
+                    if (this.timerHandle) {
+                        clearInterval(this.timerHandle);
+                        this.timerHandle = null;
+                    }
+                },
+
+                async submitAnswers() {
+                    if (!this.activeTest || !this.activeAttemptId) return;
+                    this.stopTimer();
+                    const answers = Object.entries(this.selectedAnswers).map(([question_id, answer_id]) => ({ question_id, answer_id }));
+                    const timeTaken = this.testStartedAt ? Math.round((Date.now() - this.testStartedAt) / 1000) : 0;
+
+                    try {
+                        const res = await fetch('/api/tests/attempts/' + this.activeAttemptId, {
+                            method: 'PUT', headers: this.authHeaders(true),
+                            body: JSON.stringify({ answers, completed_at: new Date().toISOString(), time_taken_seconds: timeTaken })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            this.testResults = data.result;
+                            this.loadDashboardData();
+                        } else {
+                            this.showToast(data.message || 'حدث خطأ أثناء إرسال الاختبار');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        this.showToast('حدث خطأ أثناء إرسال الاختبار');
+                    }
+                },
+
+                retakeTest() {
+                    const test = this.availableTests.find(t => t.id === this.activeTest?.id);
+                    this.closeTestModal();
+                    if (test) this.startTest(test);
+                },
+
+                retakeAttempt(testId) {
+                    const test = this.availableTests.find(t => t.id === testId);
+                    this.showAttemptDetailModal = false;
+                    this.selectedAttemptDetail = null;
+                    if (test) this.startTest(test);
+                },
+
+                closeTestModal() {
+                    this.stopTimer();
+                    this.showTestModal = false;
+                    this.activeTest = null;
+                    this.gradedItems = [];
+                    this.activeAttemptId = null;
+                    this.testResults = null;
+                    this.selectedAnswers = {};
+                    this.currentQuestionIndex = 0;
+                    this.showWritingPractice = false;
+                    this.writingDraft = '';
+                    this.showWritingSample = false;
+                    this.showTranscript = false;
+                    this.audioFailed = false;
+                },
+
+                async viewAttempt(attemptId) {
+                    try {
+                        const res = await fetch('/api/tests/attempts/' + attemptId, { headers: this.authHeaders() });
+                        const data = await res.json();
+                        if (data.success) {
+                            this.selectedAttemptDetail = data.attempt;
+                            this.showAttemptDetailModal = true;
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    }
+                },
+
+                async renewSubscription() {
+                    this.renewing = true;
+                    try {
+                        const res = await fetch('/api/subscription', { method: 'POST', headers: this.authHeaders() });
+                        const data = await res.json();
+                        if (data.success) {
+                            this.showToast('تم تجديد الاشتراك بنجاح');
+                            this.showSubscriptionModal = false;
+                            this.loadDashboardData();
+                        } else {
+                            this.showToast(data.message || 'تعذّر تجديد الاشتراك');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        this.showToast('حدث خطأ أثناء تجديد الاشتراك');
+                    } finally {
+                        this.renewing = false;
+                    }
+                },
+
+                logout() {
+                    fetch('/api/auth/logout', { method: 'POST' }).finally(() => {
+                        localStorage.removeItem('auth_token');
+                        window.location.href = '/index.html';
+                    });
+                },
+
+                showToast(msg) {
+                    this.toast = msg;
+                    setTimeout(() => { this.toast = ''; }, 2800);
+                },
+
+                initials(name) {
+                    if (!name) return '?';
+                    const parts = name.trim().split(/\s+/);
+                    return parts.length > 1 ? parts[0].charAt(0) + parts[1].charAt(0) : parts[0].charAt(0);
+                },
+
+                formatDate(iso) {
+                    if (!iso) return '—';
+                    return new Date(iso).toLocaleDateString('ar-MA', { year: 'numeric', month: 'short', day: 'numeric' });
+                },
+
+                formatDuration(totalSeconds) {
+                    const s = totalSeconds || 0;
+                    const mins = Math.floor(s / 60);
+                    const secs = s % 60;
+                    return mins > 0 ? `${mins}د ${secs}ث` : `${secs}ث`;
+                },
+
+                formatCountdown(totalSeconds) {
+                    const s = Math.max(0, totalSeconds || 0);
+                    const mins = Math.floor(s / 60).toString().padStart(2, '0');
+                    const secs = (s % 60).toString().padStart(2, '0');
+                    return `${mins}:${secs}`;
+                }
+            };
+        }
+    </script>
+</body>
+</html>

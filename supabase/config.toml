@@ -1,0 +1,25 @@
+# Supabase Configuration for Ausbildung Test Prep
+[database]
+host = "localhost"
+port = 5432
+dbname = "postgres"
+schema = "public"
+
+[auth]
+site_url = "http://localhost:3000"
+additional_redirect_urls = [
+    "http://localhost:3000/auth/callback",
+    "http://127.0.0.1:3000/auth/callback"
+]
+email_autoconfirm = false
+jwt_expiry = 3600
+smtp_admin_email = "admin@ausbildung-test.com"
+
+[storage]
+# No specific storage configuration needed for this project
+
+[functions]
+# No specific functions configuration needed
+
+[api]
+# API configuration

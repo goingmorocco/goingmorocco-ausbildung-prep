@@ -1,0 +1,36 @@
+{
+  "name": "ausbildung-test-prep",
+  "version": "1.0.0",
+  "description": "منصة شاملة للتحضير لاختبارات اللغة الألمانية المطلوبة لبرامج Ausbildung في ألمانيا",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "audio": "node scripts/generate-audio.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Ausbildung",
+    "الألمانية",
+    "اختبار اللغة",
+    "Goethe",
+    "telc",
+    "ÖSD",
+    "ألمانيا",
+    "تدريب مهني"
+  ],
+  "author": "Ausbildung Test Prep Team",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

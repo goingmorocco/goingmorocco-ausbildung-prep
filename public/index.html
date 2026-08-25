@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إعداد اختبار Ausbildungsaufnahme</title>
+    <meta name="description" content="منصة شاملة للتحضير لاختبارات اللغة الألمانية المطلوبة لبرامج Ausbildung في ألمانيا. اختبارات محاكية لـ Goethe, telc, و ÖSD مع شرح تفصيلي وتقييم فوري.">
+    <meta name="keywords" content="Ausbildung, الألمانية, اختبار اللغة, Goethe, telc, ÖSD, ألمانيا, تدريب مهني">
+    <meta name="author" content="Ausbildung Test Prep">
+
+    <meta property="og:title" content="إعداد اختبار Ausbildungsaufnahme">
+    <meta property="og:description" content="منصة شاملة للتحضير لاختبارات اللغة الألمانية المطلوبة لبرامج Ausbildung في ألمانيا">
+    <meta property="og:image" content="https://ausbildung-test-prep.com/og-image.jpg">
+    <meta property="og:url" content="https://ausbildung-test-prep.com/">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="ar_AR">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="إعداد اختبار Ausbildungsaufnahme">
+    <meta name="twitter:description" content="منصة شاملة للتحضير لاختبارات اللغة الألمانية المطلوبة لبرامج Ausbildung في ألمانيا">
+    <meta name="twitter:image" content="https://ausbildung-test-prep.com/og-image.jpg">
+
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+
+    <!-- Fonts: Cairo (Arabic), Space Grotesk (Latin display), JetBrains Mono (badges/IDs) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              flag: {
+                black: '#2563EB',
+                blacksoft: '#2563EB',
+                charcoal: '#2563EB',
+                red: '#2563EB',
+                redbright: '#2563EB',
+                reddeep: '#2563EB',
+                gold: '#2563EB',
+                goldsoft: '#2563EB',
+                cream: '#F5F8FC',
+                paper: '#FFFFFF',
+                ink: '#1E293B'
+              }
+            },
+            fontFamily: {
+              display: ['"Space Grotesk"', 'sans-serif'],
+              arabic: ['Cairo', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'monospace']
+            }
+          }
+        }
+      }
+    </script>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+    <!-- Alpine.js (Intersect plugin must load before core) -->
+    <script defer src="https://unpkg.com/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+    <style>[x-cloak]{display:none !important;}</style>
+</head>
+<body class="font-arabic de-paper-bg text-flag-ink antialiased" x-data="{
+        user: null,
+        isLoading: false,
+        showModal: false,
+        showMobileMenu: false,
+        modalTitle: '',
+        modalContent: '',
+        email: '',
+        password: '',
+        rememberMe: false,
+        userData: {
+            full_name: '',
+            email: '',
+            phone: '',
+            password: '',
+            password_confirm: '',
+            terms_accepted: false
+        },
+        init() {
+            this.checkAuthStatus();
+        },
+        async checkAuthStatus() {
+            try {
+                const token = localStorage.getItem('auth_token');
+                if (!token) return;
+                const response = await fetch('/api/auth/status', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await response.json();
+                if (data.authenticated) {
+                    this.user = data.user;
+                } else {
+                    localStorage.removeItem('auth_token');
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+            }
+        },
+        async login(email, password) {
+            this.isLoading = true;
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    this.user = data.user;
+                    localStorage.setItem('auth_token', data.token);
+                    this.closeModal();
+                    window.location.href = data.user.role === 'admin' ? '/admin.html' : '/dashboard.html';
+                } else {
+                    this.showErrorModal('خطأ في تسجيل الدخول', data.message);
+                }
+            } catch (error) {
+                this.showErrorModal('خطأ في الاتصال', 'حدث خطأ أثناء الاتصال بالخادم');
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        async register(userData) {
+            this.isLoading = true;
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                const data = await response.json();
+                if (data.success) {
+                    this.showSuccessModal('تم التسجيل بنجاح', 'تم إنشاء حسابك وهو الآن قيد المراجعة. سنُفعّل وصولك الكامل بعد تأكيد الاشتراك من طرف الإدارة.');
+                    setTimeout(() => {
+                        this.closeModal();
+                    }, 2000);
+                } else {
+                    this.showErrorModal('خطأ في التسجيل', data.message);
+                }
+            } catch (error) {
+                this.showErrorModal('خطأ في الاتصال', 'حدث خطأ أثناء الاتصال بالخادم');
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        showErrorModal(title, message) {
+            this.modalTitle = title;
+            this.modalContent = message;
+            this.showModal = true;
+        },
+        showSuccessModal(title, message) {
+            this.modalTitle = title;
+            this.modalContent = message;
+            this.showModal = true;
+        },
+        closeModal() {
+            this.showModal = false;
+            this.modalTitle = '';
+            this.modalContent = '';
+        },
+        logout() {
+            fetch('/api/auth/logout', { method: 'POST' })
+                .then(() => {
+                    localStorage.removeItem('auth_token');
+                    this.user = null;
+                    window.location.href = '/index.html';
+                });
+        }
+    }" x-init="init()">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-40">
+        <div class="de-light-bg text-flag-ink shadow-sm border-b border-black/5">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-18 items-center py-3">
+                    <a href="/" class="flex items-center gap-3">
+                        <span class="de-stamp de-stamp-onlight h-11 w-11 text-sm font-mono flex-shrink-0">
+                            <i class="fas fa-landmark"></i>
+                        </span>
+                        <span class="font-display font-semibold text-lg leading-tight hidden sm:block">
+                            إعداد اختبار<br><span class="text-flag-red">Ausbildungsaufnahme</span>
+                        </span>
+                    </a>
+
+                    <nav class="hidden lg:flex items-center gap-8 font-medium text-sm text-flag-ink/70">
+                        <a href="#how-it-works" class="hover:text-flag-red transition-colors">كيف يعمل الموقع</a>
+                        <a href="#available-tests" class="hover:text-flag-red transition-colors">الاختبارات</a>
+                        <a href="#pricing" class="hover:text-flag-red transition-colors">الأسعار</a>
+                        <a href="#faq" class="hover:text-flag-red transition-colors">الأسئلة الشائعة</a>
+                    </nav>
+
+                    <div class="hidden md:flex items-center gap-3">
+                        <template x-if="!user">
+                            <div class="flex items-center gap-3">
+                                <button @click="showModal = true; modalTitle = 'تسجيل الدخول'; modalContent = $refs['login-form'].innerHTML"
+                                        class="de-btn de-btn-ghost text-sm py-2 px-5">
+                                    <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+                                </button>
+                                <button @click="showModal = true; modalTitle = 'إنشاء حساب'; modalContent = $refs['register-form'].innerHTML"
+                                        class="de-btn de-btn-gold text-sm py-2 px-5">
+                                    <i class="fas fa-user-plus"></i> إنشاء حساب
+                                </button>
+                            </div>
+                        </template>
+                        <template x-if="user">
+                            <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="de-avatar h-9 w-9 text-xs" x-text="(user.full_name || '?').trim().charAt(0)"></span>
+                                    <span class="text-sm text-flag-ink/80" x-text="user.full_name"></span>
+                                </div>
+                                <a href="/dashboard.html" class="de-btn de-btn-gold text-sm py-2 px-4">
+                                    <i class="fas fa-tachometer-alt"></i> لوحة التحكم
+                                </a>
+                                <button @click="showModal = true; modalTitle = 'تسجيل الخروج'; modalContent = '<p class=&quot;text-center&quot;>هل أنت متأكد من أنك تريد تسجيل الخروج؟</p><div class=&quot;mt-4 flex justify-center gap-3&quot;><button @click=&quot;logout()&quot; class=&quot;de-btn de-btn-primary text-sm py-2 px-4&quot;>نعم، تسجيل الخروج</button><button @click=&quot;showModal = false&quot; class=&quot;de-btn de-btn-ghost text-sm py-2 px-4&quot;>إلغاء</button></div>'"
+                                        class="text-flag-ink/60 hover:text-flag-red transition-colors text-sm">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+
+                    <button @click="showMobileMenu = !showMobileMenu"
+                            class="md:hidden flex items-center justify-center h-10 w-10 rounded-full border border-black/10 hover:border-flag-red hover:text-flag-red transition-colors">
+                        <i class="fas" :class="showMobileMenu ? 'fa-times' : 'fa-bars'"></i>
+                    </button>
+                </div>
+
+                <!-- Mobile Menu -->
+                <div x-show="showMobileMenu" x-cloak x-transition class="md:hidden pb-5">
+                    <div class="de-card rounded-2xl p-4 space-y-3">
+                        <a href="#how-it-works" @click="showMobileMenu=false" class="block text-flag-ink/70 hover:text-flag-red py-1">كيف يعمل الموقع</a>
+                        <a href="#available-tests" @click="showMobileMenu=false" class="block text-flag-ink/70 hover:text-flag-red py-1">الاختبارات</a>
+                        <a href="#pricing" @click="showMobileMenu=false" class="block text-flag-ink/70 hover:text-flag-red py-1">الأسعار</a>
+                        <a href="#faq" @click="showMobileMenu=false" class="block text-flag-ink/70 hover:text-flag-red py-1">الأسئلة الشائعة</a>
+                        <div class="pt-3 border-t border-black/10">
+                            <template x-if="!user">
+                                <div class="flex flex-col gap-2">
+                                    <button @click="showModal = true; showMobileMenu = false; modalTitle = 'تسجيل الدخول'; modalContent = $refs['login-form'].innerHTML"
+                                            class="de-btn de-btn-ghost w-full text-sm py-2">
+                                        <i class="fas fa-sign-in-alt"></i> تسجيل الدخول
+                                    </button>
+                                    <button @click="showModal = true; showMobileMenu = false; modalTitle = 'إنشاء حساب'; modalContent = $refs['register-form'].innerHTML"
+                                            class="de-btn de-btn-gold w-full text-sm py-2">
+                                        <i class="fas fa-user-plus"></i> إنشاء حساب
+                                    </button>
+                                </div>
+                            </template>
+                            <template x-if="user">
+                                <div class="flex flex-col gap-2">
+                                    <a href="/dashboard.html" class="de-btn de-btn-gold w-full text-sm py-2">
+                                        <i class="fas fa-tachometer-alt"></i> لوحة التحكم
+                                    </a>
+                                    <button @click="showModal = true; showMobileMenu = false; modalTitle = 'تسجيل الخروج'; modalContent = '<p class=&quot;text-center&quot;>هل أنت متأكد من أنك تريد تسجيل الخروج؟</p><div class=&quot;mt-4 flex justify-center gap-3&quot;><button @click=&quot;logout()&quot; class=&quot;de-btn de-btn-primary text-sm py-2 px-4&quot;>نعم، تسجيل الخروج</button><button @click=&quot;showModal = false&quot; class=&quot;de-btn de-btn-ghost text-sm py-2 px-4&quot;>إلغاء</button></div>'"
+                                            class="de-btn de-btn-ghost w-full text-sm py-2">
+                                        <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Modal Container -->
+    <div x-show="showModal" x-cloak x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 transform scale-95"
+         x-transition:enter-end="opacity-100 transform scale-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100 transform scale-100"
+         x-transition:leave-end="opacity-0 transform scale-95"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
+        <div class="de-card w-full max-w-md overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="de-flag-ribbon"></div>
+            <div class="border-b border-black/10 px-6 py-4 flex items-center justify-between flex-shrink-0">
+                <h3 class="text-lg font-display font-semibold text-flag-ink flex items-center gap-2">
+                    <i class="fas fa-stamp text-flag-red"></i> <span x-text="modalTitle"></span>
+                </h3>
+                <button @click="showModal = false" class="text-flag-ink/40 hover:text-flag-red transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="px-6 py-5 space-y-4 overflow-y-auto" x-html="modalContent"></div>
+            <div class="border-t border-black/10 px-6 py-4 flex justify-end flex-shrink-0">
+                <button @click="showModal = false" class="de-btn text-sm py-2 px-5" style="background:#EEEAE0;color:#1E293B;">
+                    إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero -->
+        <section class="de-hero-photo-bg text-flag-ink relative overflow-hidden pt-16 pb-20 px-4 sm:px-6 lg:px-8">
+            <div class="de-corner-mark top-8 start-8 rounded-tl-2xl border-b-0 border-e-0 hidden md:block"></div>
+            <div class="de-corner-mark bottom-8 end-8 rounded-br-2xl border-t-0 border-s-0 hidden md:block"></div>
+
+            <div class="max-w-4xl mx-auto text-center relative">
+                <div class="flex justify-center mb-8">
+                    <span class="de-stamp de-stamp-onlight de-stamp-in h-24 w-24 text-xs leading-tight text-center flex-col">
+                        <span class="block text-[10px]">GEPRÜFT</span>
+                        <span class="block text-lg">B1·B2</span>
+                    </span>
+                </div>
+
+                <h1 class="font-display text-4xl sm:text-5xl font-bold mb-6 leading-tight">
+                    إعداد اختبار <span class="text-flag-red">Ausbildungsaufnahme</span>
+                </h1>
+                <p class="text-lg sm:text-xl text-flag-ink/70 mb-10 max-w-2xl mx-auto">
+                    منصة شاملة للتحضير لاختبارات اللغة الألمانية المطلوبة لبرامج Ausbildung في ألمانيا
+                </p>
+
+                <div class="grid sm:grid-cols-3 gap-4 mb-12 text-start">
+                    <div class="de-card rounded-2xl p-5 hover:border-flag-red/30 transition-colors de-float">
+                        <div class="h-11 w-11 rounded-xl bg-flag-red/10 flex items-center justify-center mb-4">
+                            <i class="fas fa-shield-alt text-flag-red"></i>
+                        </div>
+                        <h3 class="font-display font-semibold mb-2 text-flag-ink">اختبارات محاكية</h3>
+                        <p class="text-sm text-flag-ink/60">مماثلة تمامًا لـ Goethe, telc, و ÖSD مع شرح تفصيلي لكل سؤال</p>
+                    </div>
+                    <div class="de-card rounded-2xl p-5 hover:border-flag-red/30 transition-colors de-float-delay">
+                        <div class="h-11 w-11 rounded-xl bg-flag-gold/20 flex items-center justify-center mb-4">
+                            <i class="fas fa-chart-line text-flag-ink"></i>
+                        </div>
+                        <h3 class="font-display font-semibold mb-2 text-flag-ink">تقييم فوري</h3>
+                        <p class="text-sm text-flag-ink/60">نتائجك فور انتهاء الاختبار مع تحليل نقاط القوة والضعف</p>
+                    </div>
+                    <div class="de-card rounded-2xl p-5 hover:border-flag-red/30 transition-colors de-float">
+                        <div class="h-11 w-11 rounded-xl bg-flag-red/10 flex items-center justify-center mb-4">
+                            <i class="fas fa-user-graduate text-flag-red"></i>
+                        </div>
+                        <h3 class="font-display font-semibold mb-2 text-flag-ink">تحضير مخصص</h3>
+                        <p class="text-sm text-flag-ink/60">دورات ومواد مصممة لمتطلبات برامج التدريب المهني في ألمانيا</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row justify-center gap-4">
+                    <template x-if="!user">
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <a href="#pricing" class="de-btn de-btn-gold de-glow-pulse">
+                                <i class="fas fa-play"></i> ابدأ مجانًا
+                            </a>
+                            <a href="#how-it-works" class="de-btn de-btn-ghost">
+                                <i class="fas fa-info-circle"></i> تعرف على المزيد
+                            </a>
+                        </div>
+                    </template>
+                    <template x-if="user">
+                        <a href="/dashboard.html" class="de-btn de-btn-gold de-glow-pulse">
+                            <i class="fas fa-tachometer-alt"></i> اذهب إلى لوحة التحكم
+                        </a>
+                    </template>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trust marquee -->
+        <div class="bg-flag-blacksoft text-white/50 py-4 overflow-hidden border-t border-white/5">
+            <div class="de-marquee-track font-mono text-sm tracking-wide">
+                <div class="flex items-center gap-12 pe-12">
+                    <span>Goethe-Institut</span><span class="text-flag-gold">·</span>
+                    <span>telc GmbH</span><span class="text-flag-gold">·</span>
+                    <span>ÖSD</span><span class="text-flag-gold">·</span>
+                    <span>Ausbildungsaufnahme B1/B2</span><span class="text-flag-gold">·</span>
+                </div>
+                <div class="flex items-center gap-12 pe-12" aria-hidden="true">
+                    <span>Goethe-Institut</span><span class="text-flag-gold">·</span>
+                    <span>telc GmbH</span><span class="text-flag-gold">·</span>
+                    <span>ÖSD</span><span class="text-flag-gold">·</span>
+                    <span>Ausbildungsaufnahme B1/B2</span><span class="text-flag-gold">·</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- How It Works -->
+        <section id="how-it-works" class="py-20 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="text-center mb-16 de-reveal" x-intersect.once="$el.classList.add('de-in')">
+                    <span class="de-badge de-badge-red">DER WEG</span>
+                    <h2 class="font-display text-3xl font-bold text-flag-ink mt-4 mb-4">كيف يعمل الموقع</h2>
+                    <p class="text-lg text-flag-ink/60">ثلاث خطوات بسيطة للوصول إلى استعدادك الكامل لاختبارات Ausbildungsaufnahme</p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6 relative">
+                    <div class="hidden md:block absolute top-14 start-[16.5%] end-[16.5%] h-0.5" style="background-image:repeating-linear-gradient(to left, rgba(37,99,235,0.15) 0 8px, transparent 8px 16px);"></div>
+
+                    <div class="de-card rounded-2xl p-8 text-center relative de-reveal" x-intersect.once="$el.classList.add('de-in')">
+                        <div class="mx-auto mb-6 h-16 w-16 rounded-full bg-flag-red/10 flex items-center justify-center relative z-10 font-mono font-bold text-flag-red text-lg">01</div>
+                        <h3 class="text-xl font-display font-semibold text-flag-ink mb-3">إنشاء حساب</h3>
+                        <p class="text-flag-ink/60">سجّل حسابًا مجانيًا باستخدام بريدك الإلكتروني وكلمة مرور آمنة</p>
+                    </div>
+
+                    <div class="de-card rounded-2xl p-8 text-center relative de-reveal" x-intersect.once="$el.classList.add('de-in')" style="animation-delay:.08s">
+                        <div class="mx-auto mb-6 h-16 w-16 rounded-full bg-flag-gold/15 flex items-center justify-center relative z-10 font-mono font-bold text-flag-ink text-lg">02</div>
+                        <h3 class="text-xl font-display font-semibold text-flag-ink mb-3">اختر اشتراكك</h3>
+                        <p class="text-flag-ink/60">اشترك لمدة 3 أشهر مقابل 500 درهم فقط للحصول على جميع الاختبارات</p>
+                    </div>
+
+                    <div class="de-card rounded-2xl p-8 text-center relative de-reveal" x-intersect.once="$el.classList.add('de-in')" style="animation-delay:.16s">
+                        <div class="mx-auto mb-6 h-16 w-16 rounded-full bg-flag-red/10 flex items-center justify-center relative z-10 font-mono font-bold text-flag-red text-lg">03</div>
+                        <h3 class="text-xl font-display font-semibold text-flag-ink mb-3">ابدأ التدريب</h3>
+                        <p class="text-flag-ink/60">خذ الاختبارات المحاكية، راجع أخطائك، وتحسّن استعدادك للاختبار الحقيقي</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Available Tests -->
+        <section id="available-tests" class="py-20 px-4 sm:px-6 lg:px-8 bg-flag-blacksoft">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-16 de-reveal" x-intersect.once="$el.classList.add('de-in')">
+                    <span class="de-badge de-badge-gold">PRÜFUNGEN</span>
+                    <h2 class="font-display text-3xl font-bold text-white mt-4 mb-4">الاختبارات المتاحة للتحضير</h2>
+                    <p class="text-lg text-white/60 max-w-2xl mx-auto">اختبارات محاكية مصممة بدقة لتتوافق مع شكل ومحتوى ومستوى صعوبة الاختبارات الرسمية</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Goethe B1 -->
+                    <div class="de-card de-ticket-edge rounded-2xl p-6 de-reveal" x-intersect.once="$el.classList.add('de-in')">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="h-12 w-12 bg-flag-red/10 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-language text-flag-red text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-display font-semibold text-flag-ink">Goethe-Zertifikat B1</h3>
+                                    <p class="text-sm text-flag-ink/50">المستوى المتوسط</p>
+                                </div>
+                            </div>
+                            <span class="de-badge de-badge-red">B1</span>
+                        </div>
+                        <p class="text-flag-ink/65 mb-4 text-sm">الاختبار الرسمي لمعهد جوته لمستوى B1، يركز على التواصل اليومي والمواقف العملية</p>
+                        <div class="grid grid-cols-2 gap-3 text-xs text-flag-ink/60 font-mono mb-5">
+                            <div><i class="fas fa-clock me-1"></i> 165 دقيقة</div>
+                            <div><i class="fas fa-question-circle me-1"></i> 60 سؤال</div>
+                            <div><i class="fas fa-check-circle me-1 text-emerald-600"></i> 60% للنجاح</div>
+                            <div><i class="fas fa-user-graduate me-1"></i> مناسب لـ Ausbildung</div>
+                        </div>
+                        <a href="#" class="de-btn de-btn-primary w-full text-sm py-2.5">
+                            <i class="fas fa-play"></i> تجربة مجانية
+                        </a>
+                    </div>
+
+                    <!-- Goethe B2 -->
+                    <div class="de-card de-ticket-edge rounded-2xl p-6 de-reveal" x-intersect.once="$el.classList.add('de-in')" style="animation-delay:.05s">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="h-12 w-12 bg-flag-red/10 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-language text-flag-red text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-display font-semibold text-flag-ink">Goethe-Zertifikat B2</h3>
+                                    <p class="text-sm text-flag-ink/50">المستوى فوق المتوسط</p>
+                                </div>
+                            </div>
+                            <span class="de-badge de-badge-red">B2</span>
+                        </div>
+                        <p class="text-flag-ink/65 mb-4 text-sm">الاختبار الرسمي لمعهد جوته لمستوى B2، مطلوب لبرامج Ausbildung التقنية والتجارية</p>
+                        <div class="grid grid-cols-2 gap-3 text-xs text-flag-ink/60 font-mono mb-5">
+                            <div><i class="fas fa-clock me-1"></i> 180 دقيقة</div>
+                            <div><i class="fas fa-question-circle me-1"></i> 60 سؤال</div>
+                            <div><i class="fas fa-check-circle me-1 text-emerald-600"></i> 60% للنجاح</div>
+                            <div><i class="fas fa-user-graduate me-1"></i> مطلوب لمعظم البرامج</div>
+                        </div>
+                        <a href="#" class="de-btn de-btn-primary w-full text-sm py-2.5">
+                            <i class="fas fa-play"></i> تجربة مجانية
+                        </a>
+                    </div>
+
+                    <!-- telc B1 Beruf -->
+                    <div class="de-card de-ticket-edge rounded-2xl p-6 de-reveal" x-intersect.once="$el.classList.add('de-in')" style="animation-delay:.1s">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="h-12 w-12 bg-flag-gold/15 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-briefcase text-flag-ink text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-display font-semibold text-flag-ink">telc Deutsch B1 Beruf</h3>
+                                    <p class="text-sm text-flag-ink/50">اللغة الألمانية المهنية</p>
+                                </div>
+                            </div>
+                            <span class="de-badge de-badge-gold">B1</span>
+                        </div>
+                        <p class="text-flag-ink/65 mb-4 text-sm">اختبار telc المتخصص في السياقات المهنية، مثالي للمتقدمين لبرامج Ausbildung العملية</p>
+                        <div class="grid grid-cols-2 gap-3 text-xs text-flag-ink/60 font-mono mb-5">
+                            <div><i class="fas fa-clock me-1"></i> 150 دقيقة</div>
+                            <div><i class="fas fa-question-circle me-1"></i> 60 سؤال</div>
+                            <div><i class="fas fa-check-circle me-1 text-emerald-600"></i> 60% للنجاح</div>
+                            <div><i class="fas fa-hard-hat me-1"></i> مصطلحات مهنية</div>
+                        </div>
+                        <a href="#" class="de-btn de-btn-primary w-full text-sm py-2.5">
+                            <i class="fas fa-play"></i> تجربة مجانية
+                        </a>
+                    </div>
+
+                    <!-- telc B2 Beruf -->
+                    <div class="de-card de-ticket-edge rounded-2xl p-6 de-reveal" x-intersect.once="$el.classList.add('de-in')" style="animation-delay:.15s">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="h-12 w-12 bg-flag-gold/15 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-briefcase text-flag-ink text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-display font-semibold text-flag-ink">telc Deutsch B2 Beruf</h3>
+                                    <p class="text-sm text-flag-ink/50">اللغة الألمانية المهنية المتقدمة</p>
+                                </div>
+                            </div>
+                            <span class="de-badge de-badge-gold">B2</span>
+                        </div>
+                        <p class="text-flag-ink/65 mb-4 text-sm">اختبار telc المتخصص في السياقات المهنية لمستوى B2، مطلوب للبرامج التقنية والتجارية</p>
+                        <div class="grid grid-cols-2 gap-3 text-xs text-flag-ink/60 font-mono mb-5">
+                            <div><i class="fas fa-clock me-1"></i> 150 دقيقة</div>
+                            <div><i class="fas fa-question-circle me-1"></i> 60 سؤال</div>
+                            <div><i class="fas fa-check-circle me-1 text-emerald-600"></i> 60% للنجاح</div>
+                            <div><i class="fas fa-chart-line me-1"></i> تواصل مهني</div>
+                        </div>
+                        <a href="#" class="de-btn de-btn-primary w-full text-sm py-2.5">
+                            <i class="fas fa-play"></i> تجربة مجانية
+                        </a>
+                    </div>
+
+                    <!-- ÖSD B1 -->
+                    <div class="de-card de-ticket-edge rounded-2xl p-6 de-reveal" x-intersect.once="$el.classList.add('de-in')" style="animation-delay:.2s">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="h-12 w-12 bg-flag-red/10 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-language text-flag-red text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-display font-semibold text-flag-ink">ÖSD Zertifikat B1</h3>
+                                    <p class="text-sm text-flag-ink/50">شهادة اللغة الألمانية النمساوية</p>
+                                </div>
+                            </div>
+                            <span class="de-badge de-badge-red">B1</span>
+                        </div>
+                        <p class="text-flag-ink/65 mb-4 text-sm">شهادة اللغة الألمانية من معهد ÖSD النمساوي، معترف بها في ألمانيا لجميع الأغراض</p>
+                        <div class="grid grid-cols-2 gap-3 text-xs text-flag-ink/60 font-mono mb-5">
+                            <div><i class="fas fa-clock me-1"></i> 160 دقيقة</div>
+                            <div><i class="fas fa-question-circle me-1"></i> 55 سؤال</div>
+                            <div><i class="fas fa-check-circle me-1 text-emerald-600"></i> 60% للنجاح</div>
+                            <div><i class="fas fa-globe-europe me-1"></i> معترف به بالاتحاد الأوروبي</div>
+                        </div>
+                        <a href="#" class="de-btn de-btn-primary w-full text-sm py-2.5">
+                            <i class="fas fa-play"></i> تجربة مجانية
+                        </a>
+                    </div>
+
+                    <!-- ÖSD B2 -->
+                    <div class="de-card de-ticket-edge rounded-2xl p-6 de-reveal" x-intersect.once="$el.classList.add('de-in')" style="animation-delay:.25s">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="h-12 w-12 bg-flag-red/10 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-language text-flag-red text-xl"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-display font-semibold text-flag-ink">ÖSD Zertifikat B2</h3>
+                                    <p class="text-sm text-flag-ink/50">شهادة اللغة الألمانية النمساوية المتقدمة</p>
+                                </div>
+                            </div>
+                            <span class="de-badge de-badge-red">B2</span>
+                        </div>
+                        <p class="text-flag-ink/65 mb-4 text-sm">شهادة ÖSD لمستوى B2، تُعادل Goethe B2 وتُقبل من قبل جميع المؤسسات الألمانية</p>
+                        <div class="grid grid-cols-2 gap-3 text-xs text-flag-ink/60 font-mono mb-5">
+                            <div><i class="fas fa-clock me-1"></i> 210 دقيقة</div>
+                            <div><i class="fas fa-question-circle me-1"></i> 55 سؤال</div>
+                            <div><i class="fas fa-check-circle me-1 text-emerald-600"></i> 60% للنجاح</div>
+                            <div><i class="fas fa-briefcase me-1"></i> أكاديمية ومهنية</div>
+                        </div>
+                        <a href="#" class="de-btn de-btn-primary w-full text-sm py-2.5">
+                            <i class="fas fa-play"></i> تجربة مجانية
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pricing -->
+        <section id="pricing" class="py-20 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-16 de-reveal" x-intersect.once="$el.classList.add('de-in')">
+                    <span class="de-badge de-badge-red">TARIF</span>
+                    <h2 class="font-display text-3xl font-bold text-flag-ink mt-4 mb-4">الباقات والأسعار</h2>
+                    <p class="text-lg text-flag-ink/60">وصول غير محدود لجميع الاختبارات والمواد التعليمية لفترة 3 أشهر</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Free Plan -->
+                    <div class="de-card rounded-2xl p-8 text-center de-reveal" x-intersect.once="$el.classList.add('de-in')">
+                        <h3 class="text-2xl font-display font-bold text-flag-ink mb-2">خطة مجانية</h3>
+                        <p class="text-4xl font-display font-bold text-flag-ink mb-1">0 <span class="text-lg font-normal text-flag-ink/50">درهم</span></p>
+                        <p class="text-sm text-flag-ink/50 mb-8">للمستخدمين الجدد</p>
+
+                        <ul class="text-start space-y-4 mb-8">
+                            <li class="flex items-center gap-3"><i class="fas fa-check-circle text-emerald-600"></i> تجربة اختبار واحد مجانًا</li>
+                            <li class="flex items-center gap-3 text-flag-ink/45"><i class="fas fa-times text-flag-red/60"></i> وصول محدود للمواد التعليمية</li>
+                            <li class="flex items-center gap-3 text-flag-ink/45"><i class="fas fa-times text-flag-red/60"></i> بدون شهادة إتمام</li>
+                            <li class="flex items-center gap-3 text-flag-ink/45"><i class="fas fa-times text-flag-red/60"></i> بدون تقييم تفصيلي للأداء</li>
+                        </ul>
+
+                        <button @click="showModal = true; modalTitle = 'إنشاء حساب'; modalContent = $refs['register-form'].innerHTML"
+                                class="de-btn w-full text-sm py-3" style="background:#EEEAE0;color:#1E293B;">
+                            <i class="fas fa-user-plus"></i> التسجيل مجانًا
+                        </button>
+                    </div>
+
+                    <!-- Premium Plan -->
+                    <div class="de-card-dark rounded-2xl p-8 text-center text-white relative overflow-hidden de-reveal" x-intersect.once="$el.classList.add('de-in')" style="animation-delay:.08s">
+                        <div class="absolute top-5 end-[-38px] rotate-45 bg-flag-gold text-white text-xs font-bold font-mono px-10 py-1">الأكثر طلبًا</div>
+                        <span class="de-badge de-badge-gold mb-4 inline-block">PREMIUM</span>
+                        <h3 class="text-2xl font-display font-bold mb-2">الخطة المميزة</h3>
+                        <p class="text-3xl font-display font-bold text-flag-gold mb-1">500 <span class="text-base font-normal text-white/60">درهم</span></p>
+                        <p class="text-sm text-white/60 mb-8">لفترة 3 أشهر</p>
+
+                        <ul class="text-start space-y-4 mb-8">
+                            <li class="flex items-center gap-3"><i class="fas fa-check-circle text-flag-gold"></i> وصول غير محدود لجميع الاختبارات</li>
+                            <li class="flex items-center gap-3"><i class="fas fa-check-circle text-flag-gold"></i> جميع المواد التعليمية والدورات</li>
+                            <li class="flex items-center gap-3"><i class="fas fa-check-circle text-flag-gold"></i> تقييم تفصيلي مع شرح الأخطاء</li>
+                            <li class="flex items-center gap-3"><i class="fas fa-check-circle text-flag-gold"></i> شهادة إتمام بعد كل اختبار</li>
+                            <li class="flex items-center gap-3"><i class="fas fa-check-circle text-flag-gold"></i> تتبع التقدم والإحصاءات الشخصية</li>
+                            <li class="flex items-center gap-3"><i class="fas fa-check-circle text-flag-gold"></i> أولوية في الدعم الفني</li>
+                        </ul>
+
+                        <button @click="showModal = true; modalTitle = 'إنشاء حساب'; modalContent = $refs['register-form'].innerHTML"
+                                class="de-btn de-btn-gold w-full text-sm py-3">
+                            <i class="fas fa-credit-card"></i> اشتري الآن
+                        </button>
+
+                        <p class="mt-5 text-xs text-white/50">
+                            <i class="fas fa-info-circle"></i> السعر شامل الضرائب. يمكن الإلغاء في أي وقت قبل تجديد الاشتراك.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+        <section id="testimonials" class="py-20 px-4 sm:px-6 lg:px-8 bg-flag-blacksoft">
+            <div class="max-w-5xl mx-auto">
+                <div class="text-center mb-16 de-reveal" x-intersect.once="$el.classList.add('de-in')">
+                    <span class="de-badge de-badge-gold">ERFOLGE</span>
+                    <h2 class="font-display text-3xl font-bold text-white mt-4 mb-4">آراء المستخدمين</h2>
+                    <p class="text-lg text-white/60">ما يقوله الطلاب الذين نجحوا في اختبارات Ausbildungsaufnahme بفضل منصتنا</p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="de-card rounded-2xl p-6 de-reveal" x-intersect.once="$el.classList.add('de-in')">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="de-avatar h-12 w-12">م.أ</span>
+                            <div>
+                                <h3 class="font-display font-semibold text-flag-ink">محمد أحمد</h3>
+                                <p class="text-xs text-flag-ink/50">نجح في اختبار telc B1 Beruf</p>
+                            </div>
+                        </div>
+                        <p class="text-flag-ink/70 text-sm italic mb-4">"الاختبارات المحاكية كانت مشابهة تمامًا للاختبار الحقيقي. الشروحات التفصيلية ساعدتني على فهم أخطائي وتحسين مستواي بشكل ملحوظ."</p>
+                        <div class="flex gap-1 text-flag-gold text-sm">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                    </div>
+
+                    <div class="de-card rounded-2xl p-6 de-reveal" x-intersect.once="$el.classList.add('de-in')" style="animation-delay:.08s">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="de-avatar h-12 w-12">ف.ز</span>
+                            <div>
+                                <h3 class="font-display font-semibold text-flag-ink">فاطمة الزهراء</h3>
+                                <p class="text-xs text-flag-ink/50">نجحت في اختبار Goethe B2</p>
+                            </div>
+                        </div>
+                        <p class="text-flag-ink/70 text-sm italic mb-4">"ركزت على telc B1 Beruf لأنني أريد Ausbildung في المجال الصحي. المواد كانت ممتازة وحصلت على 82% في الاختبار الحقيقي بفضل التحضير هنا."</p>
+                        <div class="flex gap-1 text-flag-gold text-sm">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                    </div>
+
+                    <div class="de-card rounded-2xl p-6 de-reveal" x-intersect.once="$el.classList.add('de-in')" style="animation-delay:.16s">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="de-avatar h-12 w-12">ي.ب</span>
+                            <div>
+                                <h3 class="font-display font-semibold text-flag-ink">يوسف بن علي</h3>
+                                <p class="text-xs text-flag-ink/50">نجح في اختبار ÖSD B2</p>
+                            </div>
+                        </div>
+                        <p class="text-flag-ink/70 text-sm italic mb-4">"أحببت خاصية تتبع التقدم التي أظهرت لي مدى تحسني من أسبوع لآخر. أعطتني الثقة للذهاب إلى المركز الامتحاني بدون توتر."</p>
+                        <div class="flex gap-1 text-flag-gold text-sm">
+                            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section id="faq" class="py-20 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-3xl mx-auto">
+                <div class="text-center mb-12 de-reveal" x-intersect.once="$el.classList.add('de-in')">
+                    <span class="de-badge de-badge-red">FAQ</span>
+                    <h2 class="font-display text-3xl font-bold text-flag-ink mt-4">الأسئلة الشائعة</h2>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="de-card rounded-2xl overflow-hidden" x-data="{ open: false }">
+                        <button @click="open = !open" class="w-full flex items-center justify-between gap-4 p-6 text-start">
+                            <h3 class="text-base font-display font-semibold text-flag-ink flex-1">ما هو مستوى اللغة المطلوب لبرامج Ausbildung في ألمانيا؟</h3>
+                            <i class="fas fa-chevron-down text-flag-red transition-transform" :class="{ 'rotate-180': open }"></i>
+                        </button>
+                        <div x-show="open" x-collapse class="px-6 pb-6 text-flag-ink/65 text-sm">
+                            معظم البرامج تتطلب على الأقل مستوى B1، بينما البرامج التقنية والتجارية والصحية تتطلب غالبًا مستوى B2. يُفضّل دائمًا التحقق من متطلبات البرنامج المحدد الذي ترغب فيه.
+                        </div>
+                    </div>
+
+                    <div class="de-card rounded-2xl overflow-hidden" x-data="{ open: false }">
+                        <button @click="open = !open" class="w-full flex items-center justify-between gap-4 p-6 text-start">
+                            <h3 class="text-base font-display font-semibold text-flag-ink flex-1">كم مرة يمكنني إعادة الاختبار المحاكي؟</h3>
+                            <i class="fas fa-chevron-down text-flag-red transition-transform" :class="{ 'rotate-180': open }"></i>
+                        </button>
+                        <div x-show="open" x-collapse class="px-6 pb-6 text-flag-ink/65 text-sm">
+                            يمكنك إعادة الاختبار المحاكي عدد غير محدود من المرات خلال فترة اشتراكك. كل محاولة تُسجَّل في لوحة التحكم لتتبع تقدمك.
+                        </div>
+                    </div>
+
+                    <div class="de-card rounded-2xl overflow-hidden" x-data="{ open: false }">
+                        <button @click="open = !open" class="w-full flex items-center justify-between gap-4 p-6 text-start">
+                            <h3 class="text-base font-display font-semibold text-flag-ink flex-1">هل الشهادات التي أحصل عليها من المنصة معترف بها رسميًا؟</h3>
+                            <i class="fas fa-chevron-down text-flag-red transition-transform" :class="{ 'rotate-180': open }"></i>
+                        </button>
+                        <div x-show="open" x-collapse class="px-6 pb-6 text-flag-ink/65 text-sm">
+                            الشهادات التي تمنحها المنصة هي شهادات إتمام للدورات والتدريب المقدَّم، وليست شهادات لغة رسمية. للاعتراف الرسمي، يجب اجتياز الاختبار لدى مركز معتمد مثل معهد جوته أو telc أو ÖSD.
+                        </div>
+                    </div>
+
+                    <div class="de-card rounded-2xl overflow-hidden" x-data="{ open: false }">
+                        <button @click="open = !open" class="w-full flex items-center justify-between gap-4 p-6 text-start">
+                            <h3 class="text-base font-display font-semibold text-flag-ink flex-1">ما هي وسائل الدفع المتاحة للاشتراك؟</h3>
+                            <i class="fas fa-chevron-down text-flag-red transition-transform" :class="{ 'rotate-180': open }"></i>
+                        </button>
+                        <div x-show="open" x-collapse class="px-6 pb-6 text-flag-ink/65 text-sm">
+                            نقبل الدفع عبر بطاقات الائتمان والخصم (Visa, Mastercard) وأيضًا عبر البنوك المغربية المحلية. جميع المعاملات آمنة ومشفّرة وفقًا لأعلى معايير الحماية.
+                        </div>
+                    </div>
+
+                    <div class="de-card rounded-2xl overflow-hidden" x-data="{ open: false }">
+                        <button @click="open = !open" class="w-full flex items-center justify-between gap-4 p-6 text-start">
+                            <h3 class="text-base font-display font-semibold text-flag-ink flex-1">هل يمكنني الإلغاء في أي وقت والحصول على استرداد؟</h3>
+                            <i class="fas fa-chevron-down text-flag-red transition-transform" :class="{ 'rotate-180': open }"></i>
+                        </button>
+                        <div x-show="open" x-collapse class="px-6 pb-6 text-flag-ink/65 text-sm">
+                            نعم، يمكنك إلغاء اشتراكك في أي وقت من لوحة التحكم. ومع ذلك، لا يُسترد المبلغ عن الفترة المتبقية من الاشتراك الحالي، لكنه سيظل فعالًا حتى نهاية الفترة المدفوعة.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="de-dark-bg text-white pt-16 pb-8 px-4 sm:px-6 lg:px-8">
+        <div class="de-flag-ribbon mb-16"></div>
+        <div class="max-w-7xl mx-auto">
+            <div class="grid md:grid-cols-3 gap-10">
+                <div>
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="de-stamp h-9 w-9 text-xs"><i class="fas fa-landmark"></i></span>
+                        <h3 class="font-display font-semibold">إعداد اختبار Ausbildungsaufnahme</h3>
+                    </div>
+                    <p class="text-sm text-white/60 mb-5">منصة شاملة للتحضير لاختبارات اللغة الألمانية المطلوبة لبرامج Ausbildung في ألمانيا</p>
+                    <div class="flex gap-4 text-white/60">
+                        <a href="#" class="hover:text-flag-gold transition-colors"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="hover:text-flag-gold transition-colors"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="hover:text-flag-gold transition-colors"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="hover:text-flag-gold transition-colors"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="hover:text-flag-gold transition-colors"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="font-display font-semibold mb-4">روابط سريعة</h3>
+                    <ul class="space-y-2 text-sm text-white/60">
+                        <li><a href="/" class="hover:text-flag-gold transition-colors">الرئيسية</a></li>
+                        <li><a href="#how-it-works" class="hover:text-flag-gold transition-colors">كيف يعمل الموقع</a></li>
+                        <li><a href="#available-tests" class="hover:text-flag-gold transition-colors">الاختبارات المتاحة</a></li>
+                        <li><a href="#pricing" class="hover:text-flag-gold transition-colors">الباقات والأسعار</a></li>
+                        <li><a href="#faq" class="hover:text-flag-gold transition-colors">الأسئلة الشائعة</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h3 class="font-display font-semibold mb-4">اتصل بنا</h3>
+                    <p class="text-sm text-white/60 mb-2"><i class="fas fa-map-marker-alt me-2"></i> الدار البيضاء، المغرب</p>
+                    <p class="text-sm text-white/60 mb-2"><i class="fas fa-phone me-2"></i> +212 5XX XXX XXX</p>
+                    <p class="text-sm text-white/60 mb-5"><i class="fas fa-envelope me-2"></i> info@ausbildung-test-prep.com</p>
+
+                    <form class="space-y-3" @submit.prevent>
+                        <input type="email" placeholder="بريدك الإلكتروني للنشرة الإخبارية"
+                               class="w-full px-4 py-2.5 bg-white/10 rounded-lg border border-white/15 focus:border-flag-gold focus:outline-none text-white placeholder-white/40 text-sm">
+                        <button type="submit" class="de-btn de-btn-gold w-full text-sm py-2.5">
+                            <i class="fas fa-paper-plane"></i> الاشتراك
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="mt-12 pt-6 border-t border-white/10 text-center text-sm text-white/40">
+                © 2024 إعداد اختبار Ausbildungsaufnahme. جميع الحقوق محفوظة.
+                <br class="sm:hidden">
+                <a href="#" class="hover:text-flag-gold transition-colors mx-2">سياسة الخصوصية</a>
+                <span class="text-white/20">|</span>
+                <a href="#" class="hover:text-flag-gold transition-colors mx-2">شروط الاستخدام</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Hidden auth form templates, referenced via $refs into the modal -->
+    <div class="hidden">
+        <div x-ref="login-form">
+            <form @submit.prevent="login(email, password)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-flag-ink/70 mb-2">البريد الإلكتروني</label>
+                    <input type="email" x-model="email" required
+                           class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-flag-ink/70 mb-2">كلمة المرور</label>
+                    <input type="password" x-model="password" required
+                           class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                    <label class="flex items-center gap-2 text-flag-ink/60">
+                        <input type="checkbox" x-model="rememberMe"> تذكرني
+                    </label>
+                    <a href="#" class="text-flag-red hover:text-flag-reddeep">نسيت كلمة المرور؟</a>
+                </div>
+                <button type="submit" :disabled="isLoading" class="de-btn de-btn-primary w-full text-sm py-3 disabled:opacity-50"
+                        x-text="isLoading ? 'جاري الدخول...' : 'تسجيل الدخول'"></button>
+                <p class="text-center text-sm text-flag-ink/50">
+                    ليس لديك حساب؟
+                    <a href="#" @click="showModal = true; modalTitle = 'إنشاء حساب'; modalContent = $refs['register-form'].innerHTML"
+                       class="text-flag-red hover:text-flag-reddeep font-medium">أنشئ حسابًا مجانًا</a>
+                </p>
+            </form>
+        </div>
+
+        <div x-ref="register-form">
+            <form @submit.prevent="register(userData)" class="space-y-4">
+                <div class="grid sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-flag-ink/70 mb-2">الاسم الكامل</label>
+                        <input type="text" x-model="userData.full_name" required
+                               class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-flag-ink/70 mb-2">رقم الهاتف (اختياري)</label>
+                        <input type="tel" x-model="userData.phone"
+                               class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-flag-ink/70 mb-2">البريد الإلكتروني</label>
+                    <input type="email" x-model="userData.email" required
+                           class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-flag-ink/70 mb-2">كلمة المرور</label>
+                    <input type="password" x-model="userData.password" required
+                           class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-flag-ink/70 mb-2">تأكيد كلمة المرور</label>
+                    <input type="password" x-model="userData.password_confirm" required
+                           class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
+                </div>
+                <div class="flex items-start gap-2">
+                    <input type="checkbox" x-model="userData.terms_accepted" required class="mt-1">
+                    <span class="text-sm text-flag-ink/60">
+                        أوافق على <a href="#" class="text-flag-red underline">شروط الاستخدام</a> و<a href="#" class="text-flag-red underline">سياسة الخصوصية</a>
+                    </span>
+                </div>
+                <button type="submit" :disabled="isLoading" class="de-btn de-btn-primary w-full text-sm py-3 disabled:opacity-50"
+                        x-text="isLoading ? 'جاري التسجيل...' : 'إنشاء حساب'"></button>
+                <p class="text-center text-sm text-flag-ink/50">
+                    لديك حساب بالفعل؟
+                    <a href="#" @click="showModal = true; modalTitle = 'تسجيل الدخول'; modalContent = $refs['login-form'].innerHTML"
+                       class="text-flag-red hover:text-flag-reddeep font-medium">تسجيل الدخول</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,347 @@
+/* ==========================================================================
+   Ausbildungsaufnahme Test Prep — Design System
+   Palette drawn from the Bundesflagge: Schwarz / Rot / Gold
+   ========================================================================== */
+
+:root {
+  --de-black: #2563EB;
+  --de-black-soft: #2563EB;
+  --de-charcoal: #2563EB;
+  --de-red: #2563EB;
+  --de-red-bright: #2563EB;
+  --de-red-deep: #2563EB;
+  --de-gold: #2563EB;
+  --de-gold-soft: #2563EB;
+  --de-cream: #F5F8FC;
+  --de-paper: #FFFFFF;
+  --de-ink: #1E293B;
+
+  --shadow-stamp: 0 20px 45px rgba(37,99,235, 0.18);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--de-cream);
+  color: var(--de-ink);
+}
+
+/* --------------------------------------------------------------------
+   Official-paper texture: a faint dot-grid, like security printing
+   -------------------------------------------------------------------- */
+.de-paper-bg {
+  background-color: var(--de-cream);
+  background-image: radial-gradient(circle at 1px 1px, rgba(37,99,235,0.06) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+
+.de-dark-bg {
+  background-color: var(--de-black);
+  background-image:
+    radial-gradient(circle at 20% 20%, rgba(37,99,235,0.18), transparent 45%),
+    radial-gradient(circle at 80% 0%, rgba(37,99,235,0.10), transparent 40%),
+    radial-gradient(circle at 1px 1px, rgba(255,255,255,0.045) 1px, transparent 0);
+  background-size: auto, auto, 24px 24px;
+}
+
+/* Light counterpart to .de-dark-bg, for headers/hero sections that no
+   longer use a dark background. Same soft red/gold glows, light base. */
+.de-light-bg {
+  background-color: var(--de-paper);
+  background-image:
+    radial-gradient(circle at 15% 15%, rgba(37,99,235,0.07), transparent 45%),
+    radial-gradient(circle at 85% 0%, rgba(37,99,235,0.14), transparent 40%),
+    radial-gradient(circle at 1px 1px, rgba(37,99,235,0.035) 1px, transparent 0);
+  background-size: auto, auto, 24px 24px;
+}
+
+/* Hero background photo, with a light scrim so existing dark text stays
+   legible regardless of the photo's own brightness/content. Adjust the
+   scrim opacity (currently 0.55) once the real image is in place if it
+   needs to be lighter or darker. */
+.de-hero-photo-bg {
+  background-image:
+    linear-gradient(rgba(245,248,252,0.55), rgba(245,248,252,0.55)),
+    url('/images/germany.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* --------------------------------------------------------------------
+   Flag ribbon: the signature structural device.
+   A thin animated black/red/gold band used as a divider & accent.
+   -------------------------------------------------------------------- */
+.de-flag-ribbon {
+  height: 6px;
+  width: 100%;
+  background: linear-gradient(90deg,
+    var(--de-black) 0%, var(--de-black) 33.3%,
+    var(--de-red) 33.3%, var(--de-red) 66.6%,
+    var(--de-gold) 66.6%, var(--de-gold) 100%);
+  background-size: 200% 100%;
+}
+
+.de-flag-ribbon.animate {
+  animation: ribbonDrift 8s linear infinite;
+}
+
+@keyframes ribbonDrift {
+  from { background-position: 0% 0; }
+  to { background-position: -100% 0; }
+}
+
+.de-flag-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+}
+
+/* --------------------------------------------------------------------
+   The stamp: a rubber-stamp seal motif, reused as a signature element
+   -------------------------------------------------------------------- */
+.de-stamp {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid white;
+  border-radius: 9999px;
+  color: white;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.08em;
+  transform: rotate(-8deg);
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.15);
+}
+
+/* Gold-on-dark is the default; on a light background gold text fails
+   contrast, so this modifier swaps it to the red tone instead. */
+.de-stamp-onlight {
+  border-color: var(--de-red);
+  color: var(--de-red);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.10);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .de-stamp-in {
+    animation: stampIn 0.7s cubic-bezier(.2,1.6,.4,1) both;
+  }
+}
+
+@keyframes stampIn {
+  0% { transform: scale(2.4) rotate(-8deg); opacity: 0; }
+  60% { transform: scale(0.92) rotate(-8deg); opacity: 1; }
+  100% { transform: scale(1) rotate(-8deg); opacity: 1; }
+}
+
+/* --------------------------------------------------------------------
+   Cards: dossier / certificate styling
+   -------------------------------------------------------------------- */
+.de-card {
+  background: var(--de-paper);
+  border: 1px solid rgba(37,99,235,0.08);
+  border-radius: 18px;
+  box-shadow: 0 1px 2px rgba(37,99,235,0.04);
+  transition: transform 0.35s cubic-bezier(.2,.8,.2,1), box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+.de-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-stamp);
+  border-color: rgba(37,99,235,0.25);
+}
+
+.de-card-dark {
+  background: var(--de-black-soft);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 18px;
+}
+
+/* Perforated ticket edge, used on test/exam cards */
+.de-ticket-edge {
+  position: relative;
+}
+.de-ticket-edge::after {
+  content: '';
+  position: absolute;
+  inset-inline-end: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-image: repeating-linear-gradient(to bottom, rgba(37,99,235,0.18) 0 6px, transparent 6px 12px);
+}
+
+/* --------------------------------------------------------------------
+   Buttons
+   -------------------------------------------------------------------- */
+.de-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  padding: 0.85rem 1.9rem;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  isolation: isolate;
+}
+
+.de-btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.de-btn-primary {
+  background: linear-gradient(135deg, var(--de-red-bright), var(--de-red-deep));
+  color: white;
+  box-shadow: 0 10px 25px rgba(37,99,235,0.35);
+}
+.de-btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 32px rgba(37,99,235,0.45);
+}
+
+.de-btn-gold {
+  background: linear-gradient(135deg, var(--de-gold-soft), var(--de-gold));
+  color: white;
+  box-shadow: 0 10px 25px rgba(37,99,235,0.30);
+}
+.de-btn-gold:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 32px rgba(37,99,235,0.4);
+}
+
+.de-btn-ghost {
+  background: rgba(37,99,235,0.05);
+  color: var(--de-ink);
+  border: 1px solid rgba(37,99,235,0.15);
+}
+.de-btn-ghost:hover {
+  background: rgba(37,99,235,0.09);
+  transform: translateY(-3px);
+}
+
+.de-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.35) 45%, transparent 70%);
+  transform: translateX(-120%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .de-btn:hover::before {
+    animation: shimmerSweep 0.9s ease forwards;
+  }
+}
+@keyframes shimmerSweep {
+  to { transform: translateX(120%); }
+}
+
+/* --------------------------------------------------------------------
+   Badges (B1 / B2 / stats) — official document / ID-card style
+   -------------------------------------------------------------------- */
+.de-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border-radius: 8px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.75rem;
+}
+
+.de-badge-gold {
+  background: rgba(37,99,235,0.14);
+  color: var(--de-red);
+  border: 1px solid rgba(37,99,235,0.5);
+}
+
+.de-badge-red {
+  background: rgba(37,99,235,0.08);
+  color: var(--de-red);
+  border: 1px solid rgba(37,99,235,0.3);
+}
+
+.de-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: white;
+  background: linear-gradient(135deg, var(--de-red-bright), var(--de-black));
+}
+
+/* --------------------------------------------------------------------
+   Motion utilities
+   -------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  .de-float {
+    animation: floatSlow 7s ease-in-out infinite;
+  }
+  .de-float-delay {
+    animation: floatSlow 7s ease-in-out infinite;
+    animation-delay: 1.4s;
+  }
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-14px); }
+}
+
+.de-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .de-reveal.de-in {
+    animation: revealUp 0.7s cubic-bezier(.2,.7,.2,1) forwards;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .de-reveal { opacity: 1; transform: none; }
+}
+
+@keyframes revealUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.de-glow-pulse {
+  animation: glowPulse 2.6s ease-in-out infinite;
+}
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37,99,235,0.35); }
+  50% { box-shadow: 0 0 0 10px rgba(37,99,235,0); }
+}
+
+/* Eagle-mark style corner accent used on the hero / dark sections */
+.de-corner-mark {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  border: 2px solid rgba(37,99,235,0.5);
+  opacity: 0.6;
+}
+
+/* Marquee row for the "trusted certificates" strip */
+.de-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 22s linear infinite;
+}
+@keyframes marquee {
+  to { transform: translateX(-50%); }
+}
+
+/* Accordion chevron rotation handled inline via Alpine :class */
+
+::selection {
+  background: var(--de-gold);
+  color: var(--de-black);
+}

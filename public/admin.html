@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم المشرف - Ausbildungsaufnahme</title>
+    <meta name="robots" content="noindex, nofollow">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              flag: {
+                black: '#2563EB', blacksoft: '#2563EB', charcoal: '#2563EB',
+                red: '#2563EB', redbright: '#2563EB', reddeep: '#2563EB',
+                gold: '#2563EB', goldsoft: '#2563EB',
+                cream: '#F5F8FC', paper: '#FFFFFF', ink: '#1E293B'
+              }
+            },
+            fontFamily: {
+              display: ['"Space Grotesk"', 'sans-serif'],
+              arabic: ['Cairo', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'monospace']
+            }
+          }
+        }
+      }
+    </script>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>[x-cloak]{display:none !important;}</style>
+</head>
+<body class="font-arabic de-paper-bg text-flag-ink antialiased min-h-screen" x-data="adminApp()" x-init="init()">
+
+    <!-- ============ LOGIN GATE ============ -->
+    <template x-if="authChecked && !admin">
+        <div class="min-h-screen de-dark-bg flex items-center justify-center p-4">
+            <div class="de-card w-full max-w-sm overflow-hidden">
+                <div class="de-flag-ribbon"></div>
+                <div class="p-8 text-center">
+                    <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5"><i class="fas fa-user-shield"></i></span>
+                    <h1 class="font-display text-xl font-bold text-flag-ink mb-1">لوحة تحكم المشرف</h1>
+                    <p class="text-sm text-flag-ink/50 mb-6">سجّل الدخول بحساب مشرف للمتابعة</p>
+
+                    <form @submit.prevent="login()" class="space-y-4 text-start">
+                        <div>
+                            <label class="block text-sm font-medium text-flag-ink/70 mb-2">البريد الإلكتروني</label>
+                            <input type="email" x-model="loginEmail" required
+                                   class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-flag-ink/70 mb-2">كلمة المرور</label>
+                            <input type="password" x-model="loginPassword" required
+                                   class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
+                        </div>
+                        <p x-show="loginError" x-cloak class="text-sm text-flag-red" x-text="loginError"></p>
+                        <button type="submit" :disabled="isLoggingIn" class="de-btn de-btn-primary w-full text-sm py-3 disabled:opacity-50">
+                            <span x-text="isLoggingIn ? 'جاري الدخول...' : 'دخول'"></span>
+                        </button>
+                    </form>
+
+                    <p class="mt-6 text-xs text-flag-ink/40 font-mono leading-relaxed">
+                        بيانات تجريبية للاختبار:<br>
+                        admin@ausbildung-test-prep.com / Admin@2024
+                    </p>
+                    <a href="/" class="block mt-4 text-xs text-flag-ink/50 hover:text-flag-red">→ العودة إلى الموقع</a>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============ DASHBOARD ============ -->
+    <template x-if="authChecked && admin">
+        <div>
+            <!-- Top bar -->
+            <header class="de-light-bg text-flag-ink shadow-sm border-b border-black/5 sticky top-0 z-30">
+                <div class="px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="de-stamp de-stamp-onlight h-10 w-10 text-xs"><i class="fas fa-user-shield"></i></span>
+                        <div class="hidden sm:block">
+                            <div class="font-display font-semibold text-sm leading-tight">لوحة تحكم المشرف</div>
+                            <div class="text-xs text-flag-ink/50">Ausbildungsaufnahme</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm text-flag-ink/70 hidden sm:inline" x-text="admin.full_name"></span>
+                        <a href="/" class="text-flag-ink/50 hover:text-flag-red transition-colors text-sm" title="العودة إلى الموقع">
+                            <i class="fas fa-arrow-up-right-from-square"></i>
+                        </a>
+                        <button @click="logout()" class="text-flag-ink/50 hover:text-flag-red transition-colors text-sm" title="تسجيل الخروج">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <!-- Tabs -->
+                <div class="flex gap-2 mb-8 overflow-x-auto pb-1">
+                    <button @click="activeTab = 'overview'"
+                            class="px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors"
+                            :class="activeTab === 'overview' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'">
+                        <i class="fas fa-gauge-high me-1"></i> نظرة عامة
+                    </button>
+                    <button @click="activeTab = 'members'"
+                            class="px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors relative"
+                            :class="activeTab === 'members' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'">
+                        <i class="fas fa-users me-1"></i> الأعضاء
+                        <span x-show="stats.pending > 0" x-cloak
+                              class="absolute -top-1.5 -end-1.5 h-5 min-w-[1.25rem] px-1 rounded-full bg-flag-gold text-white text-[10px] font-bold font-mono flex items-center justify-center"
+                              x-text="stats.pending"></span>
+                    </button>
+                    <button @click="activeTab = 'notifications'"
+                            class="px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors"
+                            :class="activeTab === 'notifications' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'">
+                        <i class="fas fa-bell me-1"></i> الإشعارات
+                    </button>
+                </div>
+
+                <!-- ===== Overview tab ===== -->
+                <div x-show="activeTab === 'overview'" x-cloak>
+                    <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-10">
+                        <div class="de-card rounded-2xl p-5">
+                            <div class="h-10 w-10 rounded-lg bg-flag-black/5 flex items-center justify-center mb-3">
+                                <i class="fas fa-users text-flag-ink/60"></i>
+                            </div>
+                            <div class="text-2xl font-display font-bold text-flag-ink" x-text="stats.total"></div>
+                            <div class="text-xs text-flag-ink/50">إجمالي الأعضاء</div>
+                        </div>
+                        <div class="de-card rounded-2xl p-5 border-flag-gold/40">
+                            <div class="h-10 w-10 rounded-lg bg-flag-gold/15 flex items-center justify-center mb-3">
+                                <i class="fas fa-hourglass-half text-flag-gold"></i>
+                            </div>
+                            <div class="text-2xl font-display font-bold text-flag-ink" x-text="stats.pending"></div>
+                            <div class="text-xs text-flag-ink/50">قيد المراجعة</div>
+                        </div>
+                        <div class="de-card rounded-2xl p-5">
+                            <div class="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center mb-3">
+                                <i class="fas fa-circle-check text-emerald-600"></i>
+                            </div>
+                            <div class="text-2xl font-display font-bold text-flag-ink" x-text="stats.active"></div>
+                            <div class="text-xs text-flag-ink/50">أعضاء نشطون</div>
+                        </div>
+                        <div class="de-card rounded-2xl p-5">
+                            <div class="h-10 w-10 rounded-lg bg-flag-red/10 flex items-center justify-center mb-3">
+                                <i class="fas fa-circle-xmark text-flag-red"></i>
+                            </div>
+                            <div class="text-2xl font-display font-bold text-flag-ink" x-text="stats.rejected"></div>
+                            <div class="text-xs text-flag-ink/50">مرفوضون</div>
+                        </div>
+                        <div class="de-card rounded-2xl p-5">
+                            <div class="h-10 w-10 rounded-lg bg-flag-black/5 flex items-center justify-center mb-3">
+                                <i class="fas fa-credit-card text-flag-ink/60"></i>
+                            </div>
+                            <div class="text-2xl font-display font-bold text-flag-ink" x-text="stats.activeSubscriptions"></div>
+                            <div class="text-xs text-flag-ink/50">اشتراكات فعالة</div>
+                        </div>
+                    </div>
+
+                    <div class="de-card rounded-2xl overflow-hidden">
+                        <div class="p-6 border-b border-black/5 flex items-center justify-between">
+                            <h2 class="font-display font-semibold text-flag-ink">
+                                <i class="fas fa-hourglass-half text-flag-gold me-2"></i> بانتظار المراجعة
+                            </h2>
+                            <button @click="activeTab = 'members'; memberFilter = 'pending'" class="text-sm text-flag-red hover:text-flag-reddeep">
+                                عرض الكل <i class="fas fa-arrow-left"></i>
+                            </button>
+                        </div>
+                        <div class="divide-y divide-black/5">
+                            <template x-for="m in members.filter(x => x.membership_status === 'pending').slice(0,5)" :key="m.id">
+                                <div class="p-4 sm:p-5 flex items-center justify-between gap-4 flex-wrap">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <span class="de-avatar h-10 w-10 text-xs flex-shrink-0" x-text="initials(m.full_name)"></span>
+                                        <div class="min-w-0">
+                                            <div class="font-medium text-flag-ink truncate" x-text="m.full_name"></div>
+                                            <div class="text-xs text-flag-ink/50 truncate" x-text="m.email"></div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2 flex-shrink-0">
+                                        <button @click="approve(m.id)" class="de-btn de-btn-primary text-xs py-2 px-4">
+                                            <i class="fas fa-check"></i> موافقة
+                                        </button>
+                                        <button @click="reject(m.id)" class="de-btn text-xs py-2 px-4" style="background:#EEEAE0;color:#1E293B;">
+                                            <i class="fas fa-xmark"></i> رفض
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                            <div x-show="members.filter(x => x.membership_status === 'pending').length === 0" class="p-8 text-center text-sm text-flag-ink/40">
+                                لا يوجد أعضاء بانتظار المراجعة حاليًا
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== Members tab ===== -->
+                <div x-show="activeTab === 'members'" x-cloak>
+                    <div class="flex flex-col sm:flex-row gap-3 sm:items-center justify-between mb-6">
+                        <div class="flex gap-2 overflow-x-auto pb-1">
+                            <template x-for="f in [['all','الكل'],['pending','قيد المراجعة'],['active','نشط'],['rejected','مرفوض']]" :key="f[0]">
+                                <button @click="memberFilter = f[0]; loadMembers()"
+                                        class="px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-colors"
+                                        :class="memberFilter === f[0] ? 'bg-flag-red text-white' : 'bg-white text-flag-ink/60 border border-black/10'"
+                                        x-text="f[1]"></button>
+                            </template>
+                        </div>
+                        <div class="relative">
+                            <i class="fas fa-search absolute top-1/2 -translate-y-1/2 start-3 text-flag-ink/30 text-sm"></i>
+                            <input type="text" x-model.debounce.400ms="memberSearch" @input="loadMembers()"
+                                   placeholder="بحث بالاسم أو البريد..."
+                                   class="ps-9 pe-4 py-2.5 rounded-lg border border-black/10 text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30 w-full sm:w-64">
+                        </div>
+                    </div>
+
+                    <div class="de-card rounded-2xl overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="bg-flag-cream text-flag-ink/50 text-xs">
+                                        <th class="text-start px-5 py-3 font-medium">العضو</th>
+                                        <th class="text-start px-5 py-3 font-medium hidden md:table-cell">تاريخ التسجيل</th>
+                                        <th class="text-start px-5 py-3 font-medium">الحالة</th>
+                                        <th class="text-start px-5 py-3 font-medium hidden lg:table-cell">الاشتراك</th>
+                                        <th class="text-start px-5 py-3 font-medium">إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-black/5">
+                                    <template x-for="m in members" :key="m.id">
+                                        <tr class="hover:bg-flag-cream/60 transition-colors">
+                                            <td class="px-5 py-4">
+                                                <div class="flex items-center gap-3">
+                                                    <span class="de-avatar h-9 w-9 text-xs flex-shrink-0" x-text="initials(m.full_name)"></span>
+                                                    <div class="min-w-0">
+                                                        <div class="font-medium text-flag-ink truncate" x-text="m.full_name"></div>
+                                                        <div class="text-xs text-flag-ink/50 truncate" x-text="m.email"></div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-5 py-4 text-flag-ink/60 text-xs font-mono hidden md:table-cell" x-text="formatDate(m.created_at)"></td>
+                                            <td class="px-5 py-4">
+                                                <span class="de-badge" :class="statusBadgeClass(m.membership_status)" x-text="statusLabel(m.membership_status)"></span>
+                                            </td>
+                                            <td class="px-5 py-4 text-xs text-flag-ink/60 hidden lg:table-cell">
+                                                <template x-if="m.subscription">
+                                                    <span>ينتهي <span x-text="formatDate(m.subscription.current_period_end)"></span></span>
+                                                </template>
+                                                <template x-if="!m.subscription">
+                                                    <span class="text-flag-ink/30">لا يوجد</span>
+                                                </template>
+                                            </td>
+                                            <td class="px-5 py-4">
+                                                <div class="flex items-center gap-2 flex-wrap">
+                                                    <button x-show="m.membership_status !== 'active'" @click="approve(m.id)"
+                                                            class="h-8 w-8 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors" title="موافقة">
+                                                        <i class="fas fa-check"></i>
+                                                    </button>
+                                                    <button x-show="m.membership_status !== 'rejected'" @click="reject(m.id)"
+                                                            class="h-8 w-8 rounded-lg bg-flag-red/10 text-flag-red hover:bg-flag-red/20 transition-colors" title="رفض">
+                                                        <i class="fas fa-xmark"></i>
+                                                    </button>
+                                                    <button x-show="m.membership_status !== 'pending'" @click="resetMember(m.id)"
+                                                            class="h-8 w-8 rounded-lg bg-flag-black/5 text-flag-ink/60 hover:bg-flag-black/10 transition-colors" title="إعادة إلى قيد المراجعة">
+                                                        <i class="fas fa-rotate-left"></i>
+                                                    </button>
+                                                    <button @click="confirmDelete(m)"
+                                                            class="h-8 w-8 rounded-lg bg-flag-black/5 text-flag-ink/40 hover:bg-flag-red/10 hover:text-flag-red transition-colors" title="حذف">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                            <div x-show="!membersLoading && members.length === 0" class="p-10 text-center text-sm text-flag-ink/40">
+                                لا يوجد أعضاء مطابقون
+                            </div>
+                            <div x-show="membersLoading" x-cloak class="p-10 text-center text-sm text-flag-ink/40">
+                                <i class="fas fa-circle-notch fa-spin"></i> جاري التحميل...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== Notifications tab ===== -->
+                <div x-show="activeTab === 'notifications'" x-cloak class="grid lg:grid-cols-5 gap-6">
+                    <div class="lg:col-span-2 de-card rounded-2xl p-6 h-fit">
+                        <h2 class="font-display font-semibold text-flag-ink mb-5">
+                            <i class="fas fa-paper-plane text-flag-red me-2"></i> إرسال إشعار جديد
+                        </h2>
+                        <form @submit.prevent="sendNotification()" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-flag-ink/70 mb-2">العنوان</label>
+                                <input type="text" x-model="notifyTitle" required
+                                       class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-flag-ink/70 mb-2">الرسالة</label>
+                                <textarea x-model="notifyMessage" required rows="4"
+                                          class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/30 resize-none"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-flag-ink/70 mb-2">الجمهور المستهدف</label>
+                                <select x-model="notifyAudience"
+                                        class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/30 bg-white">
+                                    <option value="all">جميع الأعضاء</option>
+                                    <option value="active">الأعضاء النشطون فقط</option>
+                                    <option value="pending">قيد المراجعة فقط</option>
+                                    <option value="rejected">المرفوضون فقط</option>
+                                </select>
+                            </div>
+                            <button type="submit" :disabled="sending" class="de-btn de-btn-primary w-full text-sm py-3 disabled:opacity-50">
+                                <span x-text="sending ? 'جاري الإرسال...' : 'إرسال الإشعار'"></span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="lg:col-span-3 de-card rounded-2xl overflow-hidden">
+                        <div class="p-6 border-b border-black/5">
+                            <h2 class="font-display font-semibold text-flag-ink">سجل الإشعارات المرسلة</h2>
+                        </div>
+                        <div class="divide-y divide-black/5 max-h-[560px] overflow-y-auto">
+                            <template x-for="n in notifications" :key="n.id">
+                                <div class="p-5">
+                                    <div class="flex items-start justify-between gap-3 mb-1">
+                                        <h3 class="font-medium text-flag-ink" x-text="n.title"></h3>
+                                        <span class="text-xs text-flag-ink/40 font-mono whitespace-nowrap" x-text="formatDate(n.sent_at)"></span>
+                                    </div>
+                                    <p class="text-sm text-flag-ink/60 mb-2" x-text="n.message"></p>
+                                    <div class="flex items-center gap-3 text-xs text-flag-ink/40">
+                                        <span><i class="fas fa-users"></i> <span x-text="n.recipient_count"></span> مستلم</span>
+                                        <span><i class="fas fa-bullseye"></i> <span x-text="audienceLabel(n.audience)"></span></span>
+                                    </div>
+                                </div>
+                            </template>
+                            <div x-show="notifications.length === 0" class="p-10 text-center text-sm text-flag-ink/40">
+                                لم يتم إرسال أي إشعارات بعد
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============ Delete confirmation modal ============ -->
+    <div x-show="deleteTarget" x-cloak x-transition
+         class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
+        <div class="de-card w-full max-w-sm overflow-hidden" @click.outside="deleteTarget = null">
+            <div class="de-flag-ribbon"></div>
+            <div class="p-6 text-center">
+                <div class="h-12 w-12 rounded-full bg-flag-red/10 text-flag-red flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-trash"></i>
+                </div>
+                <h3 class="font-display font-semibold text-flag-ink mb-2">حذف العضو نهائيًا؟</h3>
+                <p class="text-sm text-flag-ink/60 mb-6">
+                    سيتم حذف <span class="font-medium" x-text="deleteTarget && deleteTarget.full_name"></span> وكل بياناته نهائيًا. لا يمكن التراجع عن هذا الإجراء.
+                </p>
+                <div class="flex gap-3">
+                    <button @click="deleteTarget = null" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#1E293B;">إلغاء</button>
+                    <button @click="removeMember()" class="de-btn de-btn-primary flex-1 text-sm py-2.5">حذف</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Toast ============ -->
+    <div x-show="toast" x-cloak x-transition
+         class="fixed bottom-6 inset-x-0 flex justify-center z-50 px-4">
+        <div class="de-card px-5 py-3 rounded-xl flex items-center gap-2 text-sm shadow-xl">
+            <i class="fas fa-circle-check text-emerald-600"></i>
+            <span x-text="toast"></span>
+        </div>
+    </div>
+
+    <script>
+        function adminApp() {
+            return {
+                token: localStorage.getItem('auth_token') || null,
+                admin: null,
+                authChecked: false,
+
+                loginEmail: '', loginPassword: '', loginError: '', isLoggingIn: false,
+
+                activeTab: 'overview',
+                stats: { total: 0, pending: 0, active: 0, rejected: 0, activeSubscriptions: 0 },
+
+                members: [], memberFilter: 'all', memberSearch: '', membersLoading: false,
+                notifications: [], notifyTitle: '', notifyMessage: '', notifyAudience: 'all', sending: false,
+
+                deleteTarget: null,
+                toast: '',
+
+                async init() {
+                    if (this.token) {
+                        try {
+                            const res = await fetch('/api/auth/status', { headers: this.authHeaders() });
+                            const data = await res.json();
+                            if (data.authenticated && data.user.role === 'admin') {
+                                this.admin = data.user;
+                                this.loadAll();
+                            } else {
+                                localStorage.removeItem('auth_token');
+                                this.token = null;
+                            }
+                        } catch (e) {
+                            console.error(e);
+                        }
+                    }
+                    this.authChecked = true;
+                },
+
+                authHeaders(json) {
+                    const headers = { 'Authorization': 'Bearer ' + this.token };
+                    if (json) headers['Content-Type'] = 'application/json';
+                    return headers;
+                },
+
+                async login() {
+                    this.isLoggingIn = true;
+                    this.loginError = '';
+                    try {
+                        const res = await fetch('/api/auth/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: this.loginEmail, password: this.loginPassword })
+                        });
+                        const data = await res.json();
+                        if (!data.success) {
+                            this.loginError = data.message || 'تعذر تسجيل الدخول';
+                            return;
+                        }
+                        if (data.user.role !== 'admin') {
+                            this.loginError = 'هذا الحساب ليس حساب مشرف';
+                            return;
+                        }
+                        this.token = data.token;
+                        localStorage.setItem('auth_token', data.token);
+                        this.admin = data.user;
+                        this.loadAll();
+                    } catch (e) {
+                        this.loginError = 'حدث خطأ أثناء الاتصال بالخادم';
+                    } finally {
+                        this.isLoggingIn = false;
+                    }
+                },
+
+                logout() {
+                    fetch('/api/auth/logout', { method: 'POST' }).finally(() => {
+                        localStorage.removeItem('auth_token');
+                        this.token = null;
+                        this.admin = null;
+                    });
+                },
+
+                loadAll() {
+                    this.loadStats();
+                    this.loadMembers();
+                    this.loadNotifications();
+                },
+
+                async loadStats() {
+                    try {
+                        const res = await fetch('/api/admin/stats', { headers: this.authHeaders() });
+                        const data = await res.json();
+                        if (data.success) this.stats = data.stats;
+                    } catch (e) { console.error(e); }
+                },
+
+                async loadMembers() {
+                    this.membersLoading = true;
+                    try {
+                        const params = new URLSearchParams();
+                        if (this.memberFilter && this.memberFilter !== 'all') params.set('status', this.memberFilter);
+                        if (this.memberSearch) params.set('q', this.memberSearch);
+                        const res = await fetch('/api/admin/members?' + params.toString(), { headers: this.authHeaders() });
+                        const data = await res.json();
+                        if (data.success) this.members = data.members;
+                    } catch (e) { console.error(e); }
+                    finally { this.membersLoading = false; }
+                },
+
+                async loadNotifications() {
+                    try {
+                        const res = await fetch('/api/admin/notifications', { headers: this.authHeaders() });
+                        const data = await res.json();
+                        if (data.success) this.notifications = data.notifications;
+                    } catch (e) { console.error(e); }
+                },
+
+                async approve(id) {
+                    await fetch(`/api/admin/members/${id}/approve`, { method: 'POST', headers: this.authHeaders() });
+                    this.showToast('تمت الموافقة على العضو');
+                    this.loadStats(); this.loadMembers();
+                },
+
+                async reject(id) {
+                    await fetch(`/api/admin/members/${id}/reject`, { method: 'POST', headers: this.authHeaders() });
+                    this.showToast('تم رفض العضو');
+                    this.loadStats(); this.loadMembers();
+                },
+
+                async resetMember(id) {
+                    await fetch(`/api/admin/members/${id}/reset`, { method: 'POST', headers: this.authHeaders() });
+                    this.showToast('تمت إعادة العضو إلى قيد المراجعة');
+                    this.loadStats(); this.loadMembers();
+                },
+
+                confirmDelete(member) {
+                    this.deleteTarget = member;
+                },
+
+                async removeMember() {
+                    if (!this.deleteTarget) return;
+                    await fetch(`/api/admin/members/${this.deleteTarget.id}`, { method: 'DELETE', headers: this.authHeaders() });
+                    this.showToast('تم حذف العضو');
+                    this.deleteTarget = null;
+                    this.loadStats(); this.loadMembers();
+                },
+
+                async sendNotification() {
+                    this.sending = true;
+                    try {
+                        const res = await fetch('/api/admin/notifications', {
+                            method: 'POST',
+                            headers: this.authHeaders(true),
+                            body: JSON.stringify({
+                                title: this.notifyTitle,
+                                message: this.notifyMessage,
+                                audience: this.notifyAudience
+                            })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            this.notifyTitle = '';
+                            this.notifyMessage = '';
+                            this.showToast('تم إرسال الإشعار');
+                            this.loadNotifications();
+                        }
+                    } catch (e) { console.error(e); }
+                    finally { this.sending = false; }
+                },
+
+                showToast(msg) {
+                    this.toast = msg;
+                    setTimeout(() => { this.toast = ''; }, 2600);
+                },
+
+                initials(name) {
+                    if (!name) return '?';
+                    const parts = name.trim().split(/\s+/);
+                    return parts.length > 1 ? parts[0].charAt(0) + parts[1].charAt(0) : parts[0].charAt(0);
+                },
+
+                formatDate(iso) {
+                    if (!iso) return '—';
+                    const d = new Date(iso);
+                    return d.toLocaleDateString('ar-MA', { year: 'numeric', month: 'short', day: 'numeric' });
+                },
+
+                statusLabel(status) {
+                    return { pending: 'قيد المراجعة', active: 'نشط', rejected: 'مرفوض' }[status] || status;
+                },
+
+                statusBadgeClass(status) {
+                    if (status === 'active') return 'bg-emerald-100 text-emerald-800 border border-emerald-200';
+                    if (status === 'rejected') return 'bg-flag-red/10 text-flag-red border border-flag-red/25';
+                    return 'de-badge-gold';
+                },
+
+                audienceLabel(audience) {
+                    return {
+                        all: 'جميع الأعضاء', active: 'النشطون', pending: 'قيد المراجعة', rejected: 'المرفوضون'
+                    }[audience] || audience;
+                }
+            };
+        }
+    </script>
+</body>
+</html>

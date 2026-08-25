@@ -1,0 +1,12068 @@
+// Test content: metadata + sections (Lesen/Sprachbausteine/Hoeren) + writing prompts.
+// Extracted into its own module so both api/tests.js (routes) and
+// scripts/generate-audio.js (offline TTS generation) can share the exact
+// same data without duplicating it.
+//
+// Listening sections carry an `audio_url` pointing at a predictable path
+// under /public/audio/<testId>__<sectionKey>.mp3. Those files do not exist
+// until you run `node scripts/generate-audio.js` (see that file for setup).
+// Until then the frontend gracefully falls back to the transcript.
+
+const mockTests = [
+  {
+    "id": "test_goethe_b1",
+    "title": "Goethe-Zertifikat B1",
+    "description": "الاختبار الرسمي لمعهد جوته لمستوى B1 — يتكون من 4 وحدات: القراءة، الاستماع، الكتابة، والمحادثة",
+    "test_type": "goethe_b1",
+    "level": "B1",
+    "duration_minutes": 165,
+    "total_questions": 60,
+    "passing_score": 60,
+    "is_active": true
+  },
+  {
+    "id": "test_goethe_b2",
+    "title": "Goethe-Zertifikat B2",
+    "description": "الاختبار الرسمي لمعهد جوته لمستوى B2 — يتكون من 4 وحدات: القراءة، الاستماع، الكتابة، والمحادثة",
+    "test_type": "goethe_b2",
+    "level": "B2",
+    "duration_minutes": 180,
+    "total_questions": 60,
+    "passing_score": 60,
+    "is_active": true
+  },
+  {
+    "id": "test_telc_b1_beruf",
+    "title": "telc Deutsch B1 Beruf",
+    "description": "اختبار telc المتخصص في السياقات المهنية لمستوى B1 — Leseverstehen, Sprachbausteine, Hörverstehen, Schriftlicher und Mündlicher Ausdruck",
+    "test_type": "telc_b1_beruf",
+    "level": "B1",
+    "duration_minutes": 150,
+    "total_questions": 60,
+    "passing_score": 60,
+    "is_active": true
+  },
+  {
+    "id": "test_telc_b2_beruf",
+    "title": "telc Deutsch B2 Beruf",
+    "description": "اختبار telc المتخصص في السياقات المهنية لمستوى B2 — Leseverstehen, Sprachbausteine, Hörverstehen, Schriftlicher und Mündlicher Ausdruck",
+    "test_type": "telc_b2_beruf",
+    "level": "B2",
+    "duration_minutes": 150,
+    "total_questions": 60,
+    "passing_score": 60,
+    "is_active": true
+  },
+  {
+    "id": "test_osd_b1",
+    "title": "ÖSD Zertifikat B1",
+    "description": "شهادة اللغة الألمانية من معهد ÖSD النمساوي لمستوى B1 — Lesen, Hören, Schreiben, Sprechen (نفس عائلة اختبار Zertifikat B1 المشترك مع Goethe)",
+    "test_type": "osd_b1",
+    "level": "B1",
+    "duration_minutes": 160,
+    "total_questions": 60,
+    "passing_score": 60,
+    "is_active": true
+  },
+  {
+    "id": "test_osd_b2",
+    "title": "ÖSD Zertifikat B2",
+    "description": "شهادة اللغة الألمانية من معهد ÖSD النمساوي لمستوى B2 — Lesen, Hören, Schreiben, Sprechen (نصوص من النمسا وألمانيا وسويسرا)",
+    "test_type": "osd_b2",
+    "level": "B2",
+    "duration_minutes": 210,
+    "total_questions": 64,
+    "passing_score": 60,
+    "is_active": true
+  }
+];
+
+const mockContent = {
+  "test_goethe_b1": {
+    "sections": [
+      {
+        "key": "lesen1",
+        "name": "Lesen — Teil 1",
+        "type": "reading",
+        "official_duration_minutes": 65,
+        "instructions": "اقرأ النص وحدد إن كانت الجمل التالية صحيحة أم خاطئة (Richtig / Falsch).",
+        "passage": "Mein Alltag in Berlin\n\nIch heiße Lina und wohne seit sechs Monaten in Berlin. Am Anfang war es nicht leicht, weil ich niemanden kannte. Jetzt gehe ich jeden Dienstag zu einem Deutschkurs in der Volkshochschule und habe dort neue Freunde gefunden. Unter der Woche arbeite ich in einem Café in der Nähe vom Alexanderplatz. Am Wochenende fahre ich oft mit dem Fahrrad durch den Park oder treffe meine Freunde zum Kaffeetrinken. Nächsten Monat möchte ich die Prüfung Goethe-Zertifikat B1 machen, weil ich danach eine Ausbildung als Krankenpflegerin beginnen möchte. Meine Familie lebt noch in meiner Heimatstadt, aber wir telefonieren jeden Sonntag.",
+        "items": [
+          {
+            "id": "gb1_l1_q1",
+            "question_text": "Lina wohnt seit sechs Monaten in Berlin.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt: \"seit sechs Monaten in Berlin\".",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "gb1_l1_q1_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l1_q1_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_l1_q2",
+            "question_text": "Lina hat in Berlin sofort viele Freunde gefunden.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie sagt, es war am Anfang nicht leicht.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "gb1_l1_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l1_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "gb1_l1_q3",
+            "question_text": "Lina arbeitet am Wochenende in einem Café.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie arbeitet unter der Woche im Café, nicht am Wochenende.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "gb1_l1_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l1_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "gb1_l1_q4",
+            "question_text": "Lina möchte nach der Prüfung eine Ausbildung beginnen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie möchte eine Ausbildung als Krankenpflegerin beginnen.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "gb1_l1_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l1_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_l1_q5",
+            "question_text": "Der Deutschkurs findet jeden Dienstag statt.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt \"jeden Dienstag zu einem Deutschkurs\".",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "gb1_l1_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l1_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_l1_q6",
+            "question_text": "Linas Familie lebt auch in Berlin.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Ihre Familie lebt noch in ihrer Heimatstadt.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "gb1_l1_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l1_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "lesen2",
+        "name": "Lesen — Teil 2 (Zuordnung)",
+        "type": "reading",
+        "official_duration_minutes": 65,
+        "instructions": "Lesen Sie die Situationen 1–6 und wählen Sie die passende Anzeige (A–F).",
+        "passage": "Situationen:\n1. Eine Familie sucht eine günstige Wohnung in Zentrumsnähe.\n2. Ein Student sucht einen Deutschkurs am Abend.\n3. Eine Frau möchte gebrauchte Möbel kaufen.\n4. Ein Mann sucht eine Arbeit als Fahrer.\n5. Jemand möchte sein Fahrrad reparieren lassen.\n6. Eine Studentin sucht eine Nachhilfelehrerin für Mathematik.\n\nAnzeigen:\nA) 3-Zimmer-Wohnung, Nähe Stadtzentrum, 750€/Monat, ab sofort frei.\nB) Abendkurs Deutsch B1, montags und mittwochs, 18–20 Uhr, Volkshochschule.\nC) Second-Hand-Möbel: Sofa, Tisch, Stühle — günstig abzugeben.\nD) Gesucht: Lieferfahrer mit Führerschein Klasse B, Vollzeit.\nE) Fahrradwerkstatt: Reparaturen aller Art, auch am Wochenende geöffnet.\nF) Mathe-Nachhilfe für Schüler und Studierende, erste Stunde kostenlos.",
+        "items": [
+          {
+            "id": "gb1_l2_q1",
+            "question_text": "Welche Anzeige passt zu Situation 1 (Eine...)?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Anzeige A passt zu: Eine Familie sucht eine günstige Wohnung in Zentrumsnähe.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "gb1_l2_q1_a1",
+                "answer_text": "A) 3-Zimmer-Wohnung, Nähe Stadtzentrum, 750€/Monat, ab sofort frei.",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l2_q1_a2",
+                "answer_text": "B) Abendkurs Deutsch B1, montags und mittwochs, 18–20 Uhr, Volkshochschule.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q1_a3",
+                "answer_text": "C) Second-Hand-Möbel: Sofa, Tisch, Stühle — günstig abzugeben.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q1_a4",
+                "answer_text": "D) Gesucht: Lieferfahrer mit Führerschein Klasse B, Vollzeit.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q1_a5",
+                "answer_text": "E) Fahrradwerkstatt: Reparaturen aller Art, auch am Wochenende geöffnet.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q1_a6",
+                "answer_text": "F) Mathe-Nachhilfe für Schüler und Studierende, erste Stunde kostenlos.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_l2_q2",
+            "question_text": "Welche Anzeige passt zu Situation 2 (Ein...)?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Anzeige B passt zu: Ein Student sucht einen Deutschkurs am Abend.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "gb1_l2_q2_a1",
+                "answer_text": "A) 3-Zimmer-Wohnung, Nähe Stadtzentrum, 750€/Monat, ab sofort frei.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q2_a2",
+                "answer_text": "B) Abendkurs Deutsch B1, montags und mittwochs, 18–20 Uhr, Volkshochschule.",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l2_q2_a3",
+                "answer_text": "C) Second-Hand-Möbel: Sofa, Tisch, Stühle — günstig abzugeben.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q2_a4",
+                "answer_text": "D) Gesucht: Lieferfahrer mit Führerschein Klasse B, Vollzeit.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q2_a5",
+                "answer_text": "E) Fahrradwerkstatt: Reparaturen aller Art, auch am Wochenende geöffnet.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q2_a6",
+                "answer_text": "F) Mathe-Nachhilfe für Schüler und Studierende, erste Stunde kostenlos.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_l2_q3",
+            "question_text": "Welche Anzeige passt zu Situation 3 (Eine...)?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Anzeige C passt zu: Eine Frau möchte gebrauchte Möbel kaufen.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "gb1_l2_q3_a1",
+                "answer_text": "A) 3-Zimmer-Wohnung, Nähe Stadtzentrum, 750€/Monat, ab sofort frei.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q3_a2",
+                "answer_text": "B) Abendkurs Deutsch B1, montags und mittwochs, 18–20 Uhr, Volkshochschule.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q3_a3",
+                "answer_text": "C) Second-Hand-Möbel: Sofa, Tisch, Stühle — günstig abzugeben.",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l2_q3_a4",
+                "answer_text": "D) Gesucht: Lieferfahrer mit Führerschein Klasse B, Vollzeit.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q3_a5",
+                "answer_text": "E) Fahrradwerkstatt: Reparaturen aller Art, auch am Wochenende geöffnet.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q3_a6",
+                "answer_text": "F) Mathe-Nachhilfe für Schüler und Studierende, erste Stunde kostenlos.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_l2_q4",
+            "question_text": "Welche Anzeige passt zu Situation 4 (Ein...)?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Anzeige D passt zu: Ein Mann sucht eine Arbeit als Fahrer.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "gb1_l2_q4_a1",
+                "answer_text": "A) 3-Zimmer-Wohnung, Nähe Stadtzentrum, 750€/Monat, ab sofort frei.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q4_a2",
+                "answer_text": "B) Abendkurs Deutsch B1, montags und mittwochs, 18–20 Uhr, Volkshochschule.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q4_a3",
+                "answer_text": "C) Second-Hand-Möbel: Sofa, Tisch, Stühle — günstig abzugeben.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q4_a4",
+                "answer_text": "D) Gesucht: Lieferfahrer mit Führerschein Klasse B, Vollzeit.",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l2_q4_a5",
+                "answer_text": "E) Fahrradwerkstatt: Reparaturen aller Art, auch am Wochenende geöffnet.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q4_a6",
+                "answer_text": "F) Mathe-Nachhilfe für Schüler und Studierende, erste Stunde kostenlos.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_l2_q5",
+            "question_text": "Welche Anzeige passt zu Situation 5 (Jemand...)?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Anzeige E passt zu: Jemand möchte sein Fahrrad reparieren lassen.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "gb1_l2_q5_a1",
+                "answer_text": "A) 3-Zimmer-Wohnung, Nähe Stadtzentrum, 750€/Monat, ab sofort frei.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q5_a2",
+                "answer_text": "B) Abendkurs Deutsch B1, montags und mittwochs, 18–20 Uhr, Volkshochschule.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q5_a3",
+                "answer_text": "C) Second-Hand-Möbel: Sofa, Tisch, Stühle — günstig abzugeben.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q5_a4",
+                "answer_text": "D) Gesucht: Lieferfahrer mit Führerschein Klasse B, Vollzeit.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q5_a5",
+                "answer_text": "E) Fahrradwerkstatt: Reparaturen aller Art, auch am Wochenende geöffnet.",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l2_q5_a6",
+                "answer_text": "F) Mathe-Nachhilfe für Schüler und Studierende, erste Stunde kostenlos.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_l2_q6",
+            "question_text": "Welche Anzeige passt zu Situation 6 (Eine...)?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Anzeige F passt zu: Eine Studentin sucht eine Nachhilfelehrerin für Mathematik.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "gb1_l2_q6_a1",
+                "answer_text": "A) 3-Zimmer-Wohnung, Nähe Stadtzentrum, 750€/Monat, ab sofort frei.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q6_a2",
+                "answer_text": "B) Abendkurs Deutsch B1, montags und mittwochs, 18–20 Uhr, Volkshochschule.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q6_a3",
+                "answer_text": "C) Second-Hand-Möbel: Sofa, Tisch, Stühle — günstig abzugeben.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q6_a4",
+                "answer_text": "D) Gesucht: Lieferfahrer mit Führerschein Klasse B, Vollzeit.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q6_a5",
+                "answer_text": "E) Fahrradwerkstatt: Reparaturen aller Art, auch am Wochenende geöffnet.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l2_q6_a6",
+                "answer_text": "F) Mathe-Nachhilfe für Schüler und Studierende, erste Stunde kostenlos.",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "lesen3",
+        "name": "Lesen — Teil 3",
+        "type": "reading",
+        "official_duration_minutes": 65,
+        "instructions": "Lesen Sie den Text und beantworten Sie die Fragen.",
+        "passage": "Öffnungszeiten der Stadtbibliothek\n\nDie Stadtbibliothek München ist von Montag bis Freitag von 9 bis 20 Uhr geöffnet, samstags von 10 bis 16 Uhr. Sonntags bleibt sie geschlossen. Die Ausleihe von Büchern ist für Mitglieder kostenlos, eine Jahresmitgliedschaft kostet 20 Euro für Erwachsene und ist für Kinder und Jugendliche unter 18 Jahren kostenlos. Wer ein Buch zu spät zurückbringt, zahlt eine Gebühr von 50 Cent pro Tag und Buch. Im zweiten Stock gibt es einen ruhigen Lesesaal mit kostenlosem WLAN, der auch für Gruppenarbeit genutzt werden kann.",
+        "items": [
+          {
+            "id": "gb1_l3_q1",
+            "question_text": "Wann ist die Bibliothek samstags geöffnet?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt 10 bis 16 Uhr für Samstag.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "gb1_l3_q1_a1",
+                "answer_text": "Von 10 bis 16 Uhr",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l3_q1_a2",
+                "answer_text": "Von 9 bis 20 Uhr",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l3_q1_a3",
+                "answer_text": "Sie ist samstags geschlossen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_l3_q2",
+            "question_text": "Die Bibliothek ist sonntags geöffnet.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sonntags bleibt sie geschlossen.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "gb1_l3_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l3_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "gb1_l3_q3",
+            "question_text": "Wie viel kostet die Jahresmitgliedschaft für Erwachsene?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt 20 Euro für Erwachsene.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "gb1_l3_q3_a1",
+                "answer_text": "20 Euro",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l3_q3_a2",
+                "answer_text": "10 Euro",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l3_q3_a3",
+                "answer_text": "Sie ist kostenlos",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_l3_q4",
+            "question_text": "Für Kinder unter 18 Jahren ist die Mitgliedschaft kostenlos.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt das ausdrücklich.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "gb1_l3_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l3_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_l3_q5",
+            "question_text": "Wie viel zahlt man, wenn man ein Buch zu spät zurückbringt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt eine Gebühr von 50 Cent pro Tag.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "gb1_l3_q5_a1",
+                "answer_text": "50 Cent pro Tag",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l3_q5_a2",
+                "answer_text": "1 Euro pro Tag",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l3_q5_a3",
+                "answer_text": "Nichts",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_l3_q6",
+            "question_text": "Im Lesesaal gibt es kostenloses WLAN.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text erwähnt kostenloses WLAN im Lesesaal.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "gb1_l3_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l3_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "lesen4",
+        "name": "Lesen — Teil 4 (Zuordnung)",
+        "type": "reading",
+        "official_duration_minutes": 65,
+        "instructions": "Sechs Personen sprechen über ihre Freizeit. Ordnen Sie die Aussagen den Personen zu.",
+        "passage": "Forum: \"Wie verbringt ihr eure Freizeit?\"\n\nKarim: Ich verbringe die meiste Freizeit mit Sport. Dreimal die Woche gehe ich joggen, das hilft mir, Stress abzubauen.\nNora: Für mich ist Lesen die beste Entspannung. Ich lese am liebsten Krimis, weil sie so spannend sind.\nOmar: Ich koche sehr gerne, vor allem am Wochenende probiere ich neue Rezepte aus.\nPetra: Musik ist mein Leben. Ich spiele seit zehn Jahren Gitarre und übe fast jeden Tag.\nRania: Ich reise gerne, auch wenn es nur kurze Ausflüge in die Umgebung sind.\nSamir: Am liebsten treffe ich mich mit Freunden zum Kartenspielen, das mache ich fast jedes Wochenende.",
+        "items": [
+          {
+            "id": "gb1_l4_q1",
+            "question_text": "Wer treibt regelmäßig Sport?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Karim geht dreimal die Woche joggen.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "gb1_l4_q1_a1",
+                "answer_text": "Karim",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l4_q1_a2",
+                "answer_text": "Nora",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q1_a3",
+                "answer_text": "Omar",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q1_a4",
+                "answer_text": "Petra",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q1_a5",
+                "answer_text": "Rania",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q1_a6",
+                "answer_text": "Samir",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_l4_q2",
+            "question_text": "Wer entspannt sich am liebsten mit Büchern?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Nora liest am liebsten Krimis.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "gb1_l4_q2_a1",
+                "answer_text": "Karim",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q2_a2",
+                "answer_text": "Nora",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l4_q2_a3",
+                "answer_text": "Omar",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q2_a4",
+                "answer_text": "Petra",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q2_a5",
+                "answer_text": "Rania",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q2_a6",
+                "answer_text": "Samir",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_l4_q3",
+            "question_text": "Wer probiert gerne neue Rezepte aus?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Omar kocht gerne und probiert neue Rezepte.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "gb1_l4_q3_a1",
+                "answer_text": "Karim",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q3_a2",
+                "answer_text": "Nora",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q3_a3",
+                "answer_text": "Omar",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l4_q3_a4",
+                "answer_text": "Petra",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q3_a5",
+                "answer_text": "Rania",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q3_a6",
+                "answer_text": "Samir",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_l4_q4",
+            "question_text": "Wer spielt seit zehn Jahren ein Instrument?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Petra spielt seit zehn Jahren Gitarre.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "gb1_l4_q4_a1",
+                "answer_text": "Karim",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q4_a2",
+                "answer_text": "Nora",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q4_a3",
+                "answer_text": "Omar",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q4_a4",
+                "answer_text": "Petra",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l4_q4_a5",
+                "answer_text": "Rania",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q4_a6",
+                "answer_text": "Samir",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_l4_q5",
+            "question_text": "Wer macht gerne kurze Ausflüge?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Rania reist gerne, auch kurze Ausflüge.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "gb1_l4_q5_a1",
+                "answer_text": "Karim",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q5_a2",
+                "answer_text": "Nora",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q5_a3",
+                "answer_text": "Omar",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q5_a4",
+                "answer_text": "Petra",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q5_a5",
+                "answer_text": "Rania",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l4_q5_a6",
+                "answer_text": "Samir",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_l4_q6",
+            "question_text": "Wer trifft sich am Wochenende zum Kartenspielen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Samir spielt fast jedes Wochenende Karten mit Freunden.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "gb1_l4_q6_a1",
+                "answer_text": "Karim",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q6_a2",
+                "answer_text": "Nora",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q6_a3",
+                "answer_text": "Omar",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q6_a4",
+                "answer_text": "Petra",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q6_a5",
+                "answer_text": "Rania",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l4_q6_a6",
+                "answer_text": "Samir",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "lesen5",
+        "name": "Lesen — Teil 5",
+        "type": "reading",
+        "official_duration_minutes": 65,
+        "instructions": "Lesen Sie die Hausordnung und beantworten Sie die Fragen.",
+        "passage": "Hausordnung — Auszug\n\n1. Die Mülltonnen müssen bis spätestens 7 Uhr morgens an die Straße gestellt werden.\n2. Zwischen 13 und 15 Uhr gilt Mittagsruhe; lautes Musizieren ist in dieser Zeit nicht erlaubt.\n3. Fahrräder dürfen nur im Fahrradkeller abgestellt werden, nicht im Treppenhaus.\n4. Besucherparkplätze dürfen maximal zwei Stunden genutzt werden.\n5. Der Hausmeister ist dienstags und donnerstags von 9 bis 12 Uhr im Büro erreichbar.\n6. Reparaturen im Treppenhaus müssen der Hausverwaltung schriftlich gemeldet werden.",
+        "items": [
+          {
+            "id": "gb1_l5_q1",
+            "question_text": "Bis wann müssen die Mülltonnen an der Straße stehen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Regel 1 nennt spätestens 7 Uhr morgens.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "gb1_l5_q1_a1",
+                "answer_text": "Bis 7 Uhr morgens",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l5_q1_a2",
+                "answer_text": "Bis 9 Uhr morgens",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l5_q1_a3",
+                "answer_text": "Bis 12 Uhr mittags",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_l5_q2",
+            "question_text": "Zwischen 13 und 15 Uhr darf man laut Musik machen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "In dieser Zeit gilt Mittagsruhe.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "gb1_l5_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l5_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "gb1_l5_q3",
+            "question_text": "Wo dürfen Fahrräder abgestellt werden?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Regel 3 erlaubt nur den Fahrradkeller.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "gb1_l5_q3_a1",
+                "answer_text": "Nur im Fahrradkeller",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l5_q3_a2",
+                "answer_text": "Im Treppenhaus",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l5_q3_a3",
+                "answer_text": "Überall im Hof",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_l5_q4",
+            "question_text": "Wie lange darf man den Besucherparkplatz nutzen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Regel 4 nennt maximal zwei Stunden.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "gb1_l5_q4_a1",
+                "answer_text": "Maximal zwei Stunden",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l5_q4_a2",
+                "answer_text": "Den ganzen Tag",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l5_q4_a3",
+                "answer_text": "Maximal 30 Minuten",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_l5_q5",
+            "question_text": "Wann ist der Hausmeister im Büro erreichbar?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Regel 5 nennt genau diese Zeiten.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "gb1_l5_q5_a1",
+                "answer_text": "Dienstags und donnerstags, 9–12 Uhr",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_l5_q5_a2",
+                "answer_text": "Jeden Tag von 9–17 Uhr",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l5_q5_a3",
+                "answer_text": "Nur am Wochenende",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_l5_q6",
+            "question_text": "Reparaturen im Treppenhaus können einfach mündlich gemeldet werden.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie müssen schriftlich gemeldet werden.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "gb1_l5_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_l5_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "sprachbausteine",
+        "name": "Sprachbausteine (تدريب إضافي)",
+        "type": "language",
+        "official_duration_minutes": null,
+        "instructions": "تدريب إضافي على القواعد والمفردات (غير جزء رسمي من اختبار Goethe، لكنه مفيد للتحضير).",
+        "passage": null,
+        "items": [
+          {
+            "id": "gb1_sb_q1",
+            "question_text": "Ich ___ seit drei Jahren in Deutschland.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Mit \"Ich\" verwendet man \"wohne\".",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "gb1_sb_q1_a1",
+                "answer_text": "wohne",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_sb_q1_a2",
+                "answer_text": "wohnst",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_sb_q1_a3",
+                "answer_text": "wohnen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_sb_q2",
+            "question_text": "Wir freuen uns ___ deinen Besuch.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"sich freuen auf\" + Akkusativ.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "gb1_sb_q2_a1",
+                "answer_text": "auf",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_sb_q2_a2",
+                "answer_text": "für",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_sb_q2_a3",
+                "answer_text": "mit",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_sb_q3",
+            "question_text": "___ du mir bitte helfen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Mit \"du\" verwendet man \"kannst\".",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "gb1_sb_q3_a1",
+                "answer_text": "Kannst",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_sb_q3_a2",
+                "answer_text": "Kann",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_sb_q3_a3",
+                "answer_text": "Können",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_sb_q4",
+            "question_text": "Er ist ___ als sein Bruder.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Vergleich zwischen zwei Personen braucht den Komparativ.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "gb1_sb_q4_a1",
+                "answer_text": "größer",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_sb_q4_a2",
+                "answer_text": "groß",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_sb_q4_a3",
+                "answer_text": "am größten",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_sb_q5",
+            "question_text": "Ich rufe dich an, ___ ich zu Hause bin.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"wenn\" drückt eine Bedingung/einen Zeitpunkt aus.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "gb1_sb_q5_a1",
+                "answer_text": "wenn",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_sb_q5_a2",
+                "answer_text": "obwohl",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_sb_q5_a3",
+                "answer_text": "damit",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_sb_q6",
+            "question_text": "Das ist die Frau, ___ mir geholfen hat.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Relativpronomen für feminines Subjekt: \"die\".",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "gb1_sb_q6_a1",
+                "answer_text": "die",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_sb_q6_a2",
+                "answer_text": "der",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_sb_q6_a3",
+                "answer_text": "das",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_sb_q7",
+            "question_text": "Ich habe das Buch schon ___.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Perfekt: \"habe\" + Partizip II \"gelesen\".",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "gb1_sb_q7_a1",
+                "answer_text": "gelesen",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_sb_q7_a2",
+                "answer_text": "lesen",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_sb_q7_a3",
+                "answer_text": "las",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_sb_q8",
+            "question_text": "Sie interessiert sich sehr ___ Musik.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"sich interessieren für\" + Akkusativ.",
+            "order_index": 7,
+            "answers": [
+              {
+                "id": "gb1_sb_q8_a1",
+                "answer_text": "für",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_sb_q8_a2",
+                "answer_text": "an",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_sb_q8_a3",
+                "answer_text": "mit",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_sb_q9",
+            "question_text": "Nach der Arbeit gehe ich ___ Hause.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"nach Hause gehen\" ist eine feste Wendung.",
+            "order_index": 8,
+            "answers": [
+              {
+                "id": "gb1_sb_q9_a1",
+                "answer_text": "nach",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_sb_q9_a2",
+                "answer_text": "zu",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_sb_q9_a3",
+                "answer_text": "in",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_sb_q10",
+            "question_text": "Er hat mir geholfen, ___ das Formular auszufüllen.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"um...zu\" drückt einen Zweck aus.",
+            "order_index": 9,
+            "answers": [
+              {
+                "id": "gb1_sb_q10_a1",
+                "answer_text": "um",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_sb_q10_a2",
+                "answer_text": "damit",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_sb_q10_a3",
+                "answer_text": "weil",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "hoeren1",
+        "name": "Hören — Teil 1 (Transkript)",
+        "type": "listening",
+        "official_duration_minutes": 40,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ كل نص قصير كما لو كنت تسمعه، ثم أجب عن سؤاله.",
+        "passage": "Kurze Texte (Transkript):\n1. Der Fernseher von Frau Hüttner wurde repariert. Sie kann ihn morgen abholen.\n2. Herr Beck hat seinen Schlüssel im Büro vergessen und bittet den Hausmeister um Hilfe.\n3. Die nächste Deutschstunde fällt wegen Krankheit der Lehrerin aus.\n4. Am Bahnhof gibt es ab nächster Woche einen neuen Zeitungskiosk direkt am Haupteingang.\n5. Frau Sultan sucht ihre Brille, die sie wahrscheinlich im Auto liegen gelassen hat.\n6. Der Kurs beginnt heute zehn Minuten später, weil der Raum noch aufgeräumt wird.\n7. Im Supermarkt gibt es diese Woche Äpfel im Angebot, zwei Kilo für drei Euro.\n8. Die Post kommt heute später, weil ein Fahrzeug eine Panne hatte.",
+        "items": [
+          {
+            "id": "gb1_h1_q1",
+            "question_text": "Was ist mit dem Fernseher passiert?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text sagt \"wurde repariert\".",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "gb1_h1_q1_a1",
+                "answer_text": "Er wurde repariert.",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h1_q1_a2",
+                "answer_text": "Er wurde verkauft.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h1_q1_a3",
+                "answer_text": "Er ist kaputt geblieben.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h1_q2",
+            "question_text": "Was hat Herr Beck vergessen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Er hat den Schlüssel vergessen.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "gb1_h1_q2_a1",
+                "answer_text": "Seinen Schlüssel",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h1_q2_a2",
+                "answer_text": "Seine Tasche",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h1_q2_a3",
+                "answer_text": "Sein Handy",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h1_q3",
+            "question_text": "Warum fällt die Stunde aus?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Stunde fällt wegen Krankheit aus.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "gb1_h1_q3_a1",
+                "answer_text": "Die Lehrerin ist krank.",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h1_q3_a2",
+                "answer_text": "Der Raum ist belegt.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h1_q3_a3",
+                "answer_text": "Es sind zu wenige Teilnehmer.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h1_q4",
+            "question_text": "Was gibt es ab nächster Woche?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt einen neuen Zeitungskiosk.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "gb1_h1_q4_a1",
+                "answer_text": "Einen neuen Zeitungskiosk",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h1_q4_a2",
+                "answer_text": "Ein neues Café",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h1_q4_a3",
+                "answer_text": "Einen neuen Fahrkartenautomaten",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h1_q5",
+            "question_text": "Was sucht Frau Sultan?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie sucht ihre Brille.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "gb1_h1_q5_a1",
+                "answer_text": "Ihre Brille",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h1_q5_a2",
+                "answer_text": "Ihren Autoschlüssel",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h1_q5_a3",
+                "answer_text": "Ihre Handtasche",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h1_q6",
+            "question_text": "Warum beginnt der Kurs später?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Raum muss noch aufgeräumt werden.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "gb1_h1_q6_a1",
+                "answer_text": "Der Raum wird noch aufgeräumt.",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h1_q6_a2",
+                "answer_text": "Die Lehrerin kommt zu spät.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h1_q6_a3",
+                "answer_text": "Es gibt technische Probleme.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h1_q7",
+            "question_text": "Was ist diese Woche im Angebot?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt Äpfel im Angebot.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "gb1_h1_q7_a1",
+                "answer_text": "Äpfel",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h1_q7_a2",
+                "answer_text": "Bananen",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h1_q7_a3",
+                "answer_text": "Kartoffeln",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h1_q8",
+            "question_text": "Warum kommt die Post später?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Ein Fahrzeug hatte eine Panne.",
+            "order_index": 7,
+            "answers": [
+              {
+                "id": "gb1_h1_q8_a1",
+                "answer_text": "Ein Fahrzeug hatte eine Panne.",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h1_q8_a2",
+                "answer_text": "Es ist Feiertag.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h1_q8_a3",
+                "answer_text": "Es gibt zu viele Pakete.",
+                "is_correct": false
+              }
+            ]
+          }
+        ],
+        "audio_url": "/audio/test_goethe_b1__hoeren1.mp3"
+      },
+      {
+        "key": "hoeren2",
+        "name": "Hören — Teil 2 (Transkript)",
+        "type": "listening",
+        "official_duration_minutes": 40,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص الحوار كما لو كنت تسمعه، ثم أجب عن الأسئلة.",
+        "passage": "Gespräch zwischen zwei Kolleginnen:\n\"A: Hast du schon gehört? Die Kantine bekommt ab nächstem Monat ein neues Angebot: jeden Freitag gibt es vegetarisches Essen.\nB: Das ist ja schön! Isst du eigentlich oft in der Kantine?\nA: Ja, meistens zweimal pro Woche, mittwochs und freitags. Am Montag bringe ich mir immer selbst etwas mit.\nB: Ich war lange nicht mehr dort, weil das Essen mir zu teuer war. Aber wenn es jetzt günstiger wird, gehe ich vielleicht wieder hin.\nA: Ja, die Preise wurden tatsächlich gesenkt, ein Hauptgericht kostet jetzt nur noch vier Euro fünfzig.\nB: Perfekt, dann komme ich nächste Woche mit!\"",
+        "items": [
+          {
+            "id": "gb1_h2_q1",
+            "question_text": "Was gibt es ab nächstem Monat jeden Freitag in der Kantine?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "A sagt \"jeden Freitag gibt es vegetarisches Essen\".",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "gb1_h2_q1_a1",
+                "answer_text": "Vegetarisches Essen",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h2_q1_a2",
+                "answer_text": "Fisch",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h2_q1_a3",
+                "answer_text": "Nur Suppe",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h2_q2",
+            "question_text": "Wie oft isst A in der Kantine?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "A isst meistens zweimal pro Woche dort.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "gb1_h2_q2_a1",
+                "answer_text": "Zweimal pro Woche",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h2_q2_a2",
+                "answer_text": "Jeden Tag",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h2_q2_a3",
+                "answer_text": "Einmal im Monat",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h2_q3",
+            "question_text": "A bringt sich montags selbst Essen mit.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "A sagt \"Am Montag bringe ich mir immer selbst etwas mit\".",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "gb1_h2_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h2_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h2_q4",
+            "question_text": "Warum war B lange nicht mehr in der Kantine?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "B sagt, das Essen war ihr zu teuer.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "gb1_h2_q4_a1",
+                "answer_text": "Das Essen war ihr zu teuer.",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h2_q4_a2",
+                "answer_text": "Sie hatte keine Zeit.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h2_q4_a3",
+                "answer_text": "Ihr schmeckte das Essen nicht.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h2_q5",
+            "question_text": "Wie viel kostet ein Hauptgericht jetzt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "A nennt \"vier Euro fünfzig\".",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "gb1_h2_q5_a1",
+                "answer_text": "4,50 Euro",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h2_q5_a2",
+                "answer_text": "6 Euro",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h2_q5_a3",
+                "answer_text": "3 Euro",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h2_q6",
+            "question_text": "Die Preise in der Kantine wurden gesenkt.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "A bestätigt, die Preise wurden gesenkt.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "gb1_h2_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h2_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h2_q7",
+            "question_text": "B möchte nächste Woche mit in die Kantine kommen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "B sagt \"dann komme ich nächste Woche mit\".",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "gb1_h2_q7_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h2_q7_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h2_q8",
+            "question_text": "Worüber sprechen die beiden Kolleginnen hauptsächlich?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Das gesamte Gespräch dreht sich um die Kantine.",
+            "order_index": 7,
+            "answers": [
+              {
+                "id": "gb1_h2_q8_a1",
+                "answer_text": "Über die Kantine",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h2_q8_a2",
+                "answer_text": "Über ihren Urlaub",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h2_q8_a3",
+                "answer_text": "Über ein neues Projekt",
+                "is_correct": false
+              }
+            ]
+          }
+        ],
+        "audio_url": "/audio/test_goethe_b1__hoeren2.mp3"
+      },
+      {
+        "key": "hoeren3",
+        "name": "Hören — Teil 3 (Transkript)",
+        "type": "listening",
+        "official_duration_minutes": 40,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص الإعلان كما لو كنت تسمعه، ثم أجب عن الأسئلة.",
+        "passage": "Kurzvortrag: Sportprogramm für Neuankömmlinge\n\"Willkommen zu unserem einwöchigen Sportprogramm! Jeden Morgen um 9 Uhr treffen wir uns im Stadtpark zum gemeinsamen Joggen. Am Nachmittag bieten wir verschiedene Kurse an: Montag und Mittwoch Schwimmen im Hallenbad, Dienstag und Donnerstag Fußball auf dem Sportplatz. Freitag ist der Abschlusstag mit einem kleinen Turnier, und alle Teilnehmenden bekommen am Ende ein Zertifikat. Die Teilnahme ist kostenlos, aber bitte bringen Sie bequeme Sportkleidung mit. Bei Regen findet das Joggen drinnen in der Sporthalle statt.\"",
+        "items": [
+          {
+            "id": "gb1_h3_q1",
+            "question_text": "Wie lange dauert das Sportprogramm?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Es ist ein \"einwöchiges Sportprogramm\".",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "gb1_h3_q1_a1",
+                "answer_text": "Eine Woche",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h3_q1_a2",
+                "answer_text": "Einen Monat",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h3_q1_a3",
+                "answer_text": "Ein Wochenende",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h3_q2",
+            "question_text": "Um wie viel Uhr trifft man sich zum Joggen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt 9 Uhr morgens.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "gb1_h3_q2_a1",
+                "answer_text": "Um 9 Uhr",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h3_q2_a2",
+                "answer_text": "Um 7 Uhr",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h3_q2_a3",
+                "answer_text": "Um 12 Uhr",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h3_q3",
+            "question_text": "An welchen Tagen gibt es Schwimmen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Schwimmen ist montags und mittwochs.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "gb1_h3_q3_a1",
+                "answer_text": "Montag und Mittwoch",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h3_q3_a2",
+                "answer_text": "Dienstag und Donnerstag",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h3_q3_a3",
+                "answer_text": "Nur Freitag",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h3_q4",
+            "question_text": "Was passiert am Freitag?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Freitag ist der Abschlusstag mit Turnier.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "gb1_h3_q4_a1",
+                "answer_text": "Ein kleines Turnier",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h3_q4_a2",
+                "answer_text": "Nur Joggen",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h3_q4_a3",
+                "answer_text": "Das Programm beginnt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h3_q5",
+            "question_text": "Alle Teilnehmenden bekommen am Ende ein Zertifikat.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt das ausdrücklich.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "gb1_h3_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h3_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h3_q6",
+            "question_text": "Die Teilnahme am Programm kostet Geld.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Teilnahme ist kostenlos.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "gb1_h3_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h3_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "gb1_h3_q7",
+            "question_text": "Was passiert bei Regen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Bei Regen wird drinnen in der Sporthalle gejoggt.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "gb1_h3_q7_a1",
+                "answer_text": "Das Joggen findet in der Sporthalle statt.",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h3_q7_a2",
+                "answer_text": "Das Programm wird abgesagt.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h3_q7_a3",
+                "answer_text": "Man bleibt zu Hause.",
+                "is_correct": false
+              }
+            ]
+          }
+        ],
+        "audio_url": "/audio/test_goethe_b1__hoeren3.mp3"
+      },
+      {
+        "key": "hoeren4",
+        "name": "Hören — Teil 4 (Transkript)",
+        "type": "listening",
+        "official_duration_minutes": 40,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص النقاش كما لو كنت تسمعه، ثم أجب عن الأسئلة.",
+        "passage": "Radiodiskussion: Sollten Handys in der Schule verboten werden?\n\"Moderator: Heute diskutieren wir über Handyverbote an Schulen. Frau Lang, Sie sind Lehrerin — was denken Sie?\nFrau Lang: Ich bin klar dafür. Handys lenken die Schüler im Unterricht stark ab, das sehe ich jeden Tag.\nModerator: Und Herr Reuter, Sie sind Vater von zwei Schulkindern?\nHerr Reuter: Ich sehe das differenzierter. In Notfällen möchte ich, dass meine Kinder erreichbar sind. Ein komplettes Verbot finde ich zu streng, aber während des Unterrichts sollten Handys sicher weggepackt sein.\nFrau Lang: Da stimme ich zu — es geht nicht um ein Verbot des Besitzes, sondern der Nutzung im Unterricht.\nModerator: Vielen Dank Ihnen beiden für die interessanten Perspektiven!\"",
+        "items": [
+          {
+            "id": "gb1_h4_q1",
+            "question_text": "Worüber diskutieren die Gäste?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Das Thema ist Handyverbote an Schulen.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "gb1_h4_q1_a1",
+                "answer_text": "Über Handyverbote an Schulen",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h4_q1_a2",
+                "answer_text": "Über Hausaufgaben",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h4_q1_a3",
+                "answer_text": "Über Schuluniformen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h4_q2",
+            "question_text": "Was ist Frau Lang von Beruf?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie wird als Lehrerin vorgestellt.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "gb1_h4_q2_a1",
+                "answer_text": "Lehrerin",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h4_q2_a2",
+                "answer_text": "Ärztin",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h4_q2_a3",
+                "answer_text": "Journalistin",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h4_q3",
+            "question_text": "Frau Lang ist gegen ein Handyverbot.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie sagt \"Ich bin klar dafür\".",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "gb1_h4_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h4_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "gb1_h4_q4",
+            "question_text": "Warum möchte Herr Reuter, dass seine Kinder ein Handy haben?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Er sagt, in Notfällen möchte er sie erreichen können.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "gb1_h4_q4_a1",
+                "answer_text": "Für Notfälle",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h4_q4_a2",
+                "answer_text": "Für Spiele",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h4_q4_a3",
+                "answer_text": "Für die Hausaufgaben",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h4_q5",
+            "question_text": "Herr Reuter ist für ein komplettes Handyverbot.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er findet ein komplettes Verbot zu streng.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "gb1_h4_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h4_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "gb1_h4_q6",
+            "question_text": "Worauf einigen sich beide am Ende?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Beide stimmen zu, dass es um die Nutzung im Unterricht geht.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "gb1_h4_q6_a1",
+                "answer_text": "Handys sollten während des Unterrichts weggepackt sein.",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h4_q6_a2",
+                "answer_text": "Handys sollten ganz verboten werden.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h4_q6_a3",
+                "answer_text": "Handys sollten frei erlaubt sein.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb1_h4_q7",
+            "question_text": "Wie viele Kinder hat Herr Reuter?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Er wird als \"Vater von zwei Schulkindern\" vorgestellt.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "gb1_h4_q7_a1",
+                "answer_text": "Zwei",
+                "is_correct": true
+              },
+              {
+                "id": "gb1_h4_q7_a2",
+                "answer_text": "Eins",
+                "is_correct": false
+              },
+              {
+                "id": "gb1_h4_q7_a3",
+                "answer_text": "Drei",
+                "is_correct": false
+              }
+            ]
+          }
+        ],
+        "audio_url": "/audio/test_goethe_b1__hoeren4.mp3"
+      }
+    ],
+    "writing": {
+      "name": "Schreiben (تدريب غير مُقيَّم)",
+      "official_duration_minutes": 60,
+      "instructions": "في الاختبار الرسمي، تكتب رسالتين إلكترونيتين ومساهمة نقاش. هذا تدريب ذاتي غير مُقيَّم آليًا — اكتب إجابتك ثم قارنها بالنموذج.",
+      "prompt": "Schreiben Sie eine informelle E-Mail an einen Freund / eine Freundin (ca. 40–50 Wörter). Gehen Sie auf folgende Punkte ein:\n- Erzählen Sie, warum Sie nicht zu seiner/ihrer Geburtstagsfeier kommen konnten.\n- Entschuldigen Sie sich.\n- Schlagen Sie ein Treffen für nächste Woche vor.",
+      "sample_answer": "Liebe Sara,\n\nes tut mir sehr leid, dass ich nicht zu deiner Geburtstagsfeier kommen konnte. Ich war leider krank und musste zu Hause bleiben. Ich hoffe, du kannst mir verzeihen!\n\nHättest du nächste Woche Zeit? Ich würde dich gerne zum Kaffee einladen, um deinen Geburtstag nachzufeiern.\n\nLiebe Grüße\nAhmed"
+    }
+  },
+  "test_goethe_b2": {
+    "sections": [
+      {
+        "key": "lesen1",
+        "name": "Lesen — Teil 1 (Zuordnung)",
+        "type": "reading",
+        "official_duration_minutes": 65,
+        "instructions": "Sechs Personen äußern sich in einem Forum zum Thema Homeoffice. Ordnen Sie die Aussagen den Personen zu.",
+        "passage": "Forum: \"Was denkt ihr über Homeoffice?\"\n\nAmir: Ich arbeite seit einem Jahr komplett von zu Hause. Am Anfang war es toll, aber mittlerweile vermisse ich den direkten Kontakt zu meinen Kollegen sehr.\nBetül: Für mich ist Homeoffice ideal, weil ich so Beruf und Familie viel besser vereinbaren kann. Ich spare außerdem täglich eine Stunde Fahrzeit.\nCarsten: Meiner Meinung nach sollte man mindestens zwei Tage pro Woche im Büro sein. Nur so bleibt man wirklich Teil des Teams.\nDunja: Ich finde es schwierig, mich zu Hause zu konzentrieren. Meine Wohnung ist einfach nicht für konzentriertes Arbeiten gemacht.\nElias: Ich bin seit der Umstellung viel produktiver, weil ich meine Zeit freier einteilen kann.\nFarah: Mir fehlt vor allem der informelle Austausch mit Kollegen in der Kaffeepause, das lässt sich online kaum ersetzen.",
+        "items": [
+          {
+            "id": "gb2_l1_q1",
+            "question_text": "Wer vermisst den Kontakt zu den Kollegen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Amir sagt, er vermisst den direkten Kontakt zu seinen Kollegen.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "gb2_l1_q1_a1",
+                "answer_text": "Amir",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l1_q1_a2",
+                "answer_text": "Betül",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q1_a3",
+                "answer_text": "Carsten",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q1_a4",
+                "answer_text": "Dunja",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q1_a5",
+                "answer_text": "Elias",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q1_a6",
+                "answer_text": "Farah",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l1_q2",
+            "question_text": "Wer kann dank Homeoffice Beruf und Familie besser vereinbaren?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Betül nennt genau diesen Vorteil.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "gb2_l1_q2_a1",
+                "answer_text": "Amir",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q2_a2",
+                "answer_text": "Betül",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l1_q2_a3",
+                "answer_text": "Carsten",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q2_a4",
+                "answer_text": "Dunja",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q2_a5",
+                "answer_text": "Elias",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q2_a6",
+                "answer_text": "Farah",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l1_q3",
+            "question_text": "Wer findet, man sollte mindestens zwei Tage im Büro sein?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Carsten schlägt mindestens zwei Bürotage pro Woche vor.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "gb2_l1_q3_a1",
+                "answer_text": "Amir",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q3_a2",
+                "answer_text": "Betül",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q3_a3",
+                "answer_text": "Carsten",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l1_q3_a4",
+                "answer_text": "Dunja",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q3_a5",
+                "answer_text": "Elias",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q3_a6",
+                "answer_text": "Farah",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l1_q4",
+            "question_text": "Wer hat Konzentrationsprobleme zu Hause?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Dunja sagt, ihre Wohnung sei nicht für konzentriertes Arbeiten gemacht.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "gb2_l1_q4_a1",
+                "answer_text": "Amir",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q4_a2",
+                "answer_text": "Betül",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q4_a3",
+                "answer_text": "Carsten",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q4_a4",
+                "answer_text": "Dunja",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l1_q4_a5",
+                "answer_text": "Elias",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q4_a6",
+                "answer_text": "Farah",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l1_q5",
+            "question_text": "Wer ist seit dem Wechsel produktiver geworden?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Elias sagt, er sei viel produktiver geworden.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "gb2_l1_q5_a1",
+                "answer_text": "Amir",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q5_a2",
+                "answer_text": "Betül",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q5_a3",
+                "answer_text": "Carsten",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q5_a4",
+                "answer_text": "Dunja",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q5_a5",
+                "answer_text": "Elias",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l1_q5_a6",
+                "answer_text": "Farah",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l1_q6",
+            "question_text": "Wem fehlt der informelle Austausch in der Kaffeepause?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Farah nennt genau diesen Punkt.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "gb2_l1_q6_a1",
+                "answer_text": "Amir",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q6_a2",
+                "answer_text": "Betül",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q6_a3",
+                "answer_text": "Carsten",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q6_a4",
+                "answer_text": "Dunja",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q6_a5",
+                "answer_text": "Elias",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l1_q6_a6",
+                "answer_text": "Farah",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "lesen2",
+        "name": "Lesen — Teil 2",
+        "type": "reading",
+        "official_duration_minutes": 65,
+        "instructions": "Lesen Sie den Artikel und beantworten Sie die Fragen.",
+        "passage": "Studie: Vier-Tage-Woche steigert Zufriedenheit\n\nEine neue Studie aus mehreren europäischen Unternehmen zeigt, dass Mitarbeitende bei einer Vier-Tage-Woche nicht nur zufriedener, sondern auch produktiver sind. Die Firmen berichten von weniger Krankheitstagen und einer geringeren Fluktuation. Kritiker warnen jedoch, dass sich das Modell nicht für alle Branchen eignet, etwa im Gesundheitswesen oder im Einzelhandel, wo durchgehende Anwesenheit nötig ist. Die Forscher betonen außerdem, dass eine sorgfältige Planung der Arbeitsabläufe entscheidend für den Erfolg des Modells sei.",
+        "items": [
+          {
+            "id": "gb2_l2_q1",
+            "question_text": "Was zeigt die Studie laut Text?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text sagt genau das im ersten Satz.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "gb2_l2_q1_a1",
+                "answer_text": "Mitarbeitende sind bei einer Vier-Tage-Woche zufriedener und produktiver.",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l2_q1_a2",
+                "answer_text": "Mitarbeitende sind bei einer Vier-Tage-Woche weniger produktiv.",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l2_q1_a3",
+                "answer_text": "Die Vier-Tage-Woche funktioniert nur im Gesundheitswesen.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l2_q2",
+            "question_text": "Was berichten die Firmen zusätzlich?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt weniger Krankheitstage und geringere Fluktuation.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "gb2_l2_q2_a1",
+                "answer_text": "Weniger Krankheitstage und geringere Fluktuation.",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l2_q2_a2",
+                "answer_text": "Mehr Krankheitstage.",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l2_q2_a3",
+                "answer_text": "Höhere Kosten.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l2_q3",
+            "question_text": "In welchen Branchen ist das Modell laut Kritikern schwierig?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt explizit Gesundheitswesen und Einzelhandel.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "gb2_l2_q3_a1",
+                "answer_text": "Gesundheitswesen und Einzelhandel",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l2_q3_a2",
+                "answer_text": "Nur in der Industrie",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l2_q3_a3",
+                "answer_text": "In allen Branchen gleichermaßen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l2_q4",
+            "question_text": "Alle Branchen können die Vier-Tage-Woche laut Text problemlos einführen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Kritiker warnen, dass sich das Modell nicht für alle Branchen eignet.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "gb2_l2_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l2_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "gb2_l2_q5",
+            "question_text": "Die Forscher betonen die Bedeutung sorgfältiger Planung.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der letzte Satz nennt genau das.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "gb2_l2_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l2_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l2_q6",
+            "question_text": "Warum ist durchgehende Anwesenheit im Einzelhandel wichtig?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt \"durchgehende Anwesenheit nötig\" als Grund.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "gb2_l2_q6_a1",
+                "answer_text": "Weil dort ständige Erreichbarkeit nötig ist.",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l2_q6_a2",
+                "answer_text": "Weil dort keine Digitalisierung möglich ist.",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l2_q6_a3",
+                "answer_text": "Weil das Gesetz es vorschreibt.",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "lesen3",
+        "name": "Lesen — Teil 3 (Zuordnung)",
+        "type": "reading",
+        "official_duration_minutes": 65,
+        "instructions": "Sechs Personen äußern sich zum Thema Minimalismus. Ordnen Sie die Aussagen zu.",
+        "passage": "Forum: \"Minimalismus im Alltag\"\n\nJonas: Seit ich weniger Dinge besitze, fühle ich mich viel freier. Ich brauche keine Zeit mehr, um Sachen zu suchen oder aufzuräumen.\nKatja: Ich finde Minimalismus übertrieben. Manche Dinge haben einen emotionalen Wert, den man nicht einfach wegwerfen sollte.\nLuca: Für mich ist es vor allem eine finanzielle Entscheidung — ich gebe seitdem viel weniger Geld für unnötige Dinge aus.\nMona: Ich sehe beide Seiten. Weniger Besitz kann entlasten, aber komplette Reduktion passt nicht zu jedem Lebensstil.\nNoah: Umweltschutz ist mein Hauptgrund. Weniger konsumieren bedeutet weniger Ressourcenverbrauch.\nPetra: Ich probiere es gerade aus, bin aber noch unsicher, ob ich langfristig dabei bleibe.",
+        "items": [
+          {
+            "id": "gb2_l3_q1",
+            "question_text": "Wer fühlt sich durch weniger Besitz freier?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Jonas sagt, er fühle sich viel freier.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "gb2_l3_q1_a1",
+                "answer_text": "Jonas",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l3_q1_a2",
+                "answer_text": "Katja",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q1_a3",
+                "answer_text": "Luca",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q1_a4",
+                "answer_text": "Mona",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q1_a5",
+                "answer_text": "Noah",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q1_a6",
+                "answer_text": "Petra",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l3_q2",
+            "question_text": "Wer findet Minimalismus übertrieben?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Katja nennt es übertrieben wegen des emotionalen Werts von Dingen.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "gb2_l3_q2_a1",
+                "answer_text": "Jonas",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q2_a2",
+                "answer_text": "Katja",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l3_q2_a3",
+                "answer_text": "Luca",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q2_a4",
+                "answer_text": "Mona",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q2_a5",
+                "answer_text": "Noah",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q2_a6",
+                "answer_text": "Petra",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l3_q3",
+            "question_text": "Für wen ist es vor allem eine finanzielle Entscheidung?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Luca nennt finanzielle Gründe.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "gb2_l3_q3_a1",
+                "answer_text": "Jonas",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q3_a2",
+                "answer_text": "Katja",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q3_a3",
+                "answer_text": "Luca",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l3_q3_a4",
+                "answer_text": "Mona",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q3_a5",
+                "answer_text": "Noah",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q3_a6",
+                "answer_text": "Petra",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l3_q4",
+            "question_text": "Wer sieht sowohl Vor- als auch Nachteile?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Mona sagt, sie sehe beide Seiten.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "gb2_l3_q4_a1",
+                "answer_text": "Jonas",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q4_a2",
+                "answer_text": "Katja",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q4_a3",
+                "answer_text": "Luca",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q4_a4",
+                "answer_text": "Mona",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l3_q4_a5",
+                "answer_text": "Noah",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q4_a6",
+                "answer_text": "Petra",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l3_q5",
+            "question_text": "Wer nennt Umweltschutz als Hauptgrund?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Noah nennt Umweltschutz als Hauptgrund.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "gb2_l3_q5_a1",
+                "answer_text": "Jonas",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q5_a2",
+                "answer_text": "Katja",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q5_a3",
+                "answer_text": "Luca",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q5_a4",
+                "answer_text": "Mona",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q5_a5",
+                "answer_text": "Noah",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l3_q5_a6",
+                "answer_text": "Petra",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l3_q6",
+            "question_text": "Wer ist sich noch unsicher, ob sie dabei bleibt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Petra sagt, sie sei noch unsicher.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "gb2_l3_q6_a1",
+                "answer_text": "Jonas",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q6_a2",
+                "answer_text": "Katja",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q6_a3",
+                "answer_text": "Luca",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q6_a4",
+                "answer_text": "Mona",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q6_a5",
+                "answer_text": "Noah",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q6_a6",
+                "answer_text": "Petra",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "lesen4",
+        "name": "Lesen — Teil 4 (Regeltext)",
+        "type": "reading",
+        "official_duration_minutes": 65,
+        "instructions": "Lesen Sie die Nutzungsbedingungen und beantworten Sie die Fragen.",
+        "passage": "Nutzungsbedingungen für den Coworking-Space — Auszug\n\n1. Der Zugang zum Gebäude ist täglich von 7 bis 22 Uhr über die Schlüsselkarte möglich.\n2. Besprechungsräume können maximal für zwei Stunden am Stück gebucht werden.\n3. Telefonate sollten ausschließlich in den dafür vorgesehenen Telefonkabinen geführt werden.\n4. Mitglieder dürfen bis zu zwei Gäste pro Tag ohne Voranmeldung mitbringen.\n5. Die Nutzung der Küche ist kostenlos, jedoch muss das Geschirr selbst gespült werden.\n6. Bei Kündigung der Mitgliedschaft gilt eine Frist von einem Monat zum Monatsende.",
+        "items": [
+          {
+            "id": "gb2_l4_q1",
+            "question_text": "Wann ist der Zugang zum Gebäude möglich?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Regel 1 nennt genau diese Zeiten.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "gb2_l4_q1_a1",
+                "answer_text": "Täglich von 7 bis 22 Uhr",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l4_q1_a2",
+                "answer_text": "Nur werktags",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l4_q1_a3",
+                "answer_text": "Rund um die Uhr",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l4_q2",
+            "question_text": "Wie lange können Besprechungsräume am Stück gebucht werden?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Regel 2 nennt maximal zwei Stunden.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "gb2_l4_q2_a1",
+                "answer_text": "Maximal zwei Stunden",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l4_q2_a2",
+                "answer_text": "Maximal eine Stunde",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l4_q2_a3",
+                "answer_text": "Unbegrenzt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l4_q3",
+            "question_text": "Telefonate dürfen überall im Coworking-Space geführt werden.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie sollten nur in den Telefonkabinen geführt werden.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "gb2_l4_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l4_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "gb2_l4_q4",
+            "question_text": "Wie viele Gäste dürfen Mitglieder pro Tag mitbringen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Regel 4 nennt bis zu zwei Gäste.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "gb2_l4_q4_a1",
+                "answer_text": "Bis zu zwei",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l4_q4_a2",
+                "answer_text": "Nur einen",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l4_q4_a3",
+                "answer_text": "Beliebig viele",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l4_q5",
+            "question_text": "Die Nutzung der Küche kostet extra.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Nutzung ist kostenlos.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "gb2_l4_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l4_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "gb2_l4_q6",
+            "question_text": "Welche Kündigungsfrist gilt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Regel 6 nennt eine Frist von einem Monat.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "gb2_l4_q6_a1",
+                "answer_text": "Ein Monat zum Monatsende",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l4_q6_a2",
+                "answer_text": "Zwei Wochen",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l4_q6_a3",
+                "answer_text": "Drei Monate",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "lesen5",
+        "name": "Lesen — Teil 5",
+        "type": "reading",
+        "official_duration_minutes": 65,
+        "instructions": "Lesen Sie den Artikel und beantworten Sie die Fragen.",
+        "passage": "Digitale Nomaden: Freiheit mit Herausforderungen\n\nImmer mehr Berufstätige arbeiten heute ortsunabhängig und reisen dabei durch die Welt. Befürworter loben die Flexibilität und die Möglichkeit, verschiedene Kulturen kennenzulernen. Kritiker weisen jedoch darauf hin, dass ständiges Reisen auch belastend sein kann: Der fehlende feste Freundeskreis und die unregelmäßige Zeitplanung führen bei manchen zu Einsamkeit. Experten empfehlen daher, regelmäßig Pausen vom Reisen einzulegen und feste Rituale beizubehalten, um psychisch stabil zu bleiben.",
+        "items": [
+          {
+            "id": "gb2_l5_q1",
+            "question_text": "Digitale Nomaden arbeiten ortsunabhängig.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der erste Satz beschreibt genau das.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "gb2_l5_q1_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l5_q1_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l5_q2",
+            "question_text": "Was loben Befürworter?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt genau diese Vorteile.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "gb2_l5_q2_a1",
+                "answer_text": "Die Flexibilität und das Kennenlernen von Kulturen.",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l5_q2_a2",
+                "answer_text": "Die hohen Gehälter.",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l5_q2_a3",
+                "answer_text": "Die festen Arbeitszeiten.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l5_q3",
+            "question_text": "Was kritisieren manche am Reisen als Lebensstil?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt Einsamkeit als möglichen Nachteil.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "gb2_l5_q3_a1",
+                "answer_text": "Es kann zu Einsamkeit führen.",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l5_q3_a2",
+                "answer_text": "Es ist zu teuer.",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l5_q3_a3",
+                "answer_text": "Es ist gesetzlich verboten.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l5_q4",
+            "question_text": "Ein fehlender fester Freundeskreis wird im Text erwähnt.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text nennt genau diesen Punkt.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "gb2_l5_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l5_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l5_q5",
+            "question_text": "Was empfehlen Experten?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der letzte Satz nennt genau diese Empfehlung.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "gb2_l5_q5_a1",
+                "answer_text": "Regelmäßige Pausen vom Reisen und feste Rituale.",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l5_q5_a2",
+                "answer_text": "Nie länger als eine Woche an einem Ort zu bleiben.",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l5_q5_a3",
+                "answer_text": "Ganz auf Reisen zu verzichten.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l5_q6",
+            "question_text": "Warum sind feste Rituale laut Experten wichtig?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt psychische Stabilität als Grund.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "gb2_l5_q6_a1",
+                "answer_text": "Um psychisch stabil zu bleiben.",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l5_q6_a2",
+                "answer_text": "Um mehr Geld zu verdienen.",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l5_q6_a3",
+                "answer_text": "Um schneller reisen zu können.",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "sprachbausteine",
+        "name": "Sprachbausteine (تدريب إضافي)",
+        "type": "language",
+        "official_duration_minutes": null,
+        "instructions": "تدريب إضافي على القواعد المتقدمة والمفردات (غير جزء رسمي من اختبار Goethe، لكنه مفيد للتحضير).",
+        "passage": null,
+        "items": [
+          {
+            "id": "gb2_sb_q1",
+            "question_text": "___ es regnete, ging er ohne Regenschirm aus dem Haus.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"Obwohl\" drückt einen Gegensatz aus.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "gb2_sb_q1_a1",
+                "answer_text": "Obwohl",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_sb_q1_a2",
+                "answer_text": "Weil",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_sb_q1_a3",
+                "answer_text": "Damit",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_sb_q2",
+            "question_text": "Wenn ich mehr Zeit hätte, ___ ich öfter Sport.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Konjunktiv II: \"würde\" + Infinitiv.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "gb2_sb_q2_a1",
+                "answer_text": "würde ich machen",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_sb_q2_a2",
+                "answer_text": "mache ich",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_sb_q2_a3",
+                "answer_text": "machte ich",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_sb_q3",
+            "question_text": "Der Bericht ___ gestern von der Abteilung fertiggestellt.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Passiv Präteritum: \"wurde\" + Partizip II.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "gb2_sb_q3_a1",
+                "answer_text": "wurde",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_sb_q3_a2",
+                "answer_text": "hat",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_sb_q3_a3",
+                "answer_text": "ist",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_sb_q4",
+            "question_text": "___ er den Termin abgesagt hat, müssen wir neu planen.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"Nachdem\" beschreibt ein Ereignis vor dem Hauptsatz.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "gb2_sb_q4_a1",
+                "answer_text": "Nachdem",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_sb_q4_a2",
+                "answer_text": "Bevor",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_sb_q4_a3",
+                "answer_text": "Seitdem",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_sb_q5",
+            "question_text": "Die Entscheidung hängt ___ ab, wie das Budget aussieht.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"abhängen von\" → \"davon abhängen\".",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "gb2_sb_q5_a1",
+                "answer_text": "davon",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_sb_q5_a2",
+                "answer_text": "darauf",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_sb_q5_a3",
+                "answer_text": "damit",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_sb_q6",
+            "question_text": "Er tut so, ___ er nichts wüsste.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"als ob\" + Konjunktiv II drückt einen Vergleich/Schein aus.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "gb2_sb_q6_a1",
+                "answer_text": "als ob",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_sb_q6_a2",
+                "answer_text": "obwohl",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_sb_q6_a3",
+                "answer_text": "damit",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_sb_q7",
+            "question_text": "Das Projekt wird ___ Erfolg gekrönt, wenn alle mitarbeiten.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"mit Erfolg gekrönt werden\" ist eine feste Wendung.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "gb2_sb_q7_a1",
+                "answer_text": "mit",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_sb_q7_a2",
+                "answer_text": "von",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_sb_q7_a3",
+                "answer_text": "durch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_sb_q8",
+            "question_text": "Sie hat sich dazu ___, das Angebot anzunehmen.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"sich entschließen zu\" + Infinitiv.",
+            "order_index": 7,
+            "answers": [
+              {
+                "id": "gb2_sb_q8_a1",
+                "answer_text": "entschlossen",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_sb_q8_a2",
+                "answer_text": "entschieden sich",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_sb_q8_a3",
+                "answer_text": "beschlossen sich",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_sb_q9",
+            "question_text": "___ seiner Erfahrung wurde er schnell befördert.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"Aufgrund\" nennt den Grund für die Beförderung.",
+            "order_index": 8,
+            "answers": [
+              {
+                "id": "gb2_sb_q9_a1",
+                "answer_text": "Aufgrund",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_sb_q9_a2",
+                "answer_text": "Trotz",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_sb_q9_a3",
+                "answer_text": "Statt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_sb_q10",
+            "question_text": "Die Firma muss ihre Strategie überdenken, ___ wettbewerbsfähig zu bleiben.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"um...zu\" + Infinitiv drückt einen Zweck aus.",
+            "order_index": 9,
+            "answers": [
+              {
+                "id": "gb2_sb_q10_a1",
+                "answer_text": "um",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_sb_q10_a2",
+                "answer_text": "damit sie",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_sb_q10_a3",
+                "answer_text": "weil",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "hoeren1",
+        "name": "Hören — Teil 1 (Transkript)",
+        "type": "listening",
+        "official_duration_minutes": 40,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ كل نص قصير، ثم أجب عن سؤاله.",
+        "passage": "Kurze Texte (Transkript):\n1. Die Geschäftsführung informiert, dass die jährliche Betriebsversammlung dieses Jahr online stattfindet.\n2. Der Aufzug im Westflügel ist außer Betrieb, bitte nutzen Sie den Aufzug im Ostflügel.\n3. Die Rückgabefrist für Bibliotheksbücher wurde wegen der Feiertage um eine Woche verlängert.\n4. Wegen Bauarbeiten ist die Hauptstraße bis Freitag für den Verkehr gesperrt.\n5. Der Wetterdienst warnt für morgen vor starkem Wind an der Küste.\n6. Die Fluggesellschaft teilt mit, dass der Flug nach Frankfurt eine Stunde Verspätung hat.\n7. Ab kommendem Monat wird die Parkgebühr in der Innenstadt um 20 Prozent erhöht.\n8. Das Museum bietet ab sofort jeden ersten Sonntag im Monat freien Eintritt an.",
+        "items": [
+          {
+            "id": "gb2_h1_q1",
+            "question_text": "Wie findet die Betriebsversammlung dieses Jahr statt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text sagt \"findet online statt\".",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "gb2_h1_q1_a1",
+                "answer_text": "Online",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h1_q1_a2",
+                "answer_text": "Im Konferenzraum",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h1_q1_a3",
+                "answer_text": "Sie fällt aus",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_h1_q2",
+            "question_text": "Was ist im Westflügel außer Betrieb?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Aufzug im Westflügel ist außer Betrieb.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "gb2_h1_q2_a1",
+                "answer_text": "Der Aufzug",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h1_q2_a2",
+                "answer_text": "Die Klimaanlage",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h1_q2_a3",
+                "answer_text": "Das Licht",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_h1_q3",
+            "question_text": "Was wurde verlängert?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Rückgabefrist wurde verlängert.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "gb2_h1_q3_a1",
+                "answer_text": "Die Rückgabefrist",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h1_q3_a2",
+                "answer_text": "Die Öffnungszeiten",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h1_q3_a3",
+                "answer_text": "Die Mitgliedschaft",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_h1_q4",
+            "question_text": "Bis wann ist die Straße gesperrt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Straße ist bis Freitag gesperrt.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "gb2_h1_q4_a1",
+                "answer_text": "Bis Freitag",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h1_q4_a2",
+                "answer_text": "Bis Montag",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h1_q4_a3",
+                "answer_text": "Für immer",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_h1_q5",
+            "question_text": "Wovor warnt der Wetterdienst?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Es wird vor starkem Wind gewarnt.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "gb2_h1_q5_a1",
+                "answer_text": "Vor starkem Wind",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h1_q5_a2",
+                "answer_text": "Vor Schnee",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h1_q5_a3",
+                "answer_text": "Vor Hitze",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_h1_q6",
+            "question_text": "Wie viel Verspätung hat der Flug?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Flug hat eine Stunde Verspätung.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "gb2_h1_q6_a1",
+                "answer_text": "Eine Stunde",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h1_q6_a2",
+                "answer_text": "Zwei Stunden",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h1_q6_a3",
+                "answer_text": "Zehn Minuten",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_h1_q7",
+            "question_text": "Um wie viel steigt die Parkgebühr?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Gebühr steigt um 20 Prozent.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "gb2_h1_q7_a1",
+                "answer_text": "Um 20 Prozent",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h1_q7_a2",
+                "answer_text": "Um 50 Prozent",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h1_q7_a3",
+                "answer_text": "Sie sinkt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_h1_q8",
+            "question_text": "Wann ist der Eintritt frei?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt jeden ersten Sonntag im Monat.",
+            "order_index": 7,
+            "answers": [
+              {
+                "id": "gb2_h1_q8_a1",
+                "answer_text": "Jeden ersten Sonntag im Monat",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h1_q8_a2",
+                "answer_text": "Jeden Samstag",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h1_q8_a3",
+                "answer_text": "Nur an Feiertagen",
+                "is_correct": false
+              }
+            ]
+          }
+        ],
+        "audio_url": "/audio/test_goethe_b2__hoeren1.mp3"
+      },
+      {
+        "key": "hoeren2",
+        "name": "Hören — Teil 2 (Transkript)",
+        "type": "listening",
+        "official_duration_minutes": 40,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص المقابلة كما لو كنت تسمعها، ثم أجب عن الأسئلة.",
+        "passage": "Radiointerview mit einer Stadtplanerin:\n\"Moderator: Frau Berger, warum setzt Ihre Stadt so stark auf Fahrradwege?\nFrau Berger: Weil wir gesehen haben, dass mehr Fahrradwege den Autoverkehr im Zentrum deutlich reduzieren. Seit dem Ausbau des Netzes vor zwei Jahren ist die Zahl der Autos in der Innenstadt um fast 20 Prozent gesunken.\nModerator: Gab es auch Widerstand gegen das Projekt?\nFrau Berger: Ja, anfangs vor allem von Geschäftsleuten, die um weniger Kundschaft fürchteten. Mittlerweile zeigen unsere Zahlen aber, dass die Umsätze in der Innenstadt sogar leicht gestiegen sind.\nModerator: Was sind die nächsten Schritte?\nFrau Berger: Wir planen, das Netz bis 2027 um weitere 50 Kilometer zu erweitern und mehr Fahrradparkplätze zu schaffen.\"",
+        "items": [
+          {
+            "id": "gb2_h2_q1",
+            "question_text": "Worüber spricht Frau Berger?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Das Interview handelt vom Ausbau der Fahrradwege.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "gb2_h2_q1_a1",
+                "answer_text": "Über den Ausbau von Fahrradwegen",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h2_q1_a2",
+                "answer_text": "Über neue Autobahnen",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h2_q1_a3",
+                "answer_text": "Über den öffentlichen Nahverkehr",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_h2_q2",
+            "question_text": "Um wie viel ist die Zahl der Autos gesunken?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Frau Berger nennt fast 20 Prozent.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "gb2_h2_q2_a1",
+                "answer_text": "Um fast 20 Prozent",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h2_q2_a2",
+                "answer_text": "Um 5 Prozent",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h2_q2_a3",
+                "answer_text": "Um 50 Prozent",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_h2_q3",
+            "question_text": "Seit wann ist das Fahrradnetz ausgebaut?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Ausbau war vor zwei Jahren.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "gb2_h2_q3_a1",
+                "answer_text": "Seit zwei Jahren",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h2_q3_a2",
+                "answer_text": "Seit einem Monat",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h2_q3_a3",
+                "answer_text": "Seit zehn Jahren",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_h2_q4",
+            "question_text": "Wer war anfangs gegen das Projekt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Geschäftsleute fürchteten weniger Kundschaft.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "gb2_h2_q4_a1",
+                "answer_text": "Geschäftsleute",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h2_q4_a2",
+                "answer_text": "Fahrradfahrer",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h2_q4_a3",
+                "answer_text": "Die Stadtverwaltung",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_h2_q5",
+            "question_text": "Die Umsätze in der Innenstadt sind gesunken.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie sind laut Frau Berger leicht gestiegen.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "gb2_h2_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h2_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "gb2_h2_q6",
+            "question_text": "Um wie viele Kilometer soll das Netz erweitert werden?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Frau Berger nennt 50 Kilometer.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "gb2_h2_q6_a1",
+                "answer_text": "Um 50 Kilometer",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h2_q6_a2",
+                "answer_text": "Um 10 Kilometer",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h2_q6_a3",
+                "answer_text": "Um 200 Kilometer",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_h2_q7",
+            "question_text": "Bis wann soll die Erweiterung abgeschlossen sein?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie nennt das Jahr 2027.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "gb2_h2_q7_a1",
+                "answer_text": "Bis 2027",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h2_q7_a2",
+                "answer_text": "Bis nächstes Jahr",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h2_q7_a3",
+                "answer_text": "Bis 2030",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_h2_q8",
+            "question_text": "Es sollen auch mehr Fahrradparkplätze entstehen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Frau Berger erwähnt das ausdrücklich.",
+            "order_index": 7,
+            "answers": [
+              {
+                "id": "gb2_h2_q8_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h2_q8_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          }
+        ],
+        "audio_url": "/audio/test_goethe_b2__hoeren2.mp3"
+      },
+      {
+        "key": "hoeren3",
+        "name": "Hören — Teil 3 (Transkript)",
+        "type": "listening",
+        "official_duration_minutes": 40,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص المحاضرة كما لو كنت تسمعها، ثم أجب عن الأسئلة.",
+        "passage": "Vortrag: Nachhaltigkeit in Unternehmen\n\"Immer mehr Unternehmen setzen sich verbindliche Klimaziele. Eine aktuelle Untersuchung zeigt, dass 65 Prozent der befragten Firmen bis 2030 klimaneutral werden wollen. Die größte Herausforderung dabei ist laut den Befragten nicht die Technologie, sondern die Finanzierung der Umstellung. Besonders kleine und mittlere Unternehmen berichten von Schwierigkeiten beim Zugang zu Fördermitteln. Die Untersuchung empfiehlt daher vereinfachte Antragsverfahren und mehr Beratungsangebote für kleinere Betriebe.\"",
+        "items": [
+          {
+            "id": "gb2_h3_q1",
+            "question_text": "Wie viel Prozent der Firmen wollen bis 2030 klimaneutral werden?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Vortrag nennt 65 Prozent.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "gb2_h3_q1_a1",
+                "answer_text": "65 Prozent",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h3_q1_a2",
+                "answer_text": "35 Prozent",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h3_q1_a3",
+                "answer_text": "90 Prozent",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_h3_q2",
+            "question_text": "Was ist laut den Befragten die größte Herausforderung?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Finanzierung wird als größte Herausforderung genannt.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "gb2_h3_q2_a1",
+                "answer_text": "Die Finanzierung der Umstellung",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h3_q2_a2",
+                "answer_text": "Die Technologie",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h3_q2_a3",
+                "answer_text": "Der Personalmangel",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_h3_q3",
+            "question_text": "Große Konzerne haben laut Text die größten Schwierigkeiten mit Fördermitteln.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Besonders kleine und mittlere Unternehmen haben diese Schwierigkeiten.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "gb2_h3_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h3_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "gb2_h3_q4",
+            "question_text": "Was empfiehlt die Untersuchung?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der letzte Satz nennt genau diese Empfehlung.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "gb2_h3_q4_a1",
+                "answer_text": "Vereinfachte Antragsverfahren und mehr Beratung",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h3_q4_a2",
+                "answer_text": "Höhere Steuern für Unternehmen",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h3_q4_a3",
+                "answer_text": "Weniger staatliche Kontrolle",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_h3_q5",
+            "question_text": "Die Technologie ist laut Text das größte Hindernis.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Nicht die Technologie, sondern die Finanzierung ist das Hindernis.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "gb2_h3_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h3_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "gb2_h3_q6",
+            "question_text": "Für wen sind Fördermittel besonders schwer zugänglich?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt explizit kleine und mittlere Unternehmen.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "gb2_h3_q6_a1",
+                "answer_text": "Für kleine und mittlere Unternehmen",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h3_q6_a2",
+                "answer_text": "Für staatliche Betriebe",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h3_q6_a3",
+                "answer_text": "Für alle Unternehmen gleichermaßen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_h3_q7",
+            "question_text": "Bis wann wollen viele Firmen klimaneutral werden?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Vortrag nennt das Jahr 2030.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "gb2_h3_q7_a1",
+                "answer_text": "Bis 2030",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h3_q7_a2",
+                "answer_text": "Bis 2025",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h3_q7_a3",
+                "answer_text": "Bis 2050",
+                "is_correct": false
+              }
+            ]
+          }
+        ],
+        "audio_url": "/audio/test_goethe_b2__hoeren3.mp3"
+      },
+      {
+        "key": "hoeren4",
+        "name": "Hören — Teil 4 (Transkript)",
+        "type": "listening",
+        "official_duration_minutes": 40,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص النقاش كما لو كنت تسمعه، ثم أجب عن الأسئلة.",
+        "passage": "Diskussion: Sollten Studiengebühren wieder eingeführt werden?\n\"Moderatorin: Herr Kessler, Sie sind für die Wiedereinführung von Studiengebühren?\nHerr Kessler: Ja, ich denke, moderate Gebühren könnten die Qualität der Lehre verbessern, weil Universitäten mehr finanzielle Mittel hätten.\nModeratorin: Frau Ahrens, Sie sind dagegen?\nFrau Ahrens: Genau. Ich befürchte, dass Studiengebühren den Zugang zur Bildung für Menschen aus einkommensschwachen Familien erschweren würden. Bildung sollte meiner Meinung nach kostenlos bleiben.\nHerr Kessler: Man könnte aber ein Stipendiensystem einführen, um genau das zu verhindern.\nFrau Ahrens: Das ist möglich, aber in der Praxis erreichen solche Systeme oft nicht alle, die sie bräuchten.\"",
+        "items": [
+          {
+            "id": "gb2_h4_q1",
+            "question_text": "Worüber diskutieren die beiden?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Das Thema ist Studiengebühren.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "gb2_h4_q1_a1",
+                "answer_text": "Über die Wiedereinführung von Studiengebühren",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h4_q1_a2",
+                "answer_text": "Über Schulnoten",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h4_q1_a3",
+                "answer_text": "Über Universitätsrankings",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_h4_q2",
+            "question_text": "Herr Kessler ist gegen Studiengebühren.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er ist für die Wiedereinführung.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "gb2_h4_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h4_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "gb2_h4_q3",
+            "question_text": "Was erhofft sich Herr Kessler von Studiengebühren?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Er sagt, es könnte die Qualität der Lehre verbessern.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "gb2_h4_q3_a1",
+                "answer_text": "Bessere Qualität der Lehre",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h4_q3_a2",
+                "answer_text": "Weniger Studierende",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h4_q3_a3",
+                "answer_text": "Mehr Professoren",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_h4_q4",
+            "question_text": "Wovor hat Frau Ahrens Angst?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie befürchtet erschwerten Zugang für einkommensschwache Familien.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "gb2_h4_q4_a1",
+                "answer_text": "Dass der Zugang zur Bildung erschwert wird.",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h4_q4_a2",
+                "answer_text": "Dass zu viele Studierende kommen.",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h4_q4_a3",
+                "answer_text": "Dass die Universitäten schließen.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_h4_q5",
+            "question_text": "Was schlägt Herr Kessler als Lösung vor?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Er schlägt ein Stipendiensystem vor.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "gb2_h4_q5_a1",
+                "answer_text": "Ein Stipendiensystem",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h4_q5_a2",
+                "answer_text": "Kostenlose Bücher",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h4_q5_a3",
+                "answer_text": "Weniger Prüfungen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_h4_q6",
+            "question_text": "Frau Ahrens hält Stipendiensysteme für eine perfekte Lösung.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie sagt, solche Systeme erreichen in der Praxis oft nicht alle.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "gb2_h4_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h4_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "gb2_h4_q7",
+            "question_text": "Was ist Frau Ahrens' grundsätzliche Meinung zu Bildung?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie sagt \"Bildung sollte meiner Meinung nach kostenlos bleiben\".",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "gb2_h4_q7_a1",
+                "answer_text": "Bildung sollte kostenlos bleiben.",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_h4_q7_a2",
+                "answer_text": "Bildung sollte teurer werden.",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_h4_q7_a3",
+                "answer_text": "Bildung ist nicht wichtig.",
+                "is_correct": false
+              }
+            ]
+          }
+        ],
+        "audio_url": "/audio/test_goethe_b2__hoeren4.mp3"
+      }
+    ],
+    "writing": {
+      "name": "Schreiben (تدريب غير مُقيَّم)",
+      "official_duration_minutes": 75,
+      "instructions": "في الاختبار الرسمي، تكتب مساهمة في منتدى (150 كلمة على الأقل) ورسالة رسمية (100 كلمة على الأقل). هذا تدريب ذاتي غير مُقيَّم آليًا.",
+      "prompt": "Schreiben Sie einen Forumsbeitrag (mind. 150 Wörter) zum Thema: \"Sollten Unternehmen ihren Mitarbeitenden eine Vier-Tage-Woche anbieten?\" Nennen Sie Vor- und Nachteile und begründen Sie Ihre eigene Meinung.",
+      "sample_answer": "Meiner Meinung nach ist die Vier-Tage-Woche eine sinnvolle Entwicklung, auch wenn sie nicht für jede Branche gleich gut funktioniert. Einerseits profitieren Angestellte von mehr Erholungszeit, was nachweislich Stress reduziert und die Motivation steigert. Andererseits befürchten manche Unternehmen, dass die Produktivität sinkt, wenn weniger Arbeitsstunden zur Verfügung stehen.\n\nAus meiner Sicht überwiegen die Vorteile, solange die Umstellung gut geplant wird. Studien zeigen, dass viele Firmen trotz kürzerer Arbeitszeit ähnliche oder sogar bessere Ergebnisse erzielen, weil Mitarbeitende konzentrierter arbeiten. Natürlich eignet sich das Modell nicht überall, etwa im Gesundheitswesen, wo durchgehende Anwesenheit notwendig ist.\n\nInsgesamt halte ich es für wichtig, dass Unternehmen das Modell zumindest testen, bevor sie es pauschal ablehnen."
+    }
+  },
+  "test_telc_b1_beruf": {
+    "sections": [
+      {
+        "key": "lese1",
+        "name": "Leseverstehen — Teil 1 (Globalverstehen)",
+        "type": "reading",
+        "official_duration_minutes": 90,
+        "instructions": "Ordnen Sie jedem kurzen Text die passende Überschrift zu.",
+        "passage": "Texte:\n1. Ab nächster Woche gilt im ganzen Gebäude eine neue Kleiderordnung im Kundenbereich. Bitte informieren Sie Ihr Team.\n2. Der Drucker im zweiten Stock ist seit Montag defekt. Bitte nutzen Sie bis auf Weiteres den Drucker im Erdgeschoss.\n3. Alle Mitarbeitenden sind eingeladen, an der Weihnachtsfeier am 15. Dezember teilzunehmen. Bitte melden Sie sich bis Freitag an.\n4. Die IT-Abteilung führt am Donnerstag zwischen 18 und 20 Uhr Wartungsarbeiten durch. Das System ist in dieser Zeit nicht erreichbar.\n5. Neue Mitarbeitende erhalten künftig am ersten Arbeitstag ein Einführungspaket mit allen wichtigen Informationen.\n\nÜberschriften:\nA) Technische Störung\nB) Einladung zur Feier\nC) Neue Vorschrift\nD) Wartungsarbeiten\nE) Willkommenspaket\nF) Urlaubsantrag",
+        "items": [
+          {
+            "id": "tb1_l1_q1",
+            "question_text": "Welche Überschrift passt zu Text 1?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Text 1 passt zu C) Neue Vorschrift.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "tb1_l1_q1_a1",
+                "answer_text": "A) Technische Störung",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l1_q1_a2",
+                "answer_text": "B) Einladung zur Feier",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l1_q1_a3",
+                "answer_text": "C) Neue Vorschrift",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_l1_q1_a4",
+                "answer_text": "D) Wartungsarbeiten",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l1_q1_a5",
+                "answer_text": "E) Willkommenspaket",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l1_q1_a6",
+                "answer_text": "F) Urlaubsantrag",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_l1_q2",
+            "question_text": "Welche Überschrift passt zu Text 2?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Text 2 passt zu A) Technische Störung.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "tb1_l1_q2_a1",
+                "answer_text": "A) Technische Störung",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_l1_q2_a2",
+                "answer_text": "B) Einladung zur Feier",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l1_q2_a3",
+                "answer_text": "C) Neue Vorschrift",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l1_q2_a4",
+                "answer_text": "D) Wartungsarbeiten",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l1_q2_a5",
+                "answer_text": "E) Willkommenspaket",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l1_q2_a6",
+                "answer_text": "F) Urlaubsantrag",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_l1_q3",
+            "question_text": "Welche Überschrift passt zu Text 3?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Text 3 passt zu B) Einladung zur Feier.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "tb1_l1_q3_a1",
+                "answer_text": "A) Technische Störung",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l1_q3_a2",
+                "answer_text": "B) Einladung zur Feier",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_l1_q3_a3",
+                "answer_text": "C) Neue Vorschrift",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l1_q3_a4",
+                "answer_text": "D) Wartungsarbeiten",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l1_q3_a5",
+                "answer_text": "E) Willkommenspaket",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l1_q3_a6",
+                "answer_text": "F) Urlaubsantrag",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_l1_q4",
+            "question_text": "Welche Überschrift passt zu Text 4?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Text 4 passt zu D) Wartungsarbeiten.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "tb1_l1_q4_a1",
+                "answer_text": "A) Technische Störung",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l1_q4_a2",
+                "answer_text": "B) Einladung zur Feier",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l1_q4_a3",
+                "answer_text": "C) Neue Vorschrift",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l1_q4_a4",
+                "answer_text": "D) Wartungsarbeiten",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_l1_q4_a5",
+                "answer_text": "E) Willkommenspaket",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l1_q4_a6",
+                "answer_text": "F) Urlaubsantrag",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_l1_q5",
+            "question_text": "Welche Überschrift passt zu Text 5?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Text 5 passt zu E) Willkommenspaket.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "tb1_l1_q5_a1",
+                "answer_text": "A) Technische Störung",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l1_q5_a2",
+                "answer_text": "B) Einladung zur Feier",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l1_q5_a3",
+                "answer_text": "C) Neue Vorschrift",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l1_q5_a4",
+                "answer_text": "D) Wartungsarbeiten",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l1_q5_a5",
+                "answer_text": "E) Willkommenspaket",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_l1_q5_a6",
+                "answer_text": "F) Urlaubsantrag",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "lese2",
+        "name": "Leseverstehen — Teil 2 (Detailverstehen)",
+        "type": "reading",
+        "official_duration_minutes": 90,
+        "instructions": "Lesen Sie die interne Mitteilung und beantworten Sie die Fragen.",
+        "passage": "Interne Mitteilung\n\nLiebe Kolleginnen und Kollegen,\n\nab dem 1. des nächsten Monats wird die Gleitzeitregelung angepasst: Die Kernarbeitszeit liegt künftig zwischen 9:30 und 15:30 Uhr. Mitarbeitende können ihre Arbeitszeit davor und danach flexibel gestalten, solange die wöchentliche Sollarbeitszeit von 40 Stunden eingehalten wird. Überstunden können bis zu einem Maximum von 10 Stunden pro Monat ins nächste Monat übertragen werden. Bei Fragen wenden Sie sich bitte an die Personalabteilung, die montags bis donnerstags von 9 bis 16 Uhr erreichbar ist.\n\nMit freundlichen Grüßen\nDie Geschäftsführung",
+        "items": [
+          {
+            "id": "tb1_l2_q1",
+            "question_text": "Was ändert sich laut der Mitteilung?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Mitteilung handelt von einer neuen Kernarbeitszeit.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "tb1_l2_q1_a1",
+                "answer_text": "Die Kernarbeitszeit",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_l2_q1_a2",
+                "answer_text": "Der Urlaubsanspruch",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l2_q1_a3",
+                "answer_text": "Das Gehalt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_l2_q2",
+            "question_text": "Wie viele Stunden pro Woche müssen Mitarbeitende arbeiten?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt eine Sollarbeitszeit von 40 Stunden.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "tb1_l2_q2_a1",
+                "answer_text": "40 Stunden",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_l2_q2_a2",
+                "answer_text": "35 Stunden",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l2_q2_a3",
+                "answer_text": "45 Stunden",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_l2_q3",
+            "question_text": "An wen sollen sich Mitarbeitende bei Fragen wenden?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text verweist auf die Personalabteilung.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "tb1_l2_q3_a1",
+                "answer_text": "An die Personalabteilung",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_l2_q3_a2",
+                "answer_text": "An die Geschäftsführung direkt",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l2_q3_a3",
+                "answer_text": "An die IT-Abteilung",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_l2_q4",
+            "question_text": "Die neue Kernarbeitszeit beginnt bereits morgen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie beginnt erst am 1. des nächsten Monats.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "tb1_l2_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l2_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "tb1_l2_q5",
+            "question_text": "Wie viele Überstunden können maximal übertragen werden?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt maximal 10 Stunden pro Monat.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "tb1_l2_q5_a1",
+                "answer_text": "10 Stunden pro Monat",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_l2_q5_a2",
+                "answer_text": "5 Stunden pro Monat",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l2_q5_a3",
+                "answer_text": "Unbegrenzt viele",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "lese3",
+        "name": "Leseverstehen — Teil 3 (Selektives Verstehen)",
+        "type": "reading",
+        "official_duration_minutes": 90,
+        "instructions": "Ordnen Sie jedem Bewerberprofil die passende Stellenanzeige zu.",
+        "passage": "Bewerberprofile:\n1. Ein Bewerber mit Erfahrung in der Buchhaltung sucht eine Teilzeitstelle.\n2. Eine Person mit guten Englischkenntnissen sucht eine Stelle im Kundenservice.\n3. Ein IT-Fachmann sucht eine Stelle im Homeoffice.\n4. Eine Person ohne Berufserfahrung sucht eine Ausbildungsstelle im Einzelhandel.\n5. Ein Bewerber mit Führerschein sucht eine Stelle als Lieferfahrer.\n6. Eine zweisprachige Person (Deutsch/Arabisch) sucht eine Stelle als Dolmetscherin.\n7. Ein erfahrener Koch sucht eine Vollzeitstelle in einem Restaurant.\n8. Eine Person mit Interesse an Marketing sucht ein Praktikum.\n9. Ein Bewerber mit Pflegeerfahrung sucht eine Stelle im Krankenhaus.\n10. Eine Person mit handwerklichem Geschick sucht eine Stelle als Elektriker.\n\nStellenanzeigen:\nA) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.\nB) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.\nC) IT-Support, 100% remote möglich, flexible Zeiten.\nD) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.\nE) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.\nF) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.\nG) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.\nH) Marketing-Praktikum für Studierende, 3-6 Monate.\nI) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.\nJ) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
+        "items": [
+          {
+            "id": "tb1_l3_q1",
+            "question_text": "Welche Anzeige passt zu Profil 1?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Profil 1 passt zu Anzeige A.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "tb1_l3_q1_a1",
+                "answer_text": "A) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_l3_q1_a2",
+                "answer_text": "B) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q1_a3",
+                "answer_text": "C) IT-Support, 100% remote möglich, flexible Zeiten.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q1_a4",
+                "answer_text": "D) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q1_a5",
+                "answer_text": "E) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q1_a6",
+                "answer_text": "F) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q1_a7",
+                "answer_text": "G) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q1_a8",
+                "answer_text": "H) Marketing-Praktikum für Studierende, 3-6 Monate.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q1_a9",
+                "answer_text": "I) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q1_a10",
+                "answer_text": "J) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_l3_q2",
+            "question_text": "Welche Anzeige passt zu Profil 2?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Profil 2 passt zu Anzeige B.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "tb1_l3_q2_a1",
+                "answer_text": "A) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q2_a2",
+                "answer_text": "B) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_l3_q2_a3",
+                "answer_text": "C) IT-Support, 100% remote möglich, flexible Zeiten.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q2_a4",
+                "answer_text": "D) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q2_a5",
+                "answer_text": "E) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q2_a6",
+                "answer_text": "F) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q2_a7",
+                "answer_text": "G) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q2_a8",
+                "answer_text": "H) Marketing-Praktikum für Studierende, 3-6 Monate.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q2_a9",
+                "answer_text": "I) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q2_a10",
+                "answer_text": "J) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_l3_q3",
+            "question_text": "Welche Anzeige passt zu Profil 3?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Profil 3 passt zu Anzeige C.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "tb1_l3_q3_a1",
+                "answer_text": "A) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q3_a2",
+                "answer_text": "B) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q3_a3",
+                "answer_text": "C) IT-Support, 100% remote möglich, flexible Zeiten.",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_l3_q3_a4",
+                "answer_text": "D) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q3_a5",
+                "answer_text": "E) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q3_a6",
+                "answer_text": "F) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q3_a7",
+                "answer_text": "G) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q3_a8",
+                "answer_text": "H) Marketing-Praktikum für Studierende, 3-6 Monate.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q3_a9",
+                "answer_text": "I) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q3_a10",
+                "answer_text": "J) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_l3_q4",
+            "question_text": "Welche Anzeige passt zu Profil 4?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Profil 4 passt zu Anzeige D.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "tb1_l3_q4_a1",
+                "answer_text": "A) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q4_a2",
+                "answer_text": "B) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q4_a3",
+                "answer_text": "C) IT-Support, 100% remote möglich, flexible Zeiten.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q4_a4",
+                "answer_text": "D) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_l3_q4_a5",
+                "answer_text": "E) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q4_a6",
+                "answer_text": "F) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q4_a7",
+                "answer_text": "G) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q4_a8",
+                "answer_text": "H) Marketing-Praktikum für Studierende, 3-6 Monate.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q4_a9",
+                "answer_text": "I) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q4_a10",
+                "answer_text": "J) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_l3_q5",
+            "question_text": "Welche Anzeige passt zu Profil 5?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Profil 5 passt zu Anzeige E.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "tb1_l3_q5_a1",
+                "answer_text": "A) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q5_a2",
+                "answer_text": "B) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q5_a3",
+                "answer_text": "C) IT-Support, 100% remote möglich, flexible Zeiten.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q5_a4",
+                "answer_text": "D) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q5_a5",
+                "answer_text": "E) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_l3_q5_a6",
+                "answer_text": "F) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q5_a7",
+                "answer_text": "G) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q5_a8",
+                "answer_text": "H) Marketing-Praktikum für Studierende, 3-6 Monate.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q5_a9",
+                "answer_text": "I) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q5_a10",
+                "answer_text": "J) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_l3_q6",
+            "question_text": "Welche Anzeige passt zu Profil 6?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Profil 6 passt zu Anzeige F.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "tb1_l3_q6_a1",
+                "answer_text": "A) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q6_a2",
+                "answer_text": "B) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q6_a3",
+                "answer_text": "C) IT-Support, 100% remote möglich, flexible Zeiten.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q6_a4",
+                "answer_text": "D) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q6_a5",
+                "answer_text": "E) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q6_a6",
+                "answer_text": "F) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_l3_q6_a7",
+                "answer_text": "G) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q6_a8",
+                "answer_text": "H) Marketing-Praktikum für Studierende, 3-6 Monate.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q6_a9",
+                "answer_text": "I) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q6_a10",
+                "answer_text": "J) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_l3_q7",
+            "question_text": "Welche Anzeige passt zu Profil 7?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Profil 7 passt zu Anzeige G.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "tb1_l3_q7_a1",
+                "answer_text": "A) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q7_a2",
+                "answer_text": "B) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q7_a3",
+                "answer_text": "C) IT-Support, 100% remote möglich, flexible Zeiten.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q7_a4",
+                "answer_text": "D) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q7_a5",
+                "answer_text": "E) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q7_a6",
+                "answer_text": "F) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q7_a7",
+                "answer_text": "G) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_l3_q7_a8",
+                "answer_text": "H) Marketing-Praktikum für Studierende, 3-6 Monate.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q7_a9",
+                "answer_text": "I) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q7_a10",
+                "answer_text": "J) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_l3_q8",
+            "question_text": "Welche Anzeige passt zu Profil 8?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Profil 8 passt zu Anzeige H.",
+            "order_index": 7,
+            "answers": [
+              {
+                "id": "tb1_l3_q8_a1",
+                "answer_text": "A) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q8_a2",
+                "answer_text": "B) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q8_a3",
+                "answer_text": "C) IT-Support, 100% remote möglich, flexible Zeiten.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q8_a4",
+                "answer_text": "D) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q8_a5",
+                "answer_text": "E) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q8_a6",
+                "answer_text": "F) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q8_a7",
+                "answer_text": "G) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q8_a8",
+                "answer_text": "H) Marketing-Praktikum für Studierende, 3-6 Monate.",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_l3_q8_a9",
+                "answer_text": "I) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q8_a10",
+                "answer_text": "J) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_l3_q9",
+            "question_text": "Welche Anzeige passt zu Profil 9?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Profil 9 passt zu Anzeige I.",
+            "order_index": 8,
+            "answers": [
+              {
+                "id": "tb1_l3_q9_a1",
+                "answer_text": "A) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q9_a2",
+                "answer_text": "B) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q9_a3",
+                "answer_text": "C) IT-Support, 100% remote möglich, flexible Zeiten.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q9_a4",
+                "answer_text": "D) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q9_a5",
+                "answer_text": "E) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q9_a6",
+                "answer_text": "F) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q9_a7",
+                "answer_text": "G) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q9_a8",
+                "answer_text": "H) Marketing-Praktikum für Studierende, 3-6 Monate.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q9_a9",
+                "answer_text": "I) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_l3_q9_a10",
+                "answer_text": "J) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_l3_q10",
+            "question_text": "Welche Anzeige passt zu Profil 10?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Profil 10 passt zu Anzeige J.",
+            "order_index": 9,
+            "answers": [
+              {
+                "id": "tb1_l3_q10_a1",
+                "answer_text": "A) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q10_a2",
+                "answer_text": "B) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q10_a3",
+                "answer_text": "C) IT-Support, 100% remote möglich, flexible Zeiten.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q10_a4",
+                "answer_text": "D) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q10_a5",
+                "answer_text": "E) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q10_a6",
+                "answer_text": "F) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q10_a7",
+                "answer_text": "G) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q10_a8",
+                "answer_text": "H) Marketing-Praktikum für Studierende, 3-6 Monate.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q10_a9",
+                "answer_text": "I) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_l3_q10_a10",
+                "answer_text": "J) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "sprachbausteine1",
+        "name": "Sprachbausteine — Teil 1",
+        "type": "language",
+        "official_duration_minutes": 90,
+        "instructions": "Wählen Sie die richtige Lösung (Wortschatz und Grammatik im Berufskontext).",
+        "passage": null,
+        "items": [
+          {
+            "id": "tb1_sb1_q1",
+            "question_text": "Sehr geehrte Damen und Herren, ich schreibe Ihnen ___ meiner Bewerbung.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"bezüglich\" + Genitiv ist die formelle Variante.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "tb1_sb1_q1_a1",
+                "answer_text": "bezüglich",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_sb1_q1_a2",
+                "answer_text": "wegen der",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb1_q1_a3",
+                "answer_text": "über",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_sb1_q2",
+            "question_text": "Könnten Sie mir bitte den Bericht bis Freitag ___?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"zusenden\" ist hier die passende Verbform.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "tb1_sb1_q2_a1",
+                "answer_text": "zusenden",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_sb1_q2_a2",
+                "answer_text": "zuschicken lassen",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb1_q2_a3",
+                "answer_text": "senden bitte",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_sb1_q3",
+            "question_text": "Frau Klein ist ___ für die Buchhaltung zuständig.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"seit Januar\" beschreibt eine andauernde Zuständigkeit.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "tb1_sb1_q3_a1",
+                "answer_text": "seit Januar",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_sb1_q3_a2",
+                "answer_text": "ab Januar zuständig gewesen",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb1_q3_a3",
+                "answer_text": "seit Januar zuständig sein",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_sb1_q4",
+            "question_text": "Der Termin wurde ___ nächste Woche verschoben.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"verschieben auf\" + Akkusativ.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "tb1_sb1_q4_a1",
+                "answer_text": "auf",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_sb1_q4_a2",
+                "answer_text": "zu",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb1_q4_a3",
+                "answer_text": "bei",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_sb1_q5",
+            "question_text": "Ich möchte mich für das Missverständnis ___.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Reflexives Verb: \"sich entschuldigen\".",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "tb1_sb1_q5_a1",
+                "answer_text": "entschuldigen",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_sb1_q5_a2",
+                "answer_text": "Entschuldigung",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb1_q5_a3",
+                "answer_text": "entschuldigt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_sb1_q6",
+            "question_text": "Die Unterlagen liegen bereits ___ Ihnen vor.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"vorliegen bei\" + Dativ.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "tb1_sb1_q6_a1",
+                "answer_text": "bei",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_sb1_q6_a2",
+                "answer_text": "mit",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb1_q6_a3",
+                "answer_text": "zu",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_sb1_q7",
+            "question_text": "Wir bitten um ___ bei eventuellen Verzögerungen.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"um Verständnis bitten\" ist die feste Wendung.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "tb1_sb1_q7_a1",
+                "answer_text": "Verständnis",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_sb1_q7_a2",
+                "answer_text": "Verstehen",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb1_q7_a3",
+                "answer_text": "Verständlichkeit",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_sb1_q8",
+            "question_text": "Der neue Kollege wird sich morgen dem Team ___.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Reflexives Verb im Futur: \"wird sich vorstellen\".",
+            "order_index": 7,
+            "answers": [
+              {
+                "id": "tb1_sb1_q8_a1",
+                "answer_text": "vorstellen",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_sb1_q8_a2",
+                "answer_text": "vorzustellen",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb1_q8_a3",
+                "answer_text": "vorstellt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_sb1_q9",
+            "question_text": "Bitte bestätigen Sie den Erhalt dieser E-Mail ___ Rückantwort.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"per Rückantwort\" ist eine feste Wendung in Geschäftskorrespondenz.",
+            "order_index": 8,
+            "answers": [
+              {
+                "id": "tb1_sb1_q9_a1",
+                "answer_text": "per",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_sb1_q9_a2",
+                "answer_text": "durch",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb1_q9_a3",
+                "answer_text": "über",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_sb1_q10",
+            "question_text": "Die Besprechung musste ___ technischer Probleme verschoben werden.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"aufgrund\" + Genitiv nennt den Grund.",
+            "order_index": 9,
+            "answers": [
+              {
+                "id": "tb1_sb1_q10_a1",
+                "answer_text": "aufgrund",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_sb1_q10_a2",
+                "answer_text": "trotz",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb1_q10_a3",
+                "answer_text": "statt",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "sprachbausteine2",
+        "name": "Sprachbausteine — Teil 2 (Zuordnung)",
+        "type": "language",
+        "official_duration_minutes": 90,
+        "instructions": "Ordnen Sie jeder Redewendung die passende Funktion in einem Geschäftsbrief zu.",
+        "passage": "Redewendungen:\n1. Mit freundlichen Grüßen\n2. Ich freue mich auf Ihre Rückmeldung.\n3. Anbei sende ich Ihnen die gewünschten Unterlagen.\n4. Für Rückfragen stehe ich Ihnen gerne zur Verfügung.\n5. Vielen Dank im Voraus für Ihre Bemühungen.\n6. Bitte lassen Sie mich wissen, falls Sie weitere Informationen benötigen.\n7. Wir bedauern, Ihnen mitteilen zu müssen, dass...\n8. Ich möchte mich hiermit offiziell bewerben um...\n9. Bezugnehmend auf unser Telefongespräch...\n10. In der Anlage finden Sie...\n\nFunktionen:\nA) Formeller Briefabschluss\nB) Bitte um Antwort\nC) Ankündigung eines Anhangs\nD) Angebot weiterer Hilfe\nE) Dank im Voraus\nF) Aufforderung zu weiteren Fragen\nG) Formelle schlechte Nachricht einleiten\nH) Bewerbungseinleitung\nI) Bezug auf ein früheres Gespräch\nJ) Verweis auf beigefügte Dokumente",
+        "items": [
+          {
+            "id": "tb1_sb2_q1",
+            "question_text": "Welche Funktion hat Redewendung 1?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Redewendung 1 entspricht Funktion A.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "tb1_sb2_q1_a1",
+                "answer_text": "A) Formeller Briefabschluss",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_sb2_q1_a2",
+                "answer_text": "B) Bitte um Antwort",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q1_a3",
+                "answer_text": "C) Ankündigung eines Anhangs",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q1_a4",
+                "answer_text": "D) Angebot weiterer Hilfe",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q1_a5",
+                "answer_text": "E) Dank im Voraus",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q1_a6",
+                "answer_text": "F) Aufforderung zu weiteren Fragen",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q1_a7",
+                "answer_text": "G) Formelle schlechte Nachricht einleiten",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q1_a8",
+                "answer_text": "H) Bewerbungseinleitung",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q1_a9",
+                "answer_text": "I) Bezug auf ein früheres Gespräch",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q1_a10",
+                "answer_text": "J) Verweis auf beigefügte Dokumente",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_sb2_q2",
+            "question_text": "Welche Funktion hat Redewendung 2?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Redewendung 2 entspricht Funktion B.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "tb1_sb2_q2_a1",
+                "answer_text": "A) Formeller Briefabschluss",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q2_a2",
+                "answer_text": "B) Bitte um Antwort",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_sb2_q2_a3",
+                "answer_text": "C) Ankündigung eines Anhangs",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q2_a4",
+                "answer_text": "D) Angebot weiterer Hilfe",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q2_a5",
+                "answer_text": "E) Dank im Voraus",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q2_a6",
+                "answer_text": "F) Aufforderung zu weiteren Fragen",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q2_a7",
+                "answer_text": "G) Formelle schlechte Nachricht einleiten",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q2_a8",
+                "answer_text": "H) Bewerbungseinleitung",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q2_a9",
+                "answer_text": "I) Bezug auf ein früheres Gespräch",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q2_a10",
+                "answer_text": "J) Verweis auf beigefügte Dokumente",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_sb2_q3",
+            "question_text": "Welche Funktion hat Redewendung 3?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Redewendung 3 entspricht Funktion C.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "tb1_sb2_q3_a1",
+                "answer_text": "A) Formeller Briefabschluss",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q3_a2",
+                "answer_text": "B) Bitte um Antwort",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q3_a3",
+                "answer_text": "C) Ankündigung eines Anhangs",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_sb2_q3_a4",
+                "answer_text": "D) Angebot weiterer Hilfe",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q3_a5",
+                "answer_text": "E) Dank im Voraus",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q3_a6",
+                "answer_text": "F) Aufforderung zu weiteren Fragen",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q3_a7",
+                "answer_text": "G) Formelle schlechte Nachricht einleiten",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q3_a8",
+                "answer_text": "H) Bewerbungseinleitung",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q3_a9",
+                "answer_text": "I) Bezug auf ein früheres Gespräch",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q3_a10",
+                "answer_text": "J) Verweis auf beigefügte Dokumente",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_sb2_q4",
+            "question_text": "Welche Funktion hat Redewendung 4?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Redewendung 4 entspricht Funktion D.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "tb1_sb2_q4_a1",
+                "answer_text": "A) Formeller Briefabschluss",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q4_a2",
+                "answer_text": "B) Bitte um Antwort",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q4_a3",
+                "answer_text": "C) Ankündigung eines Anhangs",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q4_a4",
+                "answer_text": "D) Angebot weiterer Hilfe",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_sb2_q4_a5",
+                "answer_text": "E) Dank im Voraus",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q4_a6",
+                "answer_text": "F) Aufforderung zu weiteren Fragen",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q4_a7",
+                "answer_text": "G) Formelle schlechte Nachricht einleiten",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q4_a8",
+                "answer_text": "H) Bewerbungseinleitung",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q4_a9",
+                "answer_text": "I) Bezug auf ein früheres Gespräch",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q4_a10",
+                "answer_text": "J) Verweis auf beigefügte Dokumente",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_sb2_q5",
+            "question_text": "Welche Funktion hat Redewendung 5?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Redewendung 5 entspricht Funktion E.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "tb1_sb2_q5_a1",
+                "answer_text": "A) Formeller Briefabschluss",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q5_a2",
+                "answer_text": "B) Bitte um Antwort",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q5_a3",
+                "answer_text": "C) Ankündigung eines Anhangs",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q5_a4",
+                "answer_text": "D) Angebot weiterer Hilfe",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q5_a5",
+                "answer_text": "E) Dank im Voraus",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_sb2_q5_a6",
+                "answer_text": "F) Aufforderung zu weiteren Fragen",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q5_a7",
+                "answer_text": "G) Formelle schlechte Nachricht einleiten",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q5_a8",
+                "answer_text": "H) Bewerbungseinleitung",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q5_a9",
+                "answer_text": "I) Bezug auf ein früheres Gespräch",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q5_a10",
+                "answer_text": "J) Verweis auf beigefügte Dokumente",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_sb2_q6",
+            "question_text": "Welche Funktion hat Redewendung 6?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Redewendung 6 entspricht Funktion F.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "tb1_sb2_q6_a1",
+                "answer_text": "A) Formeller Briefabschluss",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q6_a2",
+                "answer_text": "B) Bitte um Antwort",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q6_a3",
+                "answer_text": "C) Ankündigung eines Anhangs",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q6_a4",
+                "answer_text": "D) Angebot weiterer Hilfe",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q6_a5",
+                "answer_text": "E) Dank im Voraus",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q6_a6",
+                "answer_text": "F) Aufforderung zu weiteren Fragen",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_sb2_q6_a7",
+                "answer_text": "G) Formelle schlechte Nachricht einleiten",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q6_a8",
+                "answer_text": "H) Bewerbungseinleitung",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q6_a9",
+                "answer_text": "I) Bezug auf ein früheres Gespräch",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q6_a10",
+                "answer_text": "J) Verweis auf beigefügte Dokumente",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_sb2_q7",
+            "question_text": "Welche Funktion hat Redewendung 7?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Redewendung 7 entspricht Funktion G.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "tb1_sb2_q7_a1",
+                "answer_text": "A) Formeller Briefabschluss",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q7_a2",
+                "answer_text": "B) Bitte um Antwort",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q7_a3",
+                "answer_text": "C) Ankündigung eines Anhangs",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q7_a4",
+                "answer_text": "D) Angebot weiterer Hilfe",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q7_a5",
+                "answer_text": "E) Dank im Voraus",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q7_a6",
+                "answer_text": "F) Aufforderung zu weiteren Fragen",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q7_a7",
+                "answer_text": "G) Formelle schlechte Nachricht einleiten",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_sb2_q7_a8",
+                "answer_text": "H) Bewerbungseinleitung",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q7_a9",
+                "answer_text": "I) Bezug auf ein früheres Gespräch",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q7_a10",
+                "answer_text": "J) Verweis auf beigefügte Dokumente",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_sb2_q8",
+            "question_text": "Welche Funktion hat Redewendung 8?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Redewendung 8 entspricht Funktion H.",
+            "order_index": 7,
+            "answers": [
+              {
+                "id": "tb1_sb2_q8_a1",
+                "answer_text": "A) Formeller Briefabschluss",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q8_a2",
+                "answer_text": "B) Bitte um Antwort",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q8_a3",
+                "answer_text": "C) Ankündigung eines Anhangs",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q8_a4",
+                "answer_text": "D) Angebot weiterer Hilfe",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q8_a5",
+                "answer_text": "E) Dank im Voraus",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q8_a6",
+                "answer_text": "F) Aufforderung zu weiteren Fragen",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q8_a7",
+                "answer_text": "G) Formelle schlechte Nachricht einleiten",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q8_a8",
+                "answer_text": "H) Bewerbungseinleitung",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_sb2_q8_a9",
+                "answer_text": "I) Bezug auf ein früheres Gespräch",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q8_a10",
+                "answer_text": "J) Verweis auf beigefügte Dokumente",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_sb2_q9",
+            "question_text": "Welche Funktion hat Redewendung 9?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Redewendung 9 entspricht Funktion I.",
+            "order_index": 8,
+            "answers": [
+              {
+                "id": "tb1_sb2_q9_a1",
+                "answer_text": "A) Formeller Briefabschluss",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q9_a2",
+                "answer_text": "B) Bitte um Antwort",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q9_a3",
+                "answer_text": "C) Ankündigung eines Anhangs",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q9_a4",
+                "answer_text": "D) Angebot weiterer Hilfe",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q9_a5",
+                "answer_text": "E) Dank im Voraus",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q9_a6",
+                "answer_text": "F) Aufforderung zu weiteren Fragen",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q9_a7",
+                "answer_text": "G) Formelle schlechte Nachricht einleiten",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q9_a8",
+                "answer_text": "H) Bewerbungseinleitung",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q9_a9",
+                "answer_text": "I) Bezug auf ein früheres Gespräch",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_sb2_q9_a10",
+                "answer_text": "J) Verweis auf beigefügte Dokumente",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_sb2_q10",
+            "question_text": "Welche Funktion hat Redewendung 10?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Redewendung 10 entspricht Funktion J.",
+            "order_index": 9,
+            "answers": [
+              {
+                "id": "tb1_sb2_q10_a1",
+                "answer_text": "A) Formeller Briefabschluss",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q10_a2",
+                "answer_text": "B) Bitte um Antwort",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q10_a3",
+                "answer_text": "C) Ankündigung eines Anhangs",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q10_a4",
+                "answer_text": "D) Angebot weiterer Hilfe",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q10_a5",
+                "answer_text": "E) Dank im Voraus",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q10_a6",
+                "answer_text": "F) Aufforderung zu weiteren Fragen",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q10_a7",
+                "answer_text": "G) Formelle schlechte Nachricht einleiten",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q10_a8",
+                "answer_text": "H) Bewerbungseinleitung",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q10_a9",
+                "answer_text": "I) Bezug auf ein früheres Gespräch",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_sb2_q10_a10",
+                "answer_text": "J) Verweis auf beigefügte Dokumente",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "hoeren1",
+        "name": "Hörverstehen — Teil 1 (Globalverstehen)",
+        "type": "listening",
+        "official_duration_minutes": 30,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص الرد الآلي كما لو كنت تسمعه، ثم حدد صحة الجمل.",
+        "passage": "Telefonansage einer Firma:\n\"Sie erreichen die Firma Meier GmbH. Unsere Geschäftszeiten sind Montag bis Freitag von 8 bis 17 Uhr. Für technische Fragen wählen Sie bitte die 1, für Fragen zur Rechnungsstellung die 2. Falls Sie einen Rückruf wünschen, hinterlassen Sie bitte Ihren Namen und Ihre Telefonnummer nach dem Signalton.\"",
+        "items": [
+          {
+            "id": "tb1_h1_q1",
+            "question_text": "Die Geschäftszeiten sind von 8 bis 17 Uhr.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Ansage nennt genau diese Zeiten.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "tb1_h1_q1_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_h1_q1_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_h1_q2",
+            "question_text": "Für Rechnungsfragen wählt man die 1.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die 1 ist für technische Fragen, die 2 für Rechnungsfragen.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "tb1_h1_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_h1_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "tb1_h1_q3",
+            "question_text": "Man kann einen Rückruf hinterlassen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Ansage erwähnt diese Option.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "tb1_h1_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_h1_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_h1_q4",
+            "question_text": "Die Firma ist auch am Wochenende erreichbar.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Geschäftszeiten gelten nur Montag bis Freitag.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "tb1_h1_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_h1_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "tb1_h1_q5",
+            "question_text": "Man muss Namen und Telefonnummer hinterlassen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Ansage bittet genau darum.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "tb1_h1_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_h1_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          }
+        ],
+        "audio_url": "/audio/test_telc_b1_beruf__hoeren1.mp3"
+      },
+      {
+        "key": "hoeren2",
+        "name": "Hörverstehen — Teil 2 (Detailverstehen)",
+        "type": "listening",
+        "official_duration_minutes": 30,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص المكالمة كما لو كنت تسمعها، ثم حدد صحة الجمل.",
+        "passage": "Telefongespräch im Büro:\n\"A: Guten Tag, hier ist Yassin von der Marketingabteilung. Ich rufe wegen unseres Meetings am Donnerstag an.\nB: Ah, guten Tag Herr Yassin. Das Meeting musste leider auf Freitag, 10 Uhr, verschoben werden.\nA: Kein Problem, ich trage es mir gleich in den Kalender ein. Findet es im gleichen Raum statt?\nB: Nein, diesmal im Konferenzraum im 3. Stock. Bitte bringen Sie auch die aktuelle Präsentation mit.\nA: Mache ich. Sind sonst noch Kollegen aus anderen Abteilungen eingeladen?\nB: Ja, auch zwei Kollegen aus dem Vertrieb werden dabei sein, um über die neue Kampagne zu sprechen.\nA: Verstanden, dann bis Freitag!\"",
+        "items": [
+          {
+            "id": "tb1_h2_q1",
+            "question_text": "Das Meeting findet am Donnerstag statt.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Es wurde auf Freitag verschoben.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "tb1_h2_q1_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_h2_q1_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "tb1_h2_q2",
+            "question_text": "Das Meeting beginnt um 10 Uhr.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Anrufer sagt \"Freitag, 10 Uhr\".",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "tb1_h2_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_h2_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_h2_q3",
+            "question_text": "Das Meeting findet im gleichen Raum wie sonst statt.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Es findet diesmal im Konferenzraum im 3. Stock statt.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "tb1_h2_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_h2_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "tb1_h2_q4",
+            "question_text": "Herr Yassin soll die Präsentation mitbringen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "B bittet ihn, die Präsentation mitzubringen.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "tb1_h2_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_h2_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_h2_q5",
+            "question_text": "Herr Yassin arbeitet in der Marketingabteilung.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er stellt sich als \"Yassin von der Marketingabteilung\" vor.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "tb1_h2_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_h2_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_h2_q6",
+            "question_text": "Es sind auch Kollegen aus dem Vertrieb eingeladen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "B erwähnt zwei Kollegen aus dem Vertrieb.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "tb1_h2_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_h2_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_h2_q7",
+            "question_text": "Beim Meeting geht es auch um eine neue Kampagne.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Vertriebskollegen sprechen über die neue Kampagne.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "tb1_h2_q7_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_h2_q7_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_h2_q8",
+            "question_text": "Das Meeting wurde komplett abgesagt.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Es wurde nur verschoben, nicht abgesagt.",
+            "order_index": 7,
+            "answers": [
+              {
+                "id": "tb1_h2_q8_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_h2_q8_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "tb1_h2_q9",
+            "question_text": "Der Konferenzraum liegt im 3. Stock.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "B nennt genau diesen Ort.",
+            "order_index": 8,
+            "answers": [
+              {
+                "id": "tb1_h2_q9_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_h2_q9_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_h2_q10",
+            "question_text": "Herr Yassin kennt den neuen Raum bereits gut.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Es wird nicht gesagt, dass er den Raum kennt; es ist ein anderer Raum als sonst.",
+            "order_index": 9,
+            "answers": [
+              {
+                "id": "tb1_h2_q10_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_h2_q10_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          }
+        ],
+        "audio_url": "/audio/test_telc_b1_beruf__hoeren2.mp3"
+      },
+      {
+        "key": "hoeren3",
+        "name": "Hörverstehen — Teil 3 (Selektives Verstehen)",
+        "type": "listening",
+        "official_duration_minutes": 30,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص الإعلان كما لو كنت تسمعه، ثم حدد صحة الجمل.",
+        "passage": "Durchsage in der Kantine:\n\"Liebe Kolleginnen und Kollegen, ab morgen wird die Kantine wegen Renovierungsarbeiten für zwei Wochen geschlossen. In dieser Zeit steht ein Foodtruck auf dem Parkplatz zur Verfügung. Die Preise bleiben unverändert. Wir bitten um Ihr Verständnis.\"",
+        "items": [
+          {
+            "id": "tb1_h3_q1",
+            "question_text": "Die Kantine wird für zwei Wochen geschlossen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Durchsage nennt genau diesen Zeitraum.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "tb1_h3_q1_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_h3_q1_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_h3_q2",
+            "question_text": "Der Grund für die Schließung sind Renovierungsarbeiten.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Durchsage nennt Renovierungsarbeiten als Grund.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "tb1_h3_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "tb1_h3_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1_h3_q3",
+            "question_text": "Während der Schließung gibt es gar kein Essen im Haus.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Ein Foodtruck steht auf dem Parkplatz zur Verfügung.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "tb1_h3_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_h3_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "tb1_h3_q4",
+            "question_text": "Die Preise werden während dieser Zeit erhöht.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Preise bleiben laut Durchsage unverändert.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "tb1_h3_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_h3_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "tb1_h3_q5",
+            "question_text": "Die Schließung beginnt sofort, ab heute.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie beginnt ab morgen, nicht ab heute.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "tb1_h3_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "tb1_h3_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          }
+        ],
+        "audio_url": "/audio/test_telc_b1_beruf__hoeren3.mp3"
+      }
+    ],
+    "writing": {
+      "name": "Schriftlicher Ausdruck (تدريب غير مُقيَّم)",
+      "official_duration_minutes": 30,
+      "instructions": "في الاختبار الرسمي، تكتب رسالة أو بريدًا إلكترونيًا بناءً على 4 نقاط إرشادية. هذا تدريب ذاتي غير مُقيَّم آليًا.",
+      "prompt": "Schreiben Sie eine E-Mail an einen Kollegen / eine Kollegin (ca. 80 Wörter). Gehen Sie auf folgende Punkte ein:\n- Erklären Sie, dass Sie morgen später ins Büro kommen.\n- Nennen Sie den Grund.\n- Bitten Sie um Vertretung bei einem Termin.\n- Bedanken Sie sich im Voraus.",
+      "sample_answer": "Liebe Frau Amrani,\n\nich wollte Ihnen kurz Bescheid geben, dass ich morgen erst gegen 11 Uhr ins Büro kommen kann, da ich einen Arzttermin habe.\n\nKönnten Sie bitte in der Zwischenzeit meinen Termin mit dem Lieferanten um 9:30 Uhr übernehmen? Alle Unterlagen dazu liegen auf meinem Schreibtisch.\n\nVielen Dank im Voraus für Ihre Hilfe!\n\nMit freundlichen Grüßen\nKarim"
+    }
+  },
+  "test_telc_b2_beruf": {
+    "sections": [
+      {
+        "key": "lese1",
+        "name": "Leseverstehen — Teil 1 (Globalverstehen)",
+        "type": "reading",
+        "official_duration_minutes": 90,
+        "instructions": "Ordnen Sie jedem Absatz die passende Überschrift zu.",
+        "passage": "Absätze:\n1. Immer mehr Unternehmen setzen auf digitale Tools, um Meetings effizienter zu gestalten und Reisezeiten zu reduzieren.\n2. Fachkräftemangel zwingt viele Firmen dazu, ihre Ausbildungsprogramme deutlich auszubauen.\n3. Eine aktuelle Umfrage zeigt, dass flexible Arbeitszeitmodelle die Mitarbeiterbindung erheblich verbessern.\n4. Cyberangriffe auf mittelständische Unternehmen haben in den letzten zwei Jahren stark zugenommen.\n5. Nachhaltige Lieferketten werden für Kunden zu einem immer wichtigeren Auswahlkriterium.\n\nÜberschriften:\nA) Ausbildung als Lösung gegen Personalmangel\nB) Digitalisierung verändert Meetingkultur\nC) Flexibilität stärkt die Bindung ans Unternehmen\nD) Wachsende Bedrohung durch Cyberkriminalität\nE) Nachhaltigkeit als Verkaufsargument\nF) Neue Steuervorschriften für Betriebe",
+        "items": [
+          {
+            "id": "tb2_l1_q1",
+            "question_text": "Welche Überschrift passt zu Absatz 1?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Absatz 1 passt zu B) Digitalisierung verändert Meetingkultur.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "tb2_l1_q1_a1",
+                "answer_text": "A) Ausbildung als Lösung gegen Personalmangel",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l1_q1_a2",
+                "answer_text": "B) Digitalisierung verändert Meetingkultur",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_l1_q1_a3",
+                "answer_text": "C) Flexibilität stärkt die Bindung ans Unternehmen",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l1_q1_a4",
+                "answer_text": "D) Wachsende Bedrohung durch Cyberkriminalität",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l1_q1_a5",
+                "answer_text": "E) Nachhaltigkeit als Verkaufsargument",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l1_q1_a6",
+                "answer_text": "F) Neue Steuervorschriften für Betriebe",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_l1_q2",
+            "question_text": "Welche Überschrift passt zu Absatz 2?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Absatz 2 passt zu A) Ausbildung als Lösung gegen Personalmangel.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "tb2_l1_q2_a1",
+                "answer_text": "A) Ausbildung als Lösung gegen Personalmangel",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_l1_q2_a2",
+                "answer_text": "B) Digitalisierung verändert Meetingkultur",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l1_q2_a3",
+                "answer_text": "C) Flexibilität stärkt die Bindung ans Unternehmen",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l1_q2_a4",
+                "answer_text": "D) Wachsende Bedrohung durch Cyberkriminalität",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l1_q2_a5",
+                "answer_text": "E) Nachhaltigkeit als Verkaufsargument",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l1_q2_a6",
+                "answer_text": "F) Neue Steuervorschriften für Betriebe",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_l1_q3",
+            "question_text": "Welche Überschrift passt zu Absatz 3?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Absatz 3 passt zu C) Flexibilität stärkt die Bindung ans Unternehmen.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "tb2_l1_q3_a1",
+                "answer_text": "A) Ausbildung als Lösung gegen Personalmangel",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l1_q3_a2",
+                "answer_text": "B) Digitalisierung verändert Meetingkultur",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l1_q3_a3",
+                "answer_text": "C) Flexibilität stärkt die Bindung ans Unternehmen",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_l1_q3_a4",
+                "answer_text": "D) Wachsende Bedrohung durch Cyberkriminalität",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l1_q3_a5",
+                "answer_text": "E) Nachhaltigkeit als Verkaufsargument",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l1_q3_a6",
+                "answer_text": "F) Neue Steuervorschriften für Betriebe",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_l1_q4",
+            "question_text": "Welche Überschrift passt zu Absatz 4?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Absatz 4 passt zu D) Wachsende Bedrohung durch Cyberkriminalität.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "tb2_l1_q4_a1",
+                "answer_text": "A) Ausbildung als Lösung gegen Personalmangel",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l1_q4_a2",
+                "answer_text": "B) Digitalisierung verändert Meetingkultur",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l1_q4_a3",
+                "answer_text": "C) Flexibilität stärkt die Bindung ans Unternehmen",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l1_q4_a4",
+                "answer_text": "D) Wachsende Bedrohung durch Cyberkriminalität",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_l1_q4_a5",
+                "answer_text": "E) Nachhaltigkeit als Verkaufsargument",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l1_q4_a6",
+                "answer_text": "F) Neue Steuervorschriften für Betriebe",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_l1_q5",
+            "question_text": "Welche Überschrift passt zu Absatz 5?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Absatz 5 passt zu E) Nachhaltigkeit als Verkaufsargument.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "tb2_l1_q5_a1",
+                "answer_text": "A) Ausbildung als Lösung gegen Personalmangel",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l1_q5_a2",
+                "answer_text": "B) Digitalisierung verändert Meetingkultur",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l1_q5_a3",
+                "answer_text": "C) Flexibilität stärkt die Bindung ans Unternehmen",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l1_q5_a4",
+                "answer_text": "D) Wachsende Bedrohung durch Cyberkriminalität",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l1_q5_a5",
+                "answer_text": "E) Nachhaltigkeit als Verkaufsargument",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_l1_q5_a6",
+                "answer_text": "F) Neue Steuervorschriften für Betriebe",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "lese2",
+        "name": "Leseverstehen — Teil 2 (Detailverstehen)",
+        "type": "reading",
+        "official_duration_minutes": 90,
+        "instructions": "Lesen Sie den Artikel und beantworten Sie die Fragen.",
+        "passage": "Digitalisierung im Mittelstand\n\nViele mittelständische Unternehmen zögern noch, in digitale Prozesse zu investieren, obwohl Studien zeigen, dass digitalisierte Betriebe im Schnitt produktiver sind. Als Hauptgründe für das Zögern nennen Geschäftsführer fehlendes Fachpersonal und hohe Anfangsinvestitionen. Experten empfehlen daher, mit kleinen, klar abgegrenzten Projekten zu beginnen, statt die gesamte Firma auf einmal umzustellen. Eine begleitende Studie zeigt zudem, dass Unternehmen, die externe Berater einbeziehen, im Schnitt schneller Ergebnisse erzielen als jene, die den Prozess komplett intern steuern.",
+        "items": [
+          {
+            "id": "tb2_l2_q1",
+            "question_text": "Warum zögern viele Mittelständler laut Text?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt genau diese beiden Gründe.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "tb2_l2_q1_a1",
+                "answer_text": "Wegen fehlendem Fachpersonal und hohen Investitionskosten.",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_l2_q1_a2",
+                "answer_text": "Weil die Digitalisierung gesetzlich verboten ist.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l2_q1_a3",
+                "answer_text": "Weil sie keine Kunden haben.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_l2_q2",
+            "question_text": "Was empfehlen Experten?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt genau diese Empfehlung.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "tb2_l2_q2_a1",
+                "answer_text": "Mit kleinen, klar abgegrenzten Projekten zu beginnen.",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_l2_q2_a2",
+                "answer_text": "Sofort die gesamte Firma umzustellen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l2_q2_a3",
+                "answer_text": "Auf Digitalisierung ganz zu verzichten.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_l2_q3",
+            "question_text": "Was zeigen Studien laut Text?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text sagt das explizit im ersten Satz.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "tb2_l2_q3_a1",
+                "answer_text": "Digitalisierte Betriebe sind im Schnitt produktiver.",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_l2_q3_a2",
+                "answer_text": "Digitalisierung senkt die Produktivität.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l2_q3_a3",
+                "answer_text": "Digitalisierung hat keinen Effekt.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_l2_q4",
+            "question_text": "Alle mittelständischen Unternehmen haben bereits vollständig digitalisiert.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt, viele zögern noch mit der Investition.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "tb2_l2_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l2_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "tb2_l2_q5",
+            "question_text": "Was zeigt die begleitende Studie?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der letzte Satz nennt genau diesen Befund.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "tb2_l2_q5_a1",
+                "answer_text": "Unternehmen mit externen Beratern erzielen schneller Ergebnisse.",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_l2_q5_a2",
+                "answer_text": "Externe Berater verlangsamen den Prozess.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l2_q5_a3",
+                "answer_text": "Interne Steuerung ist immer schneller.",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "lese3",
+        "name": "Leseverstehen — Teil 3 (Selektives Verstehen)",
+        "type": "reading",
+        "official_duration_minutes": 90,
+        "instructions": "Ordnen Sie jedem Unternehmensprofil den passenden Dienstleister zu.",
+        "passage": "Unternehmensprofile:\n1. Eine Firma sucht einen Anbieter für Cloud-Speicherlösungen.\n2. Ein Start-up benötigt Hilfe bei der Gestaltung des Firmenlogos.\n3. Ein Unternehmen möchte seine Mitarbeitenden in Projektmanagement schulen lassen.\n4. Eine Firma sucht einen Steuerberater für die Jahresabschlusserstellung.\n5. Ein Betrieb sucht einen Anbieter für Übersetzungsdienste Deutsch-Englisch.\n6. Ein Unternehmen benötigt eine neue Website mit Onlineshop.\n7. Eine Firma sucht einen Caterer für eine Firmenveranstaltung.\n8. Ein Betrieb sucht einen Sicherheitsdienst für das Firmengelände.\n9. Ein Unternehmen möchte seinen CO2-Fußabdruck berechnen lassen.\n10. Eine Firma sucht Unterstützung beim Recruiting neuer Fachkräfte.\n\nDienstleister:\nA) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.\nB) Designstudio Nova: Logo- und Markendesign für Start-ups.\nC) ProManage Academy: Schulungen im Projektmanagement.\nD) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.\nE) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.\nF) WebCraft: Website- und Onlineshop-Erstellung.\nG) EventCatering Plus: Catering für Firmenveranstaltungen.\nH) SecureGuard: Sicherheitsdienste für Firmengelände.\nI) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.\nJ) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
+        "items": [
+          {
+            "id": "tb2_l3_q1",
+            "question_text": "Welcher Dienstleister passt zu Profil 1?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Profil 1 passt zu A.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "tb2_l3_q1_a1",
+                "answer_text": "A) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_l3_q1_a2",
+                "answer_text": "B) Designstudio Nova: Logo- und Markendesign für Start-ups.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q1_a3",
+                "answer_text": "C) ProManage Academy: Schulungen im Projektmanagement.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q1_a4",
+                "answer_text": "D) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q1_a5",
+                "answer_text": "E) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q1_a6",
+                "answer_text": "F) WebCraft: Website- und Onlineshop-Erstellung.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q1_a7",
+                "answer_text": "G) EventCatering Plus: Catering für Firmenveranstaltungen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q1_a8",
+                "answer_text": "H) SecureGuard: Sicherheitsdienste für Firmengelände.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q1_a9",
+                "answer_text": "I) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q1_a10",
+                "answer_text": "J) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_l3_q2",
+            "question_text": "Welcher Dienstleister passt zu Profil 2?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Profil 2 passt zu B.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "tb2_l3_q2_a1",
+                "answer_text": "A) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q2_a2",
+                "answer_text": "B) Designstudio Nova: Logo- und Markendesign für Start-ups.",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_l3_q2_a3",
+                "answer_text": "C) ProManage Academy: Schulungen im Projektmanagement.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q2_a4",
+                "answer_text": "D) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q2_a5",
+                "answer_text": "E) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q2_a6",
+                "answer_text": "F) WebCraft: Website- und Onlineshop-Erstellung.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q2_a7",
+                "answer_text": "G) EventCatering Plus: Catering für Firmenveranstaltungen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q2_a8",
+                "answer_text": "H) SecureGuard: Sicherheitsdienste für Firmengelände.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q2_a9",
+                "answer_text": "I) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q2_a10",
+                "answer_text": "J) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_l3_q3",
+            "question_text": "Welcher Dienstleister passt zu Profil 3?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Profil 3 passt zu C.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "tb2_l3_q3_a1",
+                "answer_text": "A) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q3_a2",
+                "answer_text": "B) Designstudio Nova: Logo- und Markendesign für Start-ups.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q3_a3",
+                "answer_text": "C) ProManage Academy: Schulungen im Projektmanagement.",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_l3_q3_a4",
+                "answer_text": "D) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q3_a5",
+                "answer_text": "E) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q3_a6",
+                "answer_text": "F) WebCraft: Website- und Onlineshop-Erstellung.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q3_a7",
+                "answer_text": "G) EventCatering Plus: Catering für Firmenveranstaltungen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q3_a8",
+                "answer_text": "H) SecureGuard: Sicherheitsdienste für Firmengelände.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q3_a9",
+                "answer_text": "I) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q3_a10",
+                "answer_text": "J) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_l3_q4",
+            "question_text": "Welcher Dienstleister passt zu Profil 4?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Profil 4 passt zu D.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "tb2_l3_q4_a1",
+                "answer_text": "A) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q4_a2",
+                "answer_text": "B) Designstudio Nova: Logo- und Markendesign für Start-ups.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q4_a3",
+                "answer_text": "C) ProManage Academy: Schulungen im Projektmanagement.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q4_a4",
+                "answer_text": "D) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_l3_q4_a5",
+                "answer_text": "E) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q4_a6",
+                "answer_text": "F) WebCraft: Website- und Onlineshop-Erstellung.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q4_a7",
+                "answer_text": "G) EventCatering Plus: Catering für Firmenveranstaltungen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q4_a8",
+                "answer_text": "H) SecureGuard: Sicherheitsdienste für Firmengelände.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q4_a9",
+                "answer_text": "I) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q4_a10",
+                "answer_text": "J) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_l3_q5",
+            "question_text": "Welcher Dienstleister passt zu Profil 5?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Profil 5 passt zu E.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "tb2_l3_q5_a1",
+                "answer_text": "A) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q5_a2",
+                "answer_text": "B) Designstudio Nova: Logo- und Markendesign für Start-ups.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q5_a3",
+                "answer_text": "C) ProManage Academy: Schulungen im Projektmanagement.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q5_a4",
+                "answer_text": "D) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q5_a5",
+                "answer_text": "E) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_l3_q5_a6",
+                "answer_text": "F) WebCraft: Website- und Onlineshop-Erstellung.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q5_a7",
+                "answer_text": "G) EventCatering Plus: Catering für Firmenveranstaltungen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q5_a8",
+                "answer_text": "H) SecureGuard: Sicherheitsdienste für Firmengelände.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q5_a9",
+                "answer_text": "I) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q5_a10",
+                "answer_text": "J) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_l3_q6",
+            "question_text": "Welcher Dienstleister passt zu Profil 6?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Profil 6 passt zu F.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "tb2_l3_q6_a1",
+                "answer_text": "A) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q6_a2",
+                "answer_text": "B) Designstudio Nova: Logo- und Markendesign für Start-ups.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q6_a3",
+                "answer_text": "C) ProManage Academy: Schulungen im Projektmanagement.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q6_a4",
+                "answer_text": "D) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q6_a5",
+                "answer_text": "E) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q6_a6",
+                "answer_text": "F) WebCraft: Website- und Onlineshop-Erstellung.",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_l3_q6_a7",
+                "answer_text": "G) EventCatering Plus: Catering für Firmenveranstaltungen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q6_a8",
+                "answer_text": "H) SecureGuard: Sicherheitsdienste für Firmengelände.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q6_a9",
+                "answer_text": "I) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q6_a10",
+                "answer_text": "J) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_l3_q7",
+            "question_text": "Welcher Dienstleister passt zu Profil 7?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Profil 7 passt zu G.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "tb2_l3_q7_a1",
+                "answer_text": "A) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q7_a2",
+                "answer_text": "B) Designstudio Nova: Logo- und Markendesign für Start-ups.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q7_a3",
+                "answer_text": "C) ProManage Academy: Schulungen im Projektmanagement.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q7_a4",
+                "answer_text": "D) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q7_a5",
+                "answer_text": "E) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q7_a6",
+                "answer_text": "F) WebCraft: Website- und Onlineshop-Erstellung.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q7_a7",
+                "answer_text": "G) EventCatering Plus: Catering für Firmenveranstaltungen.",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_l3_q7_a8",
+                "answer_text": "H) SecureGuard: Sicherheitsdienste für Firmengelände.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q7_a9",
+                "answer_text": "I) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q7_a10",
+                "answer_text": "J) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_l3_q8",
+            "question_text": "Welcher Dienstleister passt zu Profil 8?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Profil 8 passt zu H.",
+            "order_index": 7,
+            "answers": [
+              {
+                "id": "tb2_l3_q8_a1",
+                "answer_text": "A) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q8_a2",
+                "answer_text": "B) Designstudio Nova: Logo- und Markendesign für Start-ups.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q8_a3",
+                "answer_text": "C) ProManage Academy: Schulungen im Projektmanagement.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q8_a4",
+                "answer_text": "D) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q8_a5",
+                "answer_text": "E) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q8_a6",
+                "answer_text": "F) WebCraft: Website- und Onlineshop-Erstellung.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q8_a7",
+                "answer_text": "G) EventCatering Plus: Catering für Firmenveranstaltungen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q8_a8",
+                "answer_text": "H) SecureGuard: Sicherheitsdienste für Firmengelände.",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_l3_q8_a9",
+                "answer_text": "I) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q8_a10",
+                "answer_text": "J) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_l3_q9",
+            "question_text": "Welcher Dienstleister passt zu Profil 9?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Profil 9 passt zu I.",
+            "order_index": 8,
+            "answers": [
+              {
+                "id": "tb2_l3_q9_a1",
+                "answer_text": "A) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q9_a2",
+                "answer_text": "B) Designstudio Nova: Logo- und Markendesign für Start-ups.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q9_a3",
+                "answer_text": "C) ProManage Academy: Schulungen im Projektmanagement.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q9_a4",
+                "answer_text": "D) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q9_a5",
+                "answer_text": "E) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q9_a6",
+                "answer_text": "F) WebCraft: Website- und Onlineshop-Erstellung.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q9_a7",
+                "answer_text": "G) EventCatering Plus: Catering für Firmenveranstaltungen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q9_a8",
+                "answer_text": "H) SecureGuard: Sicherheitsdienste für Firmengelände.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q9_a9",
+                "answer_text": "I) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_l3_q9_a10",
+                "answer_text": "J) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_l3_q10",
+            "question_text": "Welcher Dienstleister passt zu Profil 10?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Profil 10 passt zu J.",
+            "order_index": 9,
+            "answers": [
+              {
+                "id": "tb2_l3_q10_a1",
+                "answer_text": "A) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q10_a2",
+                "answer_text": "B) Designstudio Nova: Logo- und Markendesign für Start-ups.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q10_a3",
+                "answer_text": "C) ProManage Academy: Schulungen im Projektmanagement.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q10_a4",
+                "answer_text": "D) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q10_a5",
+                "answer_text": "E) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q10_a6",
+                "answer_text": "F) WebCraft: Website- und Onlineshop-Erstellung.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q10_a7",
+                "answer_text": "G) EventCatering Plus: Catering für Firmenveranstaltungen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q10_a8",
+                "answer_text": "H) SecureGuard: Sicherheitsdienste für Firmengelände.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q10_a9",
+                "answer_text": "I) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_l3_q10_a10",
+                "answer_text": "J) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "sprachbausteine1",
+        "name": "Sprachbausteine — Teil 1",
+        "type": "language",
+        "official_duration_minutes": 90,
+        "instructions": "Wählen Sie die richtige Lösung.",
+        "passage": null,
+        "items": [
+          {
+            "id": "tb2_sb1_q1",
+            "question_text": "Die Entscheidung wurde ___ des Vorstands getroffen.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"seitens\" + Genitiv ist eine formelle Präposition für \"von Seiten\".",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "tb2_sb1_q1_a1",
+                "answer_text": "seitens",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_sb1_q1_a2",
+                "answer_text": "wegen",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb1_q1_a3",
+                "answer_text": "trotz",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_sb1_q2",
+            "question_text": "___ der schwierigen Marktlage konnte das Unternehmen wachsen.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"Trotz\" drückt einen Gegensatz aus.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "tb2_sb1_q2_a1",
+                "answer_text": "Trotz",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_sb1_q2_a2",
+                "answer_text": "Wegen",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb1_q2_a3",
+                "answer_text": "Aufgrund",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_sb1_q3",
+            "question_text": "Die Berichte müssen ___ Ende des Quartals eingereicht werden.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"bis spätestens\" nennt eine Frist.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "tb2_sb1_q3_a1",
+                "answer_text": "bis spätestens",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_sb1_q3_a2",
+                "answer_text": "seit",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb1_q3_a3",
+                "answer_text": "ab",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_sb1_q4",
+            "question_text": "Der Vorschlag wurde vom Team einstimmig ___.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Partizip II nach \"wurde\" (Passiv).",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "tb2_sb1_q4_a1",
+                "answer_text": "angenommen",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_sb1_q4_a2",
+                "answer_text": "annehmen",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb1_q4_a3",
+                "answer_text": "annimmt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_sb1_q5",
+            "question_text": "Man geht davon ___, dass die Zahlen steigen werden.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"davon ausgehen, dass...\" ist die feste Wendung.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "tb2_sb1_q5_a1",
+                "answer_text": "aus",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_sb1_q5_a2",
+                "answer_text": "auf",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb1_q5_a3",
+                "answer_text": "an",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_sb1_q6",
+            "question_text": "Die Firma haftet nicht ___ Schäden durch höhere Gewalt.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"haften für\" + Akkusativ.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "tb2_sb1_q6_a1",
+                "answer_text": "für",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_sb1_q6_a2",
+                "answer_text": "gegen",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb1_q6_a3",
+                "answer_text": "über",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_sb1_q7",
+            "question_text": "___ Rücksprache mit der Geschäftsführung wird das Budget erhöht.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"nach Rücksprache mit\" ist die feste Wendung.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "tb2_sb1_q7_a1",
+                "answer_text": "Nach",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_sb1_q7_a2",
+                "answer_text": "Bei",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb1_q7_a3",
+                "answer_text": "Zu",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_sb1_q8",
+            "question_text": "Der Vertrag tritt ___ Unterzeichnung beider Parteien in Kraft.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"mit Unterzeichnung\" beschreibt den Zeitpunkt des Inkrafttretens.",
+            "order_index": 7,
+            "answers": [
+              {
+                "id": "tb2_sb1_q8_a1",
+                "answer_text": "mit",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_sb1_q8_a2",
+                "answer_text": "durch",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb1_q8_a3",
+                "answer_text": "bei",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_sb1_q9",
+            "question_text": "Die Abteilung wurde beauftragt, den Prozess zu ___.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Infinitiv nach \"beauftragt, ... zu\".",
+            "order_index": 8,
+            "answers": [
+              {
+                "id": "tb2_sb1_q9_a1",
+                "answer_text": "optimieren",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_sb1_q9_a2",
+                "answer_text": "Optimierung",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb1_q9_a3",
+                "answer_text": "optimiert",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_sb1_q10",
+            "question_text": "___ eines internen Fehlers verzögerte sich die Lieferung.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"infolge\" + Genitiv nennt die Ursache einer Verzögerung.",
+            "order_index": 9,
+            "answers": [
+              {
+                "id": "tb2_sb1_q10_a1",
+                "answer_text": "Infolge",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_sb1_q10_a2",
+                "answer_text": "Statt",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb1_q10_a3",
+                "answer_text": "Außer",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "sprachbausteine2",
+        "name": "Sprachbausteine — Teil 2 (Zuordnung)",
+        "type": "language",
+        "official_duration_minutes": 90,
+        "instructions": "Ordnen Sie jeder formellen Wendung die passende Bedeutung zu.",
+        "passage": "Formelle Wendungen:\n1. unter Berücksichtigung der aktuellen Lage\n2. im Hinblick auf die kommenden Verhandlungen\n3. vorbehaltlich der Zustimmung des Vorstands\n4. im Rahmen des vereinbarten Budgets\n5. unter der Voraussetzung, dass alle Fristen eingehalten werden\n6. in Anbetracht der gestiegenen Kosten\n7. im Zuge der Umstrukturierung\n8. unbeschadet etwaiger Ansprüche\n9. in Abstimmung mit der Personalabteilung\n10. vorausgesetzt, die Qualität bleibt gleich\n\nBedeutungen:\nA) unter Beachtung der jetzigen Situation\nB) mit Blick auf zukünftige Gespräche\nC) abhängig von einer späteren Genehmigung\nD) innerhalb der festgelegten Finanzmittel\nE) nur wenn alle Termine eingehalten werden\nF) wegen der höheren Kosten\nG) während der Reorganisation\nH) ohne bestehende Rechte zu beeinträchtigen\nI) nach Absprache mit der Personalabteilung\nJ) nur wenn die Qualität unverändert bleibt",
+        "items": [
+          {
+            "id": "tb2_sb2_q1",
+            "question_text": "Was bedeutet Wendung 1?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Wendung 1 entspricht Bedeutung A.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "tb2_sb2_q1_a1",
+                "answer_text": "A) unter Beachtung der jetzigen Situation",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_sb2_q1_a2",
+                "answer_text": "B) mit Blick auf zukünftige Gespräche",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q1_a3",
+                "answer_text": "C) abhängig von einer späteren Genehmigung",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q1_a4",
+                "answer_text": "D) innerhalb der festgelegten Finanzmittel",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q1_a5",
+                "answer_text": "E) nur wenn alle Termine eingehalten werden",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q1_a6",
+                "answer_text": "F) wegen der höheren Kosten",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q1_a7",
+                "answer_text": "G) während der Reorganisation",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q1_a8",
+                "answer_text": "H) ohne bestehende Rechte zu beeinträchtigen",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q1_a9",
+                "answer_text": "I) nach Absprache mit der Personalabteilung",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q1_a10",
+                "answer_text": "J) nur wenn die Qualität unverändert bleibt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_sb2_q2",
+            "question_text": "Was bedeutet Wendung 2?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Wendung 2 entspricht Bedeutung B.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "tb2_sb2_q2_a1",
+                "answer_text": "A) unter Beachtung der jetzigen Situation",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q2_a2",
+                "answer_text": "B) mit Blick auf zukünftige Gespräche",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_sb2_q2_a3",
+                "answer_text": "C) abhängig von einer späteren Genehmigung",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q2_a4",
+                "answer_text": "D) innerhalb der festgelegten Finanzmittel",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q2_a5",
+                "answer_text": "E) nur wenn alle Termine eingehalten werden",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q2_a6",
+                "answer_text": "F) wegen der höheren Kosten",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q2_a7",
+                "answer_text": "G) während der Reorganisation",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q2_a8",
+                "answer_text": "H) ohne bestehende Rechte zu beeinträchtigen",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q2_a9",
+                "answer_text": "I) nach Absprache mit der Personalabteilung",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q2_a10",
+                "answer_text": "J) nur wenn die Qualität unverändert bleibt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_sb2_q3",
+            "question_text": "Was bedeutet Wendung 3?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Wendung 3 entspricht Bedeutung C.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "tb2_sb2_q3_a1",
+                "answer_text": "A) unter Beachtung der jetzigen Situation",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q3_a2",
+                "answer_text": "B) mit Blick auf zukünftige Gespräche",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q3_a3",
+                "answer_text": "C) abhängig von einer späteren Genehmigung",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_sb2_q3_a4",
+                "answer_text": "D) innerhalb der festgelegten Finanzmittel",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q3_a5",
+                "answer_text": "E) nur wenn alle Termine eingehalten werden",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q3_a6",
+                "answer_text": "F) wegen der höheren Kosten",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q3_a7",
+                "answer_text": "G) während der Reorganisation",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q3_a8",
+                "answer_text": "H) ohne bestehende Rechte zu beeinträchtigen",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q3_a9",
+                "answer_text": "I) nach Absprache mit der Personalabteilung",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q3_a10",
+                "answer_text": "J) nur wenn die Qualität unverändert bleibt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_sb2_q4",
+            "question_text": "Was bedeutet Wendung 4?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Wendung 4 entspricht Bedeutung D.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "tb2_sb2_q4_a1",
+                "answer_text": "A) unter Beachtung der jetzigen Situation",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q4_a2",
+                "answer_text": "B) mit Blick auf zukünftige Gespräche",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q4_a3",
+                "answer_text": "C) abhängig von einer späteren Genehmigung",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q4_a4",
+                "answer_text": "D) innerhalb der festgelegten Finanzmittel",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_sb2_q4_a5",
+                "answer_text": "E) nur wenn alle Termine eingehalten werden",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q4_a6",
+                "answer_text": "F) wegen der höheren Kosten",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q4_a7",
+                "answer_text": "G) während der Reorganisation",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q4_a8",
+                "answer_text": "H) ohne bestehende Rechte zu beeinträchtigen",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q4_a9",
+                "answer_text": "I) nach Absprache mit der Personalabteilung",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q4_a10",
+                "answer_text": "J) nur wenn die Qualität unverändert bleibt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_sb2_q5",
+            "question_text": "Was bedeutet Wendung 5?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Wendung 5 entspricht Bedeutung E.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "tb2_sb2_q5_a1",
+                "answer_text": "A) unter Beachtung der jetzigen Situation",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q5_a2",
+                "answer_text": "B) mit Blick auf zukünftige Gespräche",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q5_a3",
+                "answer_text": "C) abhängig von einer späteren Genehmigung",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q5_a4",
+                "answer_text": "D) innerhalb der festgelegten Finanzmittel",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q5_a5",
+                "answer_text": "E) nur wenn alle Termine eingehalten werden",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_sb2_q5_a6",
+                "answer_text": "F) wegen der höheren Kosten",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q5_a7",
+                "answer_text": "G) während der Reorganisation",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q5_a8",
+                "answer_text": "H) ohne bestehende Rechte zu beeinträchtigen",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q5_a9",
+                "answer_text": "I) nach Absprache mit der Personalabteilung",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q5_a10",
+                "answer_text": "J) nur wenn die Qualität unverändert bleibt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_sb2_q6",
+            "question_text": "Was bedeutet Wendung 6?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Wendung 6 entspricht Bedeutung F.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "tb2_sb2_q6_a1",
+                "answer_text": "A) unter Beachtung der jetzigen Situation",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q6_a2",
+                "answer_text": "B) mit Blick auf zukünftige Gespräche",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q6_a3",
+                "answer_text": "C) abhängig von einer späteren Genehmigung",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q6_a4",
+                "answer_text": "D) innerhalb der festgelegten Finanzmittel",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q6_a5",
+                "answer_text": "E) nur wenn alle Termine eingehalten werden",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q6_a6",
+                "answer_text": "F) wegen der höheren Kosten",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_sb2_q6_a7",
+                "answer_text": "G) während der Reorganisation",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q6_a8",
+                "answer_text": "H) ohne bestehende Rechte zu beeinträchtigen",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q6_a9",
+                "answer_text": "I) nach Absprache mit der Personalabteilung",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q6_a10",
+                "answer_text": "J) nur wenn die Qualität unverändert bleibt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_sb2_q7",
+            "question_text": "Was bedeutet Wendung 7?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Wendung 7 entspricht Bedeutung G.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "tb2_sb2_q7_a1",
+                "answer_text": "A) unter Beachtung der jetzigen Situation",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q7_a2",
+                "answer_text": "B) mit Blick auf zukünftige Gespräche",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q7_a3",
+                "answer_text": "C) abhängig von einer späteren Genehmigung",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q7_a4",
+                "answer_text": "D) innerhalb der festgelegten Finanzmittel",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q7_a5",
+                "answer_text": "E) nur wenn alle Termine eingehalten werden",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q7_a6",
+                "answer_text": "F) wegen der höheren Kosten",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q7_a7",
+                "answer_text": "G) während der Reorganisation",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_sb2_q7_a8",
+                "answer_text": "H) ohne bestehende Rechte zu beeinträchtigen",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q7_a9",
+                "answer_text": "I) nach Absprache mit der Personalabteilung",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q7_a10",
+                "answer_text": "J) nur wenn die Qualität unverändert bleibt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_sb2_q8",
+            "question_text": "Was bedeutet Wendung 8?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Wendung 8 entspricht Bedeutung H.",
+            "order_index": 7,
+            "answers": [
+              {
+                "id": "tb2_sb2_q8_a1",
+                "answer_text": "A) unter Beachtung der jetzigen Situation",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q8_a2",
+                "answer_text": "B) mit Blick auf zukünftige Gespräche",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q8_a3",
+                "answer_text": "C) abhängig von einer späteren Genehmigung",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q8_a4",
+                "answer_text": "D) innerhalb der festgelegten Finanzmittel",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q8_a5",
+                "answer_text": "E) nur wenn alle Termine eingehalten werden",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q8_a6",
+                "answer_text": "F) wegen der höheren Kosten",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q8_a7",
+                "answer_text": "G) während der Reorganisation",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q8_a8",
+                "answer_text": "H) ohne bestehende Rechte zu beeinträchtigen",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_sb2_q8_a9",
+                "answer_text": "I) nach Absprache mit der Personalabteilung",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q8_a10",
+                "answer_text": "J) nur wenn die Qualität unverändert bleibt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_sb2_q9",
+            "question_text": "Was bedeutet Wendung 9?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Wendung 9 entspricht Bedeutung I.",
+            "order_index": 8,
+            "answers": [
+              {
+                "id": "tb2_sb2_q9_a1",
+                "answer_text": "A) unter Beachtung der jetzigen Situation",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q9_a2",
+                "answer_text": "B) mit Blick auf zukünftige Gespräche",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q9_a3",
+                "answer_text": "C) abhängig von einer späteren Genehmigung",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q9_a4",
+                "answer_text": "D) innerhalb der festgelegten Finanzmittel",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q9_a5",
+                "answer_text": "E) nur wenn alle Termine eingehalten werden",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q9_a6",
+                "answer_text": "F) wegen der höheren Kosten",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q9_a7",
+                "answer_text": "G) während der Reorganisation",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q9_a8",
+                "answer_text": "H) ohne bestehende Rechte zu beeinträchtigen",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q9_a9",
+                "answer_text": "I) nach Absprache mit der Personalabteilung",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_sb2_q9_a10",
+                "answer_text": "J) nur wenn die Qualität unverändert bleibt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_sb2_q10",
+            "question_text": "Was bedeutet Wendung 10?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Wendung 10 entspricht Bedeutung J.",
+            "order_index": 9,
+            "answers": [
+              {
+                "id": "tb2_sb2_q10_a1",
+                "answer_text": "A) unter Beachtung der jetzigen Situation",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q10_a2",
+                "answer_text": "B) mit Blick auf zukünftige Gespräche",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q10_a3",
+                "answer_text": "C) abhängig von einer späteren Genehmigung",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q10_a4",
+                "answer_text": "D) innerhalb der festgelegten Finanzmittel",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q10_a5",
+                "answer_text": "E) nur wenn alle Termine eingehalten werden",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q10_a6",
+                "answer_text": "F) wegen der höheren Kosten",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q10_a7",
+                "answer_text": "G) während der Reorganisation",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q10_a8",
+                "answer_text": "H) ohne bestehende Rechte zu beeinträchtigen",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q10_a9",
+                "answer_text": "I) nach Absprache mit der Personalabteilung",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_sb2_q10_a10",
+                "answer_text": "J) nur wenn die Qualität unverändert bleibt",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "hoeren1",
+        "name": "Hörverstehen — Teil 1 (Globalverstehen)",
+        "type": "listening",
+        "official_duration_minutes": 25,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ النص كما لو كنت تسمعه، ثم حدد صحة الجمل.",
+        "passage": "Ansage vor einer Telefonkonferenz:\n\"Willkommen zur heutigen Telefonkonferenz. Bitte stellen Sie Ihr Mikrofon auf stumm, wenn Sie nicht sprechen. Die Konferenz wird aufgezeichnet und im Anschluss allen Teilnehmenden per E-Mail zugesendet. Fragen können Sie jederzeit über die Chat-Funktion stellen.\"",
+        "items": [
+          {
+            "id": "tb2_h1_q1",
+            "question_text": "Man soll das Mikrofon stummschalten, wenn man nicht spricht.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Ansage bittet genau darum.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "tb2_h1_q1_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_h1_q1_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_h1_q2",
+            "question_text": "Die Konferenz wird nicht aufgezeichnet.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Ansage sagt, sie wird aufgezeichnet.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "tb2_h1_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_h1_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "tb2_h1_q3",
+            "question_text": "Die Aufzeichnung wird per E-Mail verschickt.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Ansage nennt genau das.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "tb2_h1_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_h1_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_h1_q4",
+            "question_text": "Fragen können nur am Ende gestellt werden.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Fragen können jederzeit über den Chat gestellt werden.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "tb2_h1_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_h1_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "tb2_h1_q5",
+            "question_text": "Die Chat-Funktion kann für Fragen genutzt werden.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Ansage erwähnt genau das.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "tb2_h1_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_h1_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          }
+        ],
+        "audio_url": "/audio/test_telc_b2_beruf__hoeren1.mp3"
+      },
+      {
+        "key": "hoeren2",
+        "name": "Hörverstehen — Teil 2 (Detailverstehen)",
+        "type": "listening",
+        "official_duration_minutes": 25,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص الاجتماع كما لو كنت تسمعه، ثم أجب عن الأسئلة.",
+        "passage": "Ausschnitt aus einer Teambesprechung:\n\"Projektleiterin: Bevor wir zum nächsten Punkt kommen — der Launch wurde um zwei Wochen verschoben, weil die Testphase noch nicht abgeschlossen ist. Wir brauchen also bis Ende des Monats zusätzliche Ressourcen im QA-Team. Herr Voss, können Sie zwei weitere Tester organisieren?\nHerr Voss: Ich kann versuchen, jemanden aus dem Entwicklerteam abzuziehen, aber das würde andere Aufgaben verzögern.\nProjektleiterin: Verstanden. Dann sprechen wir am Freitag nochmal darüber, sobald wir die genauen Zahlen vom Kunden haben. Bitte bereiten Sie bis dahin eine Kostenschätzung vor.\"",
+        "items": [
+          {
+            "id": "tb2_h2_q1",
+            "question_text": "Warum wurde der Launch verschoben?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Projektleiterin nennt genau diesen Grund.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "tb2_h2_q1_a1",
+                "answer_text": "Die Testphase ist noch nicht abgeschlossen.",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_h2_q1_a2",
+                "answer_text": "Es fehlt das Budget.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_h2_q1_a3",
+                "answer_text": "Der Kunde hat abgesagt.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_h2_q2",
+            "question_text": "Um wie viele Wochen wurde der Launch verschoben?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie sagt \"um zwei Wochen verschoben\".",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "tb2_h2_q2_a1",
+                "answer_text": "Zwei Wochen",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_h2_q2_a2",
+                "answer_text": "Eine Woche",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_h2_q2_a3",
+                "answer_text": "Vier Wochen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_h2_q3",
+            "question_text": "Was wird bis Ende des Monats benötigt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie nennt zusätzliche Ressourcen im QA-Team.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "tb2_h2_q3_a1",
+                "answer_text": "Zusätzliche Ressourcen im QA-Team",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_h2_q3_a2",
+                "answer_text": "Ein neues Büro",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_h2_q3_a3",
+                "answer_text": "Ein neuer Kunde",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_h2_q4",
+            "question_text": "Wer wird gebeten, weitere Tester zu organisieren?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Projektleiterin fragt direkt Herrn Voss.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "tb2_h2_q4_a1",
+                "answer_text": "Herr Voss",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_h2_q4_a2",
+                "answer_text": "Die Projektleiterin selbst",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_h2_q4_a3",
+                "answer_text": "Der Kunde",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_h2_q5",
+            "question_text": "Herr Voss kann problemlos zwei neue Tester einstellen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er sagt, er könnte jemanden abziehen, aber das würde andere Aufgaben verzögern.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "tb2_h2_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_h2_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "tb2_h2_q6",
+            "question_text": "Was würde passieren, wenn Herr Voss jemanden abzieht?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Er sagt genau das.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "tb2_h2_q6_a1",
+                "answer_text": "Andere Aufgaben würden sich verzögern.",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_h2_q6_a2",
+                "answer_text": "Nichts würde sich ändern.",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_h2_q6_a3",
+                "answer_text": "Das Budget würde steigen.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_h2_q7",
+            "question_text": "Wann sprechen sie erneut über das Thema?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Projektleiterin schlägt Freitag vor.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "tb2_h2_q7_a1",
+                "answer_text": "Am Freitag",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_h2_q7_a2",
+                "answer_text": "Am Montag",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_h2_q7_a3",
+                "answer_text": "In einem Monat",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_h2_q8",
+            "question_text": "Worauf warten sie, bevor sie weiter entscheiden?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie warten auf die Zahlen vom Kunden.",
+            "order_index": 7,
+            "answers": [
+              {
+                "id": "tb2_h2_q8_a1",
+                "answer_text": "Auf genaue Zahlen vom Kunden",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_h2_q8_a2",
+                "answer_text": "Auf eine neue Software",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_h2_q8_a3",
+                "answer_text": "Auf eine Genehmigung der Geschäftsführung",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_h2_q9",
+            "question_text": "Was soll Herr Voss bis Freitag vorbereiten?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Projektleiterin bittet um eine Kostenschätzung.",
+            "order_index": 8,
+            "answers": [
+              {
+                "id": "tb2_h2_q9_a1",
+                "answer_text": "Eine Kostenschätzung",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_h2_q9_a2",
+                "answer_text": "Einen neuen Vertrag",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_h2_q9_a3",
+                "answer_text": "Eine Präsentation für den Kunden",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_h2_q10",
+            "question_text": "Das Gespräch findet in einer Teambesprechung statt.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Titel nennt genau das.",
+            "order_index": 9,
+            "answers": [
+              {
+                "id": "tb2_h2_q10_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_h2_q10_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          }
+        ],
+        "audio_url": "/audio/test_telc_b2_beruf__hoeren2.mp3"
+      },
+      {
+        "key": "hoeren3",
+        "name": "Hörverstehen — Teil 3 (Selektives Verstehen)",
+        "type": "listening",
+        "official_duration_minutes": 25,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص الإعلان كما لو كنت تسمعه، ثم حدد صحة الجمل.",
+        "passage": "Durchsage im Empfangsbereich:\n\"Guten Tag und herzlich willkommen. Bitte melden Sie sich am Empfang an und tragen Sie sich in die Besucherliste ein. Besucherausweise sind gut sichtbar zu tragen und beim Verlassen des Gebäudes wieder abzugeben. Der Aufzug zu den Konferenzräumen befindet sich links neben dem Empfang.\"",
+        "items": [
+          {
+            "id": "tb2_h3_q1",
+            "question_text": "Besucher müssen sich am Empfang anmelden.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Durchsage bittet genau darum.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "tb2_h3_q1_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_h3_q1_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_h3_q2",
+            "question_text": "Eine Besucherliste ist nicht notwendig.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Man soll sich in die Besucherliste eintragen.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "tb2_h3_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_h3_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "tb2_h3_q3",
+            "question_text": "Besucherausweise müssen beim Verlassen abgegeben werden.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Durchsage nennt genau diese Regel.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "tb2_h3_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_h3_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2_h3_q4",
+            "question_text": "Der Aufzug befindet sich rechts neben dem Empfang.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er befindet sich links neben dem Empfang.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "tb2_h3_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "tb2_h3_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "tb2_h3_q5",
+            "question_text": "Die Konferenzräume sind über den Aufzug erreichbar.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Durchsage nennt den Aufzug zu den Konferenzräumen.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "tb2_h3_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "tb2_h3_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          }
+        ],
+        "audio_url": "/audio/test_telc_b2_beruf__hoeren3.mp3"
+      }
+    ],
+    "writing": {
+      "name": "Schriftlicher Ausdruck (تدريب غير مُقيَّم)",
+      "official_duration_minutes": 30,
+      "instructions": "في الاختبار الرسمي، تكتب رسالة رسمية بناءً على نقاط إرشادية. هذا تدريب ذاتي غير مُقيَّم آليًا.",
+      "prompt": "Schreiben Sie eine formelle E-Mail an Ihre Vorgesetzte (ca. 100 Wörter), in der Sie sich über eine wiederholte Verspätung der Gehaltsabrechnung beschweren. Bleiben Sie höflich, aber klar in Ihrer Forderung.",
+      "sample_answer": "Sehr geehrte Frau Nadal,\n\nich möchte Sie höflich darauf hinweisen, dass meine Gehaltsabrechnung bereits zum dritten Mal in Folge verspätet eingegangen ist. Dies hat mir in den letzten Wochen finanzielle Unannehmlichkeiten bereitet.\n\nIch bitte Sie daher, die Ursache dieser wiederholten Verzögerung zu prüfen und sicherzustellen, dass die kommenden Abrechnungen pünktlich erfolgen.\n\nFür ein kurzes Gespräch stehe ich gerne zur Verfügung.\n\nMit freundlichen Grüßen\nSofia Benali"
+    }
+  },
+  "test_osd_b1": {
+    "sections": [
+      {
+        "key": "lesen1",
+        "name": "Lesen — Teil 1",
+        "type": "reading",
+        "official_duration_minutes": 90,
+        "instructions": "اقرأ النص وحدد إن كانت الجمل التالية صحيحة أم خاطئة.",
+        "passage": "Mein Leben in Wien\n\nIch bin vor einem Jahr aus beruflichen Gründen nach Wien gezogen. Zuerst habe ich in einem Studentenwohnheim gewohnt, aber jetzt habe ich eine eigene kleine Wohnung im 7. Bezirk. Am liebsten fahre ich mit der U-Bahn, weil sie in Wien sehr zuverlässig ist. Am Wochenende gehe ich oft auf den Naschmarkt, um frisches Gemüse zu kaufen. Im Sommer sitze ich gerne in einem der vielen Kaffeehäuser und beobachte die Menschen. Nächstes Jahr möchte ich vielleicht in einen größeren Bezirk umziehen, wenn ich eine bessere Stelle finde.",
+        "items": [
+          {
+            "id": "ob1_l1_q1",
+            "question_text": "Die Person ist aus privaten Gründen nach Wien gezogen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt \"aus beruflichen Gründen\".",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "ob1_l1_q1_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l1_q1_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob1_l1_q2",
+            "question_text": "Die Person wohnt jetzt in einer eigenen Wohnung.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt \"jetzt habe ich eine eigene kleine Wohnung\".",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "ob1_l1_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l1_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_l1_q3",
+            "question_text": "Die Person fährt am liebsten mit dem Bus.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie fährt am liebsten mit der U-Bahn.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "ob1_l1_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l1_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob1_l1_q4",
+            "question_text": "Die Person kauft am Wochenende oft Gemüse auf dem Naschmarkt.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt genau das.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "ob1_l1_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l1_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_l1_q5",
+            "question_text": "Die Person sitzt im Sommer gerne in Kaffeehäusern.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text erwähnt genau das.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "ob1_l1_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l1_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_l1_q6",
+            "question_text": "Die Person plant, für immer im 7. Bezirk zu bleiben.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie möchte vielleicht in einen größeren Bezirk umziehen.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "ob1_l1_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l1_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "lesen2",
+        "name": "Lesen — Teil 2 (Zuordnung)",
+        "type": "reading",
+        "official_duration_minutes": 90,
+        "instructions": "Ordnen Sie jeder Situation die passende Anzeige zu.",
+        "passage": "Situationen:\n1. Jemand sucht einen Sportverein für Anfänger.\n2. Eine Familie sucht eine Kinderbetreuung am Nachmittag.\n3. Jemand möchte gebraucht ein Fahrrad kaufen.\n4. Jemand sucht einen Deutschkurs am Wochenende.\n5. Eine Person sucht eine Putzhilfe für die Wohnung.\n6. Jemand sucht einen Yoga-Kurs für Anfänger.\n\nAnzeigen:\nA) Nachmittagsbetreuung für Kinder von 6–10 Jahren, Mo–Fr, 14–17 Uhr.\nB) Tennisverein sucht neue Mitglieder, auch Anfänger willkommen.\nC) Gebrauchtes Fahrrad, guter Zustand, günstig abzugeben.\nD) Wochenendkurs Deutsch A2/B1, samstags 10–13 Uhr.\nE) Reinigungskraft für Privathaushalt gesucht, 2x pro Woche.\nF) Yoga für Einsteiger, dienstags 18 Uhr, erste Stunde kostenlos.",
+        "items": [
+          {
+            "id": "ob1_l2_q1",
+            "question_text": "Welche Anzeige passt zu Situation 1?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Situation 1 passt zu Anzeige B.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "ob1_l2_q1_a1",
+                "answer_text": "A) Nachmittagsbetreuung für Kinder von 6–10 Jahren, Mo–Fr, 14–17 Uhr.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q1_a2",
+                "answer_text": "B) Tennisverein sucht neue Mitglieder, auch Anfänger willkommen.",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l2_q1_a3",
+                "answer_text": "C) Gebrauchtes Fahrrad, guter Zustand, günstig abzugeben.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q1_a4",
+                "answer_text": "D) Wochenendkurs Deutsch A2/B1, samstags 10–13 Uhr.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q1_a5",
+                "answer_text": "E) Reinigungskraft für Privathaushalt gesucht, 2x pro Woche.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q1_a6",
+                "answer_text": "F) Yoga für Einsteiger, dienstags 18 Uhr, erste Stunde kostenlos.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_l2_q2",
+            "question_text": "Welche Anzeige passt zu Situation 2?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Situation 2 passt zu Anzeige A.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "ob1_l2_q2_a1",
+                "answer_text": "A) Nachmittagsbetreuung für Kinder von 6–10 Jahren, Mo–Fr, 14–17 Uhr.",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l2_q2_a2",
+                "answer_text": "B) Tennisverein sucht neue Mitglieder, auch Anfänger willkommen.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q2_a3",
+                "answer_text": "C) Gebrauchtes Fahrrad, guter Zustand, günstig abzugeben.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q2_a4",
+                "answer_text": "D) Wochenendkurs Deutsch A2/B1, samstags 10–13 Uhr.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q2_a5",
+                "answer_text": "E) Reinigungskraft für Privathaushalt gesucht, 2x pro Woche.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q2_a6",
+                "answer_text": "F) Yoga für Einsteiger, dienstags 18 Uhr, erste Stunde kostenlos.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_l2_q3",
+            "question_text": "Welche Anzeige passt zu Situation 3?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Situation 3 passt zu Anzeige C.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "ob1_l2_q3_a1",
+                "answer_text": "A) Nachmittagsbetreuung für Kinder von 6–10 Jahren, Mo–Fr, 14–17 Uhr.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q3_a2",
+                "answer_text": "B) Tennisverein sucht neue Mitglieder, auch Anfänger willkommen.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q3_a3",
+                "answer_text": "C) Gebrauchtes Fahrrad, guter Zustand, günstig abzugeben.",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l2_q3_a4",
+                "answer_text": "D) Wochenendkurs Deutsch A2/B1, samstags 10–13 Uhr.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q3_a5",
+                "answer_text": "E) Reinigungskraft für Privathaushalt gesucht, 2x pro Woche.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q3_a6",
+                "answer_text": "F) Yoga für Einsteiger, dienstags 18 Uhr, erste Stunde kostenlos.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_l2_q4",
+            "question_text": "Welche Anzeige passt zu Situation 4?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Situation 4 passt zu Anzeige D.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "ob1_l2_q4_a1",
+                "answer_text": "A) Nachmittagsbetreuung für Kinder von 6–10 Jahren, Mo–Fr, 14–17 Uhr.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q4_a2",
+                "answer_text": "B) Tennisverein sucht neue Mitglieder, auch Anfänger willkommen.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q4_a3",
+                "answer_text": "C) Gebrauchtes Fahrrad, guter Zustand, günstig abzugeben.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q4_a4",
+                "answer_text": "D) Wochenendkurs Deutsch A2/B1, samstags 10–13 Uhr.",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l2_q4_a5",
+                "answer_text": "E) Reinigungskraft für Privathaushalt gesucht, 2x pro Woche.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q4_a6",
+                "answer_text": "F) Yoga für Einsteiger, dienstags 18 Uhr, erste Stunde kostenlos.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_l2_q5",
+            "question_text": "Welche Anzeige passt zu Situation 5?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Situation 5 passt zu Anzeige E.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "ob1_l2_q5_a1",
+                "answer_text": "A) Nachmittagsbetreuung für Kinder von 6–10 Jahren, Mo–Fr, 14–17 Uhr.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q5_a2",
+                "answer_text": "B) Tennisverein sucht neue Mitglieder, auch Anfänger willkommen.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q5_a3",
+                "answer_text": "C) Gebrauchtes Fahrrad, guter Zustand, günstig abzugeben.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q5_a4",
+                "answer_text": "D) Wochenendkurs Deutsch A2/B1, samstags 10–13 Uhr.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q5_a5",
+                "answer_text": "E) Reinigungskraft für Privathaushalt gesucht, 2x pro Woche.",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l2_q5_a6",
+                "answer_text": "F) Yoga für Einsteiger, dienstags 18 Uhr, erste Stunde kostenlos.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_l2_q6",
+            "question_text": "Welche Anzeige passt zu Situation 6?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Situation 6 passt zu Anzeige F.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "ob1_l2_q6_a1",
+                "answer_text": "A) Nachmittagsbetreuung für Kinder von 6–10 Jahren, Mo–Fr, 14–17 Uhr.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q6_a2",
+                "answer_text": "B) Tennisverein sucht neue Mitglieder, auch Anfänger willkommen.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q6_a3",
+                "answer_text": "C) Gebrauchtes Fahrrad, guter Zustand, günstig abzugeben.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q6_a4",
+                "answer_text": "D) Wochenendkurs Deutsch A2/B1, samstags 10–13 Uhr.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q6_a5",
+                "answer_text": "E) Reinigungskraft für Privathaushalt gesucht, 2x pro Woche.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l2_q6_a6",
+                "answer_text": "F) Yoga für Einsteiger, dienstags 18 Uhr, erste Stunde kostenlos.",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "lesen3",
+        "name": "Lesen — Teil 3",
+        "type": "reading",
+        "official_duration_minutes": 90,
+        "instructions": "Lesen Sie den Text und beantworten Sie die Fragen.",
+        "passage": "Öffentliche Verkehrsmittel in Wien\n\nDie Wiener Linien betreiben U-Bahn, Straßenbahn und Busse im gesamten Stadtgebiet. Eine Jahreskarte kostet aktuell 365 Euro, also genau einen Euro pro Tag. Kinder unter 6 Jahren fahren kostenlos. Die U-Bahn fährt an Wochenenden durchgehend die ganze Nacht, unter der Woche enden die Fahrten um etwa 0:30 Uhr, danach übernehmen Nachtbusse den Verkehr. Tickets können bequem über eine App gekauft werden, es gibt aber auch Automaten an jeder Station.",
+        "items": [
+          {
+            "id": "ob1_l3_q1",
+            "question_text": "Wie viel kostet die Jahreskarte?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt genau 365 Euro.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "ob1_l3_q1_a1",
+                "answer_text": "365 Euro",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l3_q1_a2",
+                "answer_text": "300 Euro",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l3_q1_a3",
+                "answer_text": "500 Euro",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_l3_q2",
+            "question_text": "Kinder unter 6 Jahren zahlen für die Fahrt.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie fahren laut Text kostenlos.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "ob1_l3_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l3_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob1_l3_q3",
+            "question_text": "Wann fährt die U-Bahn an Wochenenden?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text sagt \"durchgehend die ganze Nacht\".",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "ob1_l3_q3_a1",
+                "answer_text": "Durchgehend die ganze Nacht",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l3_q3_a2",
+                "answer_text": "Nur bis Mitternacht",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l3_q3_a3",
+                "answer_text": "Gar nicht nachts",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_l3_q4",
+            "question_text": "Was übernimmt unter der Woche nach 0:30 Uhr den Verkehr?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt Nachtbusse.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "ob1_l3_q4_a1",
+                "answer_text": "Nachtbusse",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l3_q4_a2",
+                "answer_text": "Taxis",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l3_q4_a3",
+                "answer_text": "Straßenbahnen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_l3_q5",
+            "question_text": "Tickets können über eine App gekauft werden.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text erwähnt genau das.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "ob1_l3_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l3_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_l3_q6",
+            "question_text": "Es gibt keine Ticketautomaten an den Stationen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt, es gibt Automaten an jeder Station.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "ob1_l3_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l3_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "lesen4",
+        "name": "Lesen — Teil 4 (Zuordnung)",
+        "type": "reading",
+        "official_duration_minutes": 90,
+        "instructions": "Sechs Personen erklären, warum sie Deutsch lernen. Ordnen Sie die Aussagen zu.",
+        "passage": "Forum: \"Warum lernt ihr Deutsch?\"\n\nAylin: Ich möchte in Österreich eine Ausbildung im Gesundheitswesen machen.\nBerat: Für mich ist es wichtig, mit meinen Nachbarn und Kollegen besser kommunizieren zu können.\nChiara: Ich habe einen österreichischen Partner und möchte mich mit seiner Familie unterhalten können.\nDario: Mein Ziel ist es, an einer Universität in Wien zu studieren.\nElif: Ich arbeite bereits hier und mein Chef verlangt bessere Deutschkenntnisse für eine Beförderung.\nFarid: Ich interessiere mich einfach für die deutsche Sprache und Kultur, ganz ohne konkretes Ziel.",
+        "items": [
+          {
+            "id": "ob1_l4_q1",
+            "question_text": "Wer möchte eine Ausbildung im Gesundheitswesen machen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Aylin nennt genau dieses Ziel.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "ob1_l4_q1_a1",
+                "answer_text": "Aylin",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l4_q1_a2",
+                "answer_text": "Berat",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q1_a3",
+                "answer_text": "Chiara",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q1_a4",
+                "answer_text": "Dario",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q1_a5",
+                "answer_text": "Elif",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q1_a6",
+                "answer_text": "Farid",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_l4_q2",
+            "question_text": "Wer möchte besser mit Nachbarn und Kollegen kommunizieren?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Berat nennt genau diesen Grund.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "ob1_l4_q2_a1",
+                "answer_text": "Aylin",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q2_a2",
+                "answer_text": "Berat",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l4_q2_a3",
+                "answer_text": "Chiara",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q2_a4",
+                "answer_text": "Dario",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q2_a5",
+                "answer_text": "Elif",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q2_a6",
+                "answer_text": "Farid",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_l4_q3",
+            "question_text": "Wer hat einen österreichischen Partner?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Chiara erwähnt ihren österreichischen Partner.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "ob1_l4_q3_a1",
+                "answer_text": "Aylin",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q3_a2",
+                "answer_text": "Berat",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q3_a3",
+                "answer_text": "Chiara",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l4_q3_a4",
+                "answer_text": "Dario",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q3_a5",
+                "answer_text": "Elif",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q3_a6",
+                "answer_text": "Farid",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_l4_q4",
+            "question_text": "Wer möchte an einer Universität in Wien studieren?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Dario nennt genau dieses Ziel.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "ob1_l4_q4_a1",
+                "answer_text": "Aylin",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q4_a2",
+                "answer_text": "Berat",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q4_a3",
+                "answer_text": "Chiara",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q4_a4",
+                "answer_text": "Dario",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l4_q4_a5",
+                "answer_text": "Elif",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q4_a6",
+                "answer_text": "Farid",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_l4_q5",
+            "question_text": "Wer braucht bessere Deutschkenntnisse für eine Beförderung?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Elif nennt genau diesen Grund.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "ob1_l4_q5_a1",
+                "answer_text": "Aylin",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q5_a2",
+                "answer_text": "Berat",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q5_a3",
+                "answer_text": "Chiara",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q5_a4",
+                "answer_text": "Dario",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q5_a5",
+                "answer_text": "Elif",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l4_q5_a6",
+                "answer_text": "Farid",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_l4_q6",
+            "question_text": "Wer lernt Deutsch ohne konkretes Ziel?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Farid sagt, er habe kein konkretes Ziel.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "ob1_l4_q6_a1",
+                "answer_text": "Aylin",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q6_a2",
+                "answer_text": "Berat",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q6_a3",
+                "answer_text": "Chiara",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q6_a4",
+                "answer_text": "Dario",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q6_a5",
+                "answer_text": "Elif",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l4_q6_a6",
+                "answer_text": "Farid",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "lesen5",
+        "name": "Lesen — Teil 5",
+        "type": "reading",
+        "official_duration_minutes": 90,
+        "instructions": "Lesen Sie die Hinweise und beantworten Sie die Fragen.",
+        "passage": "Hinweise für Kursteilnehmende\n\n1. Der Kurs beginnt pünktlich um 18 Uhr; bei Verspätung bitten wir um Rücksicht auf die anderen Teilnehmenden.\n2. Kursunterlagen erhalten Sie in der ersten Stunde kostenlos.\n3. Bei mehr als drei unentschuldigten Fehlstunden verlieren Sie Ihren Kursplatz.\n4. Die Prüfungsanmeldung erfolgt spätestens vier Wochen vor dem Prüfungstermin.\n5. Ein kostenloser Nachholtermin ist bei Krankheit mit ärztlichem Attest möglich.\n6. Das Kursbüro ist montags bis freitags von 9 bis 15 Uhr erreichbar.",
+        "items": [
+          {
+            "id": "ob1_l5_q1",
+            "question_text": "Wann beginnt der Kurs?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Regel 1 nennt 18 Uhr.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "ob1_l5_q1_a1",
+                "answer_text": "Pünktlich um 18 Uhr",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l5_q1_a2",
+                "answer_text": "Um 19 Uhr",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l5_q1_a3",
+                "answer_text": "Flexibel, je nach Teilnehmenden",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_l5_q2",
+            "question_text": "Die Kursunterlagen kosten extra.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie werden kostenlos in der ersten Stunde verteilt.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "ob1_l5_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l5_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob1_l5_q3",
+            "question_text": "Was passiert bei mehr als drei unentschuldigten Fehlstunden?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Regel 3 nennt genau diese Folge.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "ob1_l5_q3_a1",
+                "answer_text": "Man verliert den Kursplatz.",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l5_q3_a2",
+                "answer_text": "Man zahlt eine Strafe.",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l5_q3_a3",
+                "answer_text": "Nichts passiert.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_l5_q4",
+            "question_text": "Bis wann muss man sich zur Prüfung anmelden?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Regel 4 nennt vier Wochen.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "ob1_l5_q4_a1",
+                "answer_text": "Spätestens vier Wochen vorher",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l5_q4_a2",
+                "answer_text": "Am Prüfungstag selbst",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l5_q4_a3",
+                "answer_text": "Eine Woche vorher",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_l5_q5",
+            "question_text": "Ein Nachholtermin bei Krankheit ist kostenlos möglich.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Regel 5 nennt genau das, mit ärztlichem Attest.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "ob1_l5_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l5_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_l5_q6",
+            "question_text": "Wann ist das Kursbüro erreichbar?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Regel 6 nennt genau diese Zeiten.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "ob1_l5_q6_a1",
+                "answer_text": "Montag bis Freitag, 9–15 Uhr",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_l5_q6_a2",
+                "answer_text": "Nur samstags",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_l5_q6_a3",
+                "answer_text": "Rund um die Uhr",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "sprachbausteine",
+        "name": "Sprachbausteine (تدريب إضافي)",
+        "type": "language",
+        "official_duration_minutes": null,
+        "instructions": "تدريب إضافي على القواعد والمفردات.",
+        "passage": null,
+        "items": [
+          {
+            "id": "ob1_sb_q1",
+            "question_text": "Wir ___ jeden Sonntag auf den Markt.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Mit \"Wir\" verwendet man \"gehen\".",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "ob1_sb_q1_a1",
+                "answer_text": "gehen",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_sb_q1_a2",
+                "answer_text": "geht",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_sb_q1_a3",
+                "answer_text": "gehst",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_sb_q2",
+            "question_text": "Entschuldigung, ___ ist der Stephansdom?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"wo\" fragt nach dem Ort.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "ob1_sb_q2_a1",
+                "answer_text": "wo",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_sb_q2_a2",
+                "answer_text": "wohin",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_sb_q2_a3",
+                "answer_text": "woher",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_sb_q3",
+            "question_text": "Ich freue mich schon ___ das Wochenende.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"sich freuen auf\" + Akkusativ.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "ob1_sb_q3_a1",
+                "answer_text": "auf",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_sb_q3_a2",
+                "answer_text": "für",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_sb_q3_a3",
+                "answer_text": "an",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_sb_q4",
+            "question_text": "Er hat den Zug verpasst, ___ er zu spät aufgestanden ist.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"weil\" nennt den Grund.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "ob1_sb_q4_a1",
+                "answer_text": "weil",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_sb_q4_a2",
+                "answer_text": "obwohl",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_sb_q4_a3",
+                "answer_text": "damit",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_sb_q5",
+            "question_text": "Diese Wohnung ist viel ___ als die alte.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Vergleich zwischen zwei Dingen braucht den Komparativ.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "ob1_sb_q5_a1",
+                "answer_text": "größer",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_sb_q5_a2",
+                "answer_text": "groß",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_sb_q5_a3",
+                "answer_text": "am größten",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_sb_q6",
+            "question_text": "Kannst du mir sagen, ___ der Bus fährt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"wann\" fragt nach der Zeit.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "ob1_sb_q6_a1",
+                "answer_text": "wann",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_sb_q6_a2",
+                "answer_text": "wo",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_sb_q6_a3",
+                "answer_text": "wie",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_sb_q7",
+            "question_text": "Ich habe das Formular schon ___.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Perfekt: \"habe\" + Partizip II.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "ob1_sb_q7_a1",
+                "answer_text": "ausgefüllt",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_sb_q7_a2",
+                "answer_text": "ausfüllen",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_sb_q7_a3",
+                "answer_text": "füllte aus",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_sb_q8",
+            "question_text": "Sie wohnt ___ ihren Eltern zusammen.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"zusammenwohnen mit\" + Dativ.",
+            "order_index": 7,
+            "answers": [
+              {
+                "id": "ob1_sb_q8_a1",
+                "answer_text": "mit",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_sb_q8_a2",
+                "answer_text": "bei",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_sb_q8_a3",
+                "answer_text": "zu",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_sb_q9",
+            "question_text": "___ du Zeit hast, können wir uns treffen.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"wenn\" leitet eine Bedingung ein.",
+            "order_index": 8,
+            "answers": [
+              {
+                "id": "ob1_sb_q9_a1",
+                "answer_text": "Wenn",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_sb_q9_a2",
+                "answer_text": "Ob",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_sb_q9_a3",
+                "answer_text": "Als",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_sb_q10",
+            "question_text": "Er arbeitet ___ einer großen Firma in Wien.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"arbeiten bei\" + Dativ für den Arbeitgeber.",
+            "order_index": 9,
+            "answers": [
+              {
+                "id": "ob1_sb_q10_a1",
+                "answer_text": "bei",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_sb_q10_a2",
+                "answer_text": "in",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_sb_q10_a3",
+                "answer_text": "an",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "hoeren1",
+        "name": "Hören — Teil 1 (Transkript)",
+        "type": "listening",
+        "official_duration_minutes": 30,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ كل نص قصير، ثم أجب عن سؤاله.",
+        "passage": "Kurze Texte (Transkript):\n1. Der Regionalzug nach Salzburg fährt heute mit einer Verspätung von etwa 15 Minuten.\n2. Die Bibliothek schließt heute bereits um 17 Uhr wegen einer internen Veranstaltung.\n3. Auf dem Naschmarkt gibt es heute einen Sonderverkauf von frischem Obst.\n4. Die U4 fährt wegen Bauarbeiten zwischen Speising und Hütteldorf nicht.\n5. Das Wetteramt meldet für morgen sonniges Wetter mit bis zu 25 Grad.\n6. Im Rathaus findet am Samstag ein Flohmarkt zugunsten wohltätiger Zwecke statt.",
+        "items": [
+          {
+            "id": "ob1_h1_q1",
+            "question_text": "Wie viel Verspätung hat der Zug?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Durchsage nennt 15 Minuten.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "ob1_h1_q1_a1",
+                "answer_text": "Etwa 15 Minuten",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_h1_q1_a2",
+                "answer_text": "Etwa 5 Minuten",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_h1_q1_a3",
+                "answer_text": "Etwa 30 Minuten",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_h1_q2",
+            "question_text": "Wann schließt die Bibliothek heute?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Durchsage nennt 17 Uhr.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "ob1_h1_q2_a1",
+                "answer_text": "Um 17 Uhr",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_h1_q2_a2",
+                "answer_text": "Um 20 Uhr",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_h1_q2_a3",
+                "answer_text": "Um 19 Uhr",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_h1_q3",
+            "question_text": "Was gibt es heute auf dem Naschmarkt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Durchsage nennt einen Obst-Sonderverkauf.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "ob1_h1_q3_a1",
+                "answer_text": "Einen Sonderverkauf von Obst",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_h1_q3_a2",
+                "answer_text": "Ein Konzert",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_h1_q3_a3",
+                "answer_text": "Einen Flohmarkt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_h1_q4",
+            "question_text": "Zwischen welchen Stationen fährt die U4 nicht?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Durchsage nennt genau diese Stationen.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "ob1_h1_q4_a1",
+                "answer_text": "Speising und Hütteldorf",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_h1_q4_a2",
+                "answer_text": "Karlsplatz und Stephansplatz",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_h1_q4_a3",
+                "answer_text": "Praterstern und Schwedenplatz",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_h1_q5",
+            "question_text": "Wie wird das Wetter morgen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Meldung nennt sonniges Wetter mit 25 Grad.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "ob1_h1_q5_a1",
+                "answer_text": "Sonnig mit bis zu 25 Grad",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_h1_q5_a2",
+                "answer_text": "Regnerisch und kalt",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_h1_q5_a3",
+                "answer_text": "Windig mit Schnee",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_h1_q6",
+            "question_text": "Was findet am Samstag im Rathaus statt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Durchsage nennt einen wohltätigen Flohmarkt.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "ob1_h1_q6_a1",
+                "answer_text": "Ein Flohmarkt für wohltätige Zwecke",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_h1_q6_a2",
+                "answer_text": "Ein Konzert",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_h1_q6_a3",
+                "answer_text": "Eine Buchmesse",
+                "is_correct": false
+              }
+            ]
+          }
+        ],
+        "audio_url": "/audio/test_osd_b1__hoeren1.mp3"
+      },
+      {
+        "key": "hoeren2",
+        "name": "Hören — Teil 2 (Transkript)",
+        "type": "listening",
+        "official_duration_minutes": 30,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص الحوار، ثم أجب عن الأسئلة.",
+        "passage": "Gespräch am Würstelstand:\n\"A: Was darf's denn sein?\nB: Eine Käsekrainer mit Senf bitte, und dazu ein kleines Brot.\nA: Gerne, macht zusammen vier Euro fünfzig. Möchten Sie auch etwas trinken?\nB: Ja, ein Mineralwasser bitte.\nA: Das macht dann insgesamt sechs Euro.\nB: Hier bitte, und behalten Sie den Rest.\nA: Vielen Dank, einen schönen Tag noch!\"",
+        "items": [
+          {
+            "id": "ob1_h2_q1",
+            "question_text": "Was bestellt die Person zuerst?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "B bestellt genau das.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "ob1_h2_q1_a1",
+                "answer_text": "Eine Käsekrainer mit Senf",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_h2_q1_a2",
+                "answer_text": "Eine Bratwurst",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_h2_q1_a3",
+                "answer_text": "Einen Hamburger",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_h2_q2",
+            "question_text": "Die Käsekrainer kostet allein sechs Euro.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Käsekrainer und Brot zusammen kosten 4,50 Euro.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "ob1_h2_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_h2_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob1_h2_q3",
+            "question_text": "Was möchte die Person trinken?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "B bestellt ein Mineralwasser.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "ob1_h2_q3_a1",
+                "answer_text": "Ein Mineralwasser",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_h2_q3_a2",
+                "answer_text": "Eine Cola",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_h2_q3_a3",
+                "answer_text": "Einen Kaffee",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_h2_q4",
+            "question_text": "Wie viel kostet alles zusammen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "A nennt sechs Euro als Gesamtpreis.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "ob1_h2_q4_a1",
+                "answer_text": "Sechs Euro",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_h2_q4_a2",
+                "answer_text": "Vier Euro fünfzig",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_h2_q4_a3",
+                "answer_text": "Sieben Euro",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_h2_q5",
+            "question_text": "Die Person gibt kein Trinkgeld.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie sagt \"behalten Sie den Rest\", also gibt sie Trinkgeld.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "ob1_h2_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_h2_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob1_h2_q6",
+            "question_text": "Wo findet das Gespräch statt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Titel nennt den Würstelstand.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "ob1_h2_q6_a1",
+                "answer_text": "Am Würstelstand",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_h2_q6_a2",
+                "answer_text": "Im Restaurant",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_h2_q6_a3",
+                "answer_text": "Im Supermarkt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_h2_q7",
+            "question_text": "Die Person bekommt auch ein Brot dazu.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "B bestellt \"dazu ein kleines Brot\".",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "ob1_h2_q7_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_h2_q7_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_h2_q8",
+            "question_text": "Was sagt der Verkäufer zum Schluss?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "A wünscht \"einen schönen Tag noch\".",
+            "order_index": 7,
+            "answers": [
+              {
+                "id": "ob1_h2_q8_a1",
+                "answer_text": "Einen schönen Tag noch",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_h2_q8_a2",
+                "answer_text": "Auf Wiedersehen",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_h2_q8_a3",
+                "answer_text": "Bis morgen",
+                "is_correct": false
+              }
+            ]
+          }
+        ],
+        "audio_url": "/audio/test_osd_b1__hoeren2.mp3"
+      },
+      {
+        "key": "hoeren3",
+        "name": "Hören — Teil 3 (Transkript)",
+        "type": "listening",
+        "official_duration_minutes": 30,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص الإعلان، ثم أجب عن الأسئلة.",
+        "passage": "Durchsage am Wiener Hauptbahnhof:\n\"Sehr geehrte Fahrgäste, der Railjet nach Salzburg, München und Zürich fährt heute von Gleis 9 anstatt von Gleis 3. Die Abfahrtszeit bleibt unverändert um 14:35 Uhr. Wir entschuldigen uns für die kurzfristige Änderung und wünschen eine gute Reise.\"",
+        "items": [
+          {
+            "id": "ob1_h3_q1",
+            "question_text": "Wohin fährt der Railjet unter anderem?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Durchsage nennt alle drei Ziele.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "ob1_h3_q1_a1",
+                "answer_text": "Nach Salzburg, München und Zürich",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_h3_q1_a2",
+                "answer_text": "Nach Graz und Linz",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_h3_q1_a3",
+                "answer_text": "Nur nach Salzburg",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_h3_q2",
+            "question_text": "Von welchem Gleis fährt der Zug jetzt ab?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Zug fährt jetzt von Gleis 9 statt Gleis 3.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "ob1_h3_q2_a1",
+                "answer_text": "Gleis 9",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_h3_q2_a2",
+                "answer_text": "Gleis 3",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_h3_q2_a3",
+                "answer_text": "Gleis 5",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_h3_q3",
+            "question_text": "Die Abfahrtszeit hat sich geändert.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Abfahrtszeit bleibt unverändert um 14:35 Uhr.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "ob1_h3_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_h3_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob1_h3_q4",
+            "question_text": "Um wie viel Uhr fährt der Zug ab?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Durchsage nennt 14:35 Uhr.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "ob1_h3_q4_a1",
+                "answer_text": "14:35 Uhr",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_h3_q4_a2",
+                "answer_text": "15:35 Uhr",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_h3_q4_a3",
+                "answer_text": "14:05 Uhr",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_h3_q5",
+            "question_text": "Die Bahn entschuldigt sich für die Änderung.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Durchsage endet mit einer Entschuldigung.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "ob1_h3_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_h3_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob1_h3_q6",
+            "question_text": "Was für ein Zug ist es?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Durchsage nennt \"Railjet\".",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "ob1_h3_q6_a1",
+                "answer_text": "Ein Railjet",
+                "is_correct": true
+              },
+              {
+                "id": "ob1_h3_q6_a2",
+                "answer_text": "Ein Regionalzug",
+                "is_correct": false
+              },
+              {
+                "id": "ob1_h3_q6_a3",
+                "answer_text": "Ein Nachtzug",
+                "is_correct": false
+              }
+            ]
+          }
+        ],
+        "audio_url": "/audio/test_osd_b1__hoeren3.mp3"
+      }
+    ],
+    "writing": {
+      "name": "Schreiben (تدريب غير مُقيَّم)",
+      "official_duration_minutes": 40,
+      "instructions": "في الاختبار الرسمي، تكتب رسالة غير رسمية أو شبه رسمية. هذا تدريب ذاتي غير مُقيَّم آليًا.",
+      "prompt": "Schreiben Sie einen informellen Brief an eine Freundin / einen Freund (ca. 50 Wörter). Erzählen Sie von Ihrem neuen Leben in einer anderen Stadt und laden Sie sie/ihn zu Besuch ein.",
+      "sample_answer": "Liebe Amina,\n\nseit zwei Monaten lebe ich jetzt in Wien und es gefällt mir richtig gut! Die Stadt ist wunderschön, besonders die U-Bahn ist super praktisch.\n\nHättest du Lust, mich im Sommer zu besuchen? Wir könnten zusammen den Naschmarkt erkunden.\n\nGanz liebe Grüße\nYasmin"
+    }
+  },
+  "test_osd_b2": {
+    "sections": [
+      {
+        "key": "lesen1",
+        "name": "Lesen — Teil 1",
+        "type": "reading",
+        "official_duration_minutes": 90,
+        "instructions": "اقرأ المقال وحدد إن كانت الجمل التالية صحيحة أم خاطئة.",
+        "passage": "Vier-Tage-Woche: Ein Modell auf dem Prüfstand\n\nIn der Schweiz und in Österreich testen derzeit mehrere Unternehmen die Vier-Tage-Woche bei vollem Lohnausgleich. Erste Ergebnisse aus einem Pilotprojekt in Zürich zeigen, dass die Krankenstände um über 30 Prozent zurückgegangen sind. Gleichzeitig berichten einige Betriebe von organisatorischen Herausforderungen, etwa bei der Erreichbarkeit für Kundinnen und Kunden. Die Gewerkschaften fordern nun eine breitere gesetzliche Grundlage, während Arbeitgeberverbände vor einer verpflichtenden Einführung ohne ausreichende Erprobungsphase warnen.",
+        "items": [
+          {
+            "id": "ob2_l1_q1",
+            "question_text": "Das Pilotprojekt findet nur in Deutschland statt.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text nennt die Schweiz und Österreich, nicht Deutschland.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "ob2_l1_q1_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l1_q1_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_l1_q2",
+            "question_text": "Die Mitarbeitenden bekommen bei der Vier-Tage-Woche weniger Lohn.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt \"bei vollem Lohnausgleich\".",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "ob2_l1_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l1_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_l1_q3",
+            "question_text": "Die Krankenstände sind im Pilotprojekt in Zürich gesunken.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text nennt einen Rückgang von über 30 Prozent.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "ob2_l1_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_l1_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_l1_q4",
+            "question_text": "Alle Betriebe berichten ausschließlich von positiven Erfahrungen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Einige berichten auch von organisatorischen Herausforderungen.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "ob2_l1_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l1_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_l1_q5",
+            "question_text": "Die Gewerkschaften fordern eine gesetzliche Grundlage.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text nennt genau diese Forderung.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "ob2_l1_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_l1_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_l1_q6",
+            "question_text": "Die Arbeitgeberverbände befürworten eine sofortige verpflichtende Einführung.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie warnen vor einer verpflichtenden Einführung ohne Erprobungsphase.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "ob2_l1_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l1_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "lesen2",
+        "name": "Lesen — Teil 2 (Zuordnung)",
+        "type": "reading",
+        "official_duration_minutes": 90,
+        "instructions": "Sechs Personen äußern ihre Meinung zur Vier-Tage-Woche. Ordnen Sie die Aussagen zu.",
+        "passage": "Meinungen zur Vier-Tage-Woche:\n\nElif: Ich halte davon nichts. Bei gleichem Lohn und weniger Arbeitszeit steigt doch nur der Druck an einem normalen Arbeitstag.\nFelix: Für mich ist es die beste Entscheidung, die mein Arbeitgeber je getroffen hat. Ich habe jetzt endlich Zeit für meine Familie.\nGül: Ich bin unentschlossen. Es klingt gut, aber ich habe Zweifel, ob es in meiner Branche wirklich funktioniert.\nHannes: Aus meiner Sicht ist es vor allem ein Marketinginstrument, um neue Mitarbeitende anzuziehen.\nInes: Ich finde es fair gegenüber Eltern, die sich so besser um ihre Kinder kümmern können.\nJonas: Meiner Erfahrung nach hängt der Erfolg stark davon ab, wie gut die Arbeitsabläufe organisiert sind.",
+        "items": [
+          {
+            "id": "ob2_l2_q1",
+            "question_text": "Wer sieht die Vier-Tage-Woche kritisch wegen des höheren Drucks?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Elif spricht vom steigenden Druck an einem normalen Arbeitstag.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "ob2_l2_q1_a1",
+                "answer_text": "Elif",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_l2_q1_a2",
+                "answer_text": "Felix",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q1_a3",
+                "answer_text": "Gül",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q1_a4",
+                "answer_text": "Hannes",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q1_a5",
+                "answer_text": "Ines",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q1_a6",
+                "answer_text": "Jonas",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_l2_q2",
+            "question_text": "Wer ist begeistert, weil er mehr Familienzeit hat?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Felix sagt, er habe jetzt Zeit für seine Familie.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "ob2_l2_q2_a1",
+                "answer_text": "Elif",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q2_a2",
+                "answer_text": "Felix",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_l2_q2_a3",
+                "answer_text": "Gül",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q2_a4",
+                "answer_text": "Hannes",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q2_a5",
+                "answer_text": "Ines",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q2_a6",
+                "answer_text": "Jonas",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_l2_q3",
+            "question_text": "Wer ist sich noch nicht sicher?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Gül sagt, sie sei unentschlossen.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "ob2_l2_q3_a1",
+                "answer_text": "Elif",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q3_a2",
+                "answer_text": "Felix",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q3_a3",
+                "answer_text": "Gül",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_l2_q3_a4",
+                "answer_text": "Hannes",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q3_a5",
+                "answer_text": "Ines",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q3_a6",
+                "answer_text": "Jonas",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_l2_q4",
+            "question_text": "Wer sieht darin vor allem ein Marketinginstrument?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Hannes nennt es ein Marketinginstrument.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "ob2_l2_q4_a1",
+                "answer_text": "Elif",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q4_a2",
+                "answer_text": "Felix",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q4_a3",
+                "answer_text": "Gül",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q4_a4",
+                "answer_text": "Hannes",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_l2_q4_a5",
+                "answer_text": "Ines",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q4_a6",
+                "answer_text": "Jonas",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_l2_q5",
+            "question_text": "Wer findet es fair gegenüber Eltern?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Ines nennt genau diesen Punkt.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "ob2_l2_q5_a1",
+                "answer_text": "Elif",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q5_a2",
+                "answer_text": "Felix",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q5_a3",
+                "answer_text": "Gül",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q5_a4",
+                "answer_text": "Hannes",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q5_a5",
+                "answer_text": "Ines",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_l2_q5_a6",
+                "answer_text": "Jonas",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_l2_q6",
+            "question_text": "Wer sagt, der Erfolg hänge von der Organisation ab?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Jonas nennt die Organisation als entscheidenden Faktor.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "ob2_l2_q6_a1",
+                "answer_text": "Elif",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q6_a2",
+                "answer_text": "Felix",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q6_a3",
+                "answer_text": "Gül",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q6_a4",
+                "answer_text": "Hannes",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q6_a5",
+                "answer_text": "Ines",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l2_q6_a6",
+                "answer_text": "Jonas",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "lesen3",
+        "name": "Lesen — Teil 3",
+        "type": "reading",
+        "official_duration_minutes": 90,
+        "instructions": "Lesen Sie den Artikel und beantworten Sie die Fragen.",
+        "passage": "Trinkwasserqualität in der Schweiz\n\nDie Schweiz gilt international als Vorbild bei der Trinkwasserqualität: Über 80 Prozent des Trinkwassers stammen aus Grundwasser und Quellen, die kaum aufbereitet werden müssen. Dennoch warnen Umweltverbände vor zunehmender Belastung durch Pestizide in landwirtschaftlich genutzten Gebieten. Mehrere Kantone haben deshalb strengere Auflagen für die Landwirtschaft in Wassereinzugsgebieten eingeführt. Kritiker aus der Landwirtschaft befürchten dadurch sinkende Erträge und fordern finanzielle Unterstützung für die Umstellung auf alternative Anbaumethoden.",
+        "items": [
+          {
+            "id": "ob2_l3_q1",
+            "question_text": "Woher stammt der Großteil des Schweizer Trinkwassers?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt Grundwasser und Quellen.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "ob2_l3_q1_a1",
+                "answer_text": "Aus Grundwasser und Quellen",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_l3_q1_a2",
+                "answer_text": "Aus Flüssen",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l3_q1_a3",
+                "answer_text": "Aus Meerwasseraufbereitung",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_l3_q2",
+            "question_text": "Das Schweizer Trinkwasser muss meist stark aufbereitet werden.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Es muss kaum aufbereitet werden.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "ob2_l3_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l3_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_l3_q3",
+            "question_text": "Wovor warnen Umweltverbände?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt Pestizidbelastung als Sorge.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "ob2_l3_q3_a1",
+                "answer_text": "Vor zunehmender Belastung durch Pestizide",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_l3_q3_a2",
+                "answer_text": "Vor Wasserknappheit",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l3_q3_a3",
+                "answer_text": "Vor zu hohen Wasserpreisen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_l3_q4",
+            "question_text": "Was haben mehrere Kantone eingeführt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt strengere Auflagen.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "ob2_l3_q4_a1",
+                "answer_text": "Strengere Auflagen für die Landwirtschaft",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_l3_q4_a2",
+                "answer_text": "Ein Verbot der Landwirtschaft",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l3_q4_a3",
+                "answer_text": "Höhere Wasserpreise",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_l3_q5",
+            "question_text": "Was befürchten Kritiker aus der Landwirtschaft?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt sinkende Erträge als Befürchtung.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "ob2_l3_q5_a1",
+                "answer_text": "Sinkende Erträge",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_l3_q5_a2",
+                "answer_text": "Höhere Gewinne",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l3_q5_a3",
+                "answer_text": "Mehr Bürokratie ohne Folgen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_l3_q6",
+            "question_text": "Die Landwirtschaft fordert finanzielle Unterstützung für die Umstellung.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der letzte Satz nennt genau diese Forderung.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "ob2_l3_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_l3_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "lesen4",
+        "name": "Lesen — Teil 4",
+        "type": "reading",
+        "official_duration_minutes": 90,
+        "instructions": "Lesen Sie den Vertragsauszug und beantworten Sie die Fragen.",
+        "passage": "Mietvertrag — Auszug aus den allgemeinen Bedingungen\n\n1. Die Kündigungsfrist beträgt drei Monate zum Monatsende.\n2. Haustiere dürfen nur mit schriftlicher Zustimmung der Vermieterschaft gehalten werden.\n3. Kleinere Schönheitsreparaturen sind vom Mieter selbst durchzuführen.\n4. Die Kaution beträgt das Dreifache der monatlichen Nettomiete.\n5. Untervermietung ist nur mit vorheriger schriftlicher Genehmigung erlaubt.\n6. Bauliche Veränderungen dürfen nur nach Rücksprache mit der Hausverwaltung vorgenommen werden.",
+        "items": [
+          {
+            "id": "ob2_l4_q1",
+            "question_text": "Wie lange ist die Kündigungsfrist?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Regel 1 nennt drei Monate.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "ob2_l4_q1_a1",
+                "answer_text": "Drei Monate zum Monatsende",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_l4_q1_a2",
+                "answer_text": "Ein Monat",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l4_q1_a3",
+                "answer_text": "Sechs Monate",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_l4_q2",
+            "question_text": "Haustiere sind ohne Einschränkung erlaubt.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie benötigen schriftliche Zustimmung der Vermieterschaft.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "ob2_l4_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l4_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_l4_q3",
+            "question_text": "Wer führt kleinere Schönheitsreparaturen durch?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Regel 3 nennt den Mieter.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "ob2_l4_q3_a1",
+                "answer_text": "Der Mieter selbst",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_l4_q3_a2",
+                "answer_text": "Die Hausverwaltung",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l4_q3_a3",
+                "answer_text": "Ein externer Handwerker auf Kosten der Vermieterschaft",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_l4_q4",
+            "question_text": "Wie hoch ist die Kaution?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Regel 4 nennt das Dreifache.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "ob2_l4_q4_a1",
+                "answer_text": "Das Dreifache der Nettomiete",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_l4_q4_a2",
+                "answer_text": "Eine Monatsmiete",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l4_q4_a3",
+                "answer_text": "Das Doppelte der Nettomiete",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_l4_q5",
+            "question_text": "Untervermietung ist ohne Genehmigung möglich.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie benötigt vorherige schriftliche Genehmigung.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "ob2_l4_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l4_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_l4_q6",
+            "question_text": "Was ist vor baulichen Veränderungen nötig?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Regel 6 nennt Rücksprache mit der Hausverwaltung.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "ob2_l4_q6_a1",
+                "answer_text": "Rücksprache mit der Hausverwaltung",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_l4_q6_a2",
+                "answer_text": "Nichts, sie sind frei erlaubt",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_l4_q6_a3",
+                "answer_text": "Nur eine mündliche Ankündigung",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "sprachbausteine",
+        "name": "Sprachbausteine (تدريب إضافي)",
+        "type": "language",
+        "official_duration_minutes": null,
+        "instructions": "تدريب إضافي على القواعد المتقدمة والمفردات.",
+        "passage": null,
+        "items": [
+          {
+            "id": "ob2_sb_q1",
+            "question_text": "___ des schlechten Wetters fand das Fest trotzdem statt.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"Trotz\" drückt einen Gegensatz aus.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "ob2_sb_q1_a1",
+                "answer_text": "Trotz",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_sb_q1_a2",
+                "answer_text": "Wegen",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_sb_q1_a3",
+                "answer_text": "Während",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_sb_q2",
+            "question_text": "Je mehr Erfahrung man hat, ___ leichter fällt einem die Arbeit.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"je... desto...\" ist die feste Konstruktion.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "ob2_sb_q2_a1",
+                "answer_text": "desto",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_sb_q2_a2",
+                "answer_text": "so",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_sb_q2_a3",
+                "answer_text": "als",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_sb_q3",
+            "question_text": "Der Vertrag muss noch ___ dem Anwalt geprüft werden.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Passiv mit Handelndem: \"von\" + Dativ.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "ob2_sb_q3_a1",
+                "answer_text": "von",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_sb_q3_a2",
+                "answer_text": "durch",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_sb_q3_a3",
+                "answer_text": "bei",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_sb_q4",
+            "question_text": "___ man die Statistik betrachtet, erkennt man einen klaren Trend.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"Wenn\" leitet hier einen Bedingungssatz ein.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "ob2_sb_q4_a1",
+                "answer_text": "Wenn",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_sb_q4_a2",
+                "answer_text": "Damit",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_sb_q4_a3",
+                "answer_text": "Obwohl",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_sb_q5",
+            "question_text": "Die Firma sieht sich ___, ihre Strategie zu überdenken.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"sich gezwungen sehen, etwas zu tun\" ist die feste Wendung.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "ob2_sb_q5_a1",
+                "answer_text": "gezwungen",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_sb_q5_a2",
+                "answer_text": "zwingend",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_sb_q5_a3",
+                "answer_text": "zwingt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_sb_q6",
+            "question_text": "___ ich das gewusst hätte, wäre ich früher gekommen.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Konjunktiv II Bedingungssatz mit \"Wenn\".",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "ob2_sb_q6_a1",
+                "answer_text": "Wenn",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_sb_q6_a2",
+                "answer_text": "Ob",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_sb_q6_a3",
+                "answer_text": "Als",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_sb_q7",
+            "question_text": "Das Unternehmen hat sich ___ verpflichtet, klimaneutral zu werden.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"sich dazu verpflichten\" ist die feste Wendung.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "ob2_sb_q7_a1",
+                "answer_text": "dazu",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_sb_q7_a2",
+                "answer_text": "darauf",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_sb_q7_a3",
+                "answer_text": "damit",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_sb_q8",
+            "question_text": "Der Bericht enthält Informationen, ___ für die Entscheidung wichtig sind.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Relativpronomen für Plural: \"die\".",
+            "order_index": 7,
+            "answers": [
+              {
+                "id": "ob2_sb_q8_a1",
+                "answer_text": "die",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_sb_q8_a2",
+                "answer_text": "was",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_sb_q8_a3",
+                "answer_text": "wo",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_sb_q9",
+            "question_text": "___ ihrer Qualifikation wurde sie sofort eingestellt.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"Aufgrund\" nennt den Grund.",
+            "order_index": 8,
+            "answers": [
+              {
+                "id": "ob2_sb_q9_a1",
+                "answer_text": "Aufgrund",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_sb_q9_a2",
+                "answer_text": "Trotz",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_sb_q9_a3",
+                "answer_text": "Statt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_sb_q10",
+            "question_text": "Es ist wichtig, ___ alle Regeln einzuhalten.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"Es ist wichtig, dass...\" leitet einen Nebensatz ein.",
+            "order_index": 9,
+            "answers": [
+              {
+                "id": "ob2_sb_q10_a1",
+                "answer_text": "dass",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_sb_q10_a2",
+                "answer_text": "ob",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_sb_q10_a3",
+                "answer_text": "wie",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "key": "hoeren1",
+        "name": "Hören — Teil 1 (Transkript)",
+        "type": "listening",
+        "official_duration_minutes": 30,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ كل جملة قصيرة كما لو كنت تسمعها، ثم حدد صحتها.",
+        "passage": "Kurze Ansagen/Meldungen (Transkript):\n1. Die Ausstellung im Museum für angewandte Kunst läuft noch bis Ende des Monats.\n2. Der Vortrag über Nachhaltigkeit beginnt um 18 Uhr im großen Saal.\n3. Die Universität Wien bietet dieses Semester keine neuen Deutschkurse an.\n4. Der Radweg entlang der Donau wurde kürzlich um zehn Kilometer verlängert.\n5. Das neue Einkaufszentrum eröffnet erst im nächsten Jahr.\n6. Die Stadtbücherei verlangt für die Mitgliedschaft eine einmalige Gebühr von 50 Euro.\n7. Der Wetterdienst erwartet am Wochenende starke Gewitter.\n8. Die Firma stellt aktuell keine neuen Mitarbeitenden ein.\n9. Der Flughafen Wien meldet für heute keine Verspätungen.\n10. Die Volkshochschule bietet ab Herbst auch Onlinekurse an.\n11. Der Marathon findet dieses Jahr wegen Bauarbeiten nicht statt.\n12. Das Schwimmbad hat im Winter geschlossene Öffnungszeiten am Montag.\n13. Die neue Buslinie 42 verbindet den Bahnhof mit dem Flughafen.\n14. Der Konzertsaal wurde wegen Renovierung für ein Jahr komplett geschlossen.\n15. Die Stadtverwaltung erhöht ab Januar die Parkgebühren.\n16. Für die Ausstellung wird kein Eintritt verlangt.\n17. Die Universität schließt ihre Mensa während der Semesterferien komplett.\n18. Der neue Fahrplan der Straßenbahn gilt ab dem 1. September.\n19. Im Stadtpark ist das Grillen ganzjährig ohne Einschränkung erlaubt.\n20. Die Volkshochschule bietet kostenlose Beratungsgespräche für neue Kursteilnehmende an.",
+        "items": [
+          {
+            "id": "ob2_h1_q1",
+            "question_text": "Die Ausstellung im Museum für angewandte Kunst läuft noch bis Ende des Monats.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Aussage nennt genau das Enddatum.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "ob2_h1_q1_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h1_q1_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_h1_q2",
+            "question_text": "Der Vortrag über Nachhaltigkeit beginnt um 18 Uhr im großen Saal.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Zeit und Ort werden genannt.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "ob2_h1_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h1_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_h1_q3",
+            "question_text": "Die Universität Wien bietet dieses Semester keine neuen Deutschkurse an.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Es werden neue Kurse angeboten, das Gegenteil wird gesagt.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "ob2_h1_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_h1_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_h1_q4",
+            "question_text": "Der Radweg entlang der Donau wurde kürzlich um zehn Kilometer verlängert.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Verlängerung wird bestätigt.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "ob2_h1_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h1_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_h1_q5",
+            "question_text": "Das neue Einkaufszentrum eröffnet erst im nächsten Jahr.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Eröffnung ist erst im nächsten Jahr.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "ob2_h1_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h1_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_h1_q6",
+            "question_text": "Die Stadtbücherei verlangt für die Mitgliedschaft eine einmalige Gebühr von 50 Euro.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Mitgliedschaft ist kostenlos oder günstiger, nicht 50 Euro einmalig laut Ansage.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "ob2_h1_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_h1_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_h1_q7",
+            "question_text": "Der Wetterdienst erwartet am Wochenende starke Gewitter.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Vorhersage nennt starke Gewitter.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "ob2_h1_q7_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h1_q7_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_h1_q8",
+            "question_text": "Die Firma stellt aktuell keine neuen Mitarbeitenden ein.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Firma sucht aktuell neue Mitarbeitende.",
+            "order_index": 7,
+            "answers": [
+              {
+                "id": "ob2_h1_q8_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_h1_q8_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_h1_q9",
+            "question_text": "Der Flughafen Wien meldet für heute keine Verspätungen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Es werden Verspätungen gemeldet.",
+            "order_index": 8,
+            "answers": [
+              {
+                "id": "ob2_h1_q9_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_h1_q9_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_h1_q10",
+            "question_text": "Die Volkshochschule bietet ab Herbst auch Onlinekurse an.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Onlinekurse werden ab Herbst angeboten.",
+            "order_index": 9,
+            "answers": [
+              {
+                "id": "ob2_h1_q10_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h1_q10_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_h1_q11",
+            "question_text": "Der Marathon findet dieses Jahr wegen Bauarbeiten nicht statt.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Marathon findet trotz Bauarbeiten statt, nur die Route ändert sich.",
+            "order_index": 10,
+            "answers": [
+              {
+                "id": "ob2_h1_q11_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_h1_q11_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_h1_q12",
+            "question_text": "Das Schwimmbad hat im Winter geschlossene Öffnungszeiten am Montag.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Montags ist im Winter geschlossen.",
+            "order_index": 11,
+            "answers": [
+              {
+                "id": "ob2_h1_q12_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h1_q12_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_h1_q13",
+            "question_text": "Die neue Buslinie 42 verbindet den Bahnhof mit dem Flughafen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Verbindung wird bestätigt.",
+            "order_index": 12,
+            "answers": [
+              {
+                "id": "ob2_h1_q13_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h1_q13_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_h1_q14",
+            "question_text": "Der Konzertsaal wurde wegen Renovierung für ein Jahr komplett geschlossen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er ist nur für einige Monate geschlossen, nicht ein Jahr.",
+            "order_index": 13,
+            "answers": [
+              {
+                "id": "ob2_h1_q14_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_h1_q14_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_h1_q15",
+            "question_text": "Die Stadtverwaltung erhöht ab Januar die Parkgebühren.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Erhöhung ab Januar wird bestätigt.",
+            "order_index": 14,
+            "answers": [
+              {
+                "id": "ob2_h1_q15_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h1_q15_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_h1_q16",
+            "question_text": "Für die Ausstellung wird kein Eintritt verlangt.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Eintritt ist frei.",
+            "order_index": 15,
+            "answers": [
+              {
+                "id": "ob2_h1_q16_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h1_q16_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_h1_q17",
+            "question_text": "Die Universität schließt ihre Mensa während der Semesterferien komplett.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Mensa bleibt eingeschränkt geöffnet.",
+            "order_index": 16,
+            "answers": [
+              {
+                "id": "ob2_h1_q17_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_h1_q17_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_h1_q18",
+            "question_text": "Der neue Fahrplan der Straßenbahn gilt ab dem 1. September.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Das Datum wird genau genannt.",
+            "order_index": 17,
+            "answers": [
+              {
+                "id": "ob2_h1_q18_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h1_q18_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_h1_q19",
+            "question_text": "Im Stadtpark ist das Grillen ganzjährig ohne Einschränkung erlaubt.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Es gibt spezielle Grillzonen und Zeiten.",
+            "order_index": 18,
+            "answers": [
+              {
+                "id": "ob2_h1_q19_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_h1_q19_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_h1_q20",
+            "question_text": "Die Volkshochschule bietet kostenlose Beratungsgespräche für neue Kursteilnehmende an.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Kostenlose Beratung wird angeboten.",
+            "order_index": 19,
+            "answers": [
+              {
+                "id": "ob2_h1_q20_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h1_q20_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          }
+        ],
+        "audio_url": "/audio/test_osd_b2__hoeren1.mp3"
+      },
+      {
+        "key": "hoeren2",
+        "name": "Hören — Teil 2 (Transkript)",
+        "type": "listening",
+        "official_duration_minutes": 30,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص المقابلة كما لو كنت تسمعها، ثم حدد صحة كل جملة.",
+        "passage": "Interview mit einem Ökonomen:\n\"Moderatorin: Herr Doktor Wagner, wie bewerten Sie die Ergebnisse der Pilotprojekte zur Vier-Tage-Woche?\nHerr Wagner: Insgesamt sehr positiv. Die Produktivität pro Stunde ist sogar leicht gestiegen, weil die Mitarbeitenden konzentrierter arbeiten. Allerdings brauchen kleinere Betriebe oft mehr Zeit für die Umstellung als große Konzerne, weil ihnen die Ressourcen für eine professionelle Prozessanalyse fehlen. Ein weiterer wichtiger Faktor ist die Branche: Im Dienstleistungssektor funktioniert das Modell meist besser als in der Produktion, wo Maschinen ohnehin durchgehend laufen müssen. Wir empfehlen Unternehmen daher, zunächst eine Testphase von sechs Monaten einzuplanen, bevor sie sich endgültig festlegen. Interessant ist auch, dass die Fluktuation in den getesteten Betrieben um etwa 15 Prozent gesunken ist, was langfristig erhebliche Kosten für die Personalsuche spart.\"",
+        "items": [
+          {
+            "id": "ob2_h2_q1",
+            "question_text": "Herr Wagner bewertet die Ergebnisse insgesamt positiv.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er sagt \"insgesamt sehr positiv\".",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "ob2_h2_q1_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h2_q1_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_h2_q2",
+            "question_text": "Die Produktivität pro Stunde ist gesunken.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie ist laut Wagner leicht gestiegen.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "ob2_h2_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_h2_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_h2_q3",
+            "question_text": "Mitarbeitende arbeiten laut Wagner konzentrierter.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er nennt genau diesen Grund für die höhere Produktivität.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "ob2_h2_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h2_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_h2_q4",
+            "question_text": "Kleinere Betriebe brauchen weniger Zeit für die Umstellung als große Konzerne.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie brauchen laut Wagner mehr Zeit.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "ob2_h2_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_h2_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_h2_q5",
+            "question_text": "Kleineren Betrieben fehlen oft Ressourcen für eine Prozessanalyse.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Wagner nennt genau diesen Grund.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "ob2_h2_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h2_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_h2_q6",
+            "question_text": "Das Modell funktioniert laut Wagner in der Produktion meist besser als im Dienstleistungssektor.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Es ist umgekehrt: im Dienstleistungssektor funktioniert es meist besser.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "ob2_h2_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_h2_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_h2_q7",
+            "question_text": "In der Produktion müssen Maschinen oft durchgehend laufen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Wagner nennt genau diesen Grund.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "ob2_h2_q7_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h2_q7_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_h2_q8",
+            "question_text": "Wagner empfiehlt eine Testphase von sechs Monaten.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er nennt genau diese Empfehlung.",
+            "order_index": 7,
+            "answers": [
+              {
+                "id": "ob2_h2_q8_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h2_q8_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_h2_q9",
+            "question_text": "Unternehmen sollen sich sofort endgültig festlegen, ohne Testphase.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Wagner empfiehlt zuerst eine Testphase.",
+            "order_index": 8,
+            "answers": [
+              {
+                "id": "ob2_h2_q9_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_h2_q9_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_h2_q10",
+            "question_text": "Die Fluktuation ist in den getesteten Betrieben gestiegen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie ist um etwa 15 Prozent gesunken.",
+            "order_index": 9,
+            "answers": [
+              {
+                "id": "ob2_h2_q10_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_h2_q10_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_h2_q11",
+            "question_text": "Die gesunkene Fluktuation spart langfristig Kosten für die Personalsuche.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Wagner nennt genau diesen Effekt.",
+            "order_index": 10,
+            "answers": [
+              {
+                "id": "ob2_h2_q11_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h2_q11_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_h2_q12",
+            "question_text": "Wagner ist Moderator des Interviews.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er ist der interviewte Ökonom, nicht der Moderator.",
+            "order_index": 11,
+            "answers": [
+              {
+                "id": "ob2_h2_q12_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_h2_q12_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_h2_q13",
+            "question_text": "Das Interview handelt von der Vier-Tage-Woche.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Das gesamte Interview dreht sich um dieses Thema.",
+            "order_index": 12,
+            "answers": [
+              {
+                "id": "ob2_h2_q13_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h2_q13_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_h2_q14",
+            "question_text": "Große Konzerne brauchen laut Wagner mehr Zeit für die Umstellung als kleine Betriebe.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Es ist umgekehrt.",
+            "order_index": 13,
+            "answers": [
+              {
+                "id": "ob2_h2_q14_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_h2_q14_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_h2_q15",
+            "question_text": "Die Fluktuation sank um etwa 15 Prozent.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Wagner nennt genau diese Zahl.",
+            "order_index": 14,
+            "answers": [
+              {
+                "id": "ob2_h2_q15_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h2_q15_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_h2_q16",
+            "question_text": "Wagner sagt, das Thema Branche spiele keine Rolle.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er sagt ausdrücklich, die Branche sei ein wichtiger Faktor.",
+            "order_index": 15,
+            "answers": [
+              {
+                "id": "ob2_h2_q16_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_h2_q16_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_h2_q17",
+            "question_text": "Im Dienstleistungssektor funktioniert das Modell laut Wagner meist besser.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er sagt das ausdrücklich.",
+            "order_index": 16,
+            "answers": [
+              {
+                "id": "ob2_h2_q17_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h2_q17_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_h2_q18",
+            "question_text": "Wagner nennt keine konkreten Zahlen im Interview.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er nennt mehrere konkrete Zahlen, z.B. 15 Prozent.",
+            "order_index": 17,
+            "answers": [
+              {
+                "id": "ob2_h2_q18_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_h2_q18_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "ob2_h2_q19",
+            "question_text": "Die Moderatorin fragt nach Wagners Bewertung der Pilotprojekte.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Das ist ihre erste Frage.",
+            "order_index": 18,
+            "answers": [
+              {
+                "id": "ob2_h2_q19_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "ob2_h2_q19_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "ob2_h2_q20",
+            "question_text": "Laut Wagner ist die Umstellung für alle Betriebe gleich einfach.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er unterscheidet zwischen kleinen und großen Betrieben.",
+            "order_index": 19,
+            "answers": [
+              {
+                "id": "ob2_h2_q20_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "ob2_h2_q20_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          }
+        ],
+        "audio_url": "/audio/test_osd_b2__hoeren2.mp3"
+      }
+    ],
+    "writing": {
+      "name": "Schreiben (تدريب غير مُقيَّم)",
+      "official_duration_minutes": 90,
+      "instructions": "في الاختبار الرسمي، تكتب رسالة رسمية وموقفًا رأيًا. هذا تدريب ذاتي غير مُقيَّم آليًا.",
+      "prompt": "Schreiben Sie eine Meinungsäußerung (ca. 120 Wörter) zum Thema: \"Sollte die Vier-Tage-Woche gesetzlich verpflichtend werden?\" Nennen Sie Argumente dafür und dagegen und formulieren Sie einen klaren Standpunkt.",
+      "sample_answer": "Die Frage, ob die Vier-Tage-Woche gesetzlich verpflichtend werden sollte, wird kontrovers diskutiert. Befürworter argumentieren, dass kürzere Arbeitszeiten die Gesundheit der Beschäftigten verbessern und die Produktivität sogar steigern können, wie erste Pilotprojekte zeigen. Gegner hingegen warnen, dass nicht jede Branche gleich davon profitieren kann, etwa im Gesundheitswesen oder im Handel, wo durchgehende Anwesenheit notwendig ist.\n\nMeiner Meinung nach wäre eine gesetzliche Pflicht zu starr. Sinnvoller erscheint mir, Unternehmen finanzielle Anreize zu bieten, damit sie das Modell freiwillig testen können. So ließe sich herausfinden, in welchen Branchen es tatsächlich funktioniert, ohne alle Betriebe pauschal zu zwingen."
+    }
+  }
+};
+
+module.exports = { mockTests, mockContent };
