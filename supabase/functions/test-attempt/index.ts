@@ -23,6 +23,21 @@ function json(body: unknown, status = 200) {
   });
 }
 
+// Rolls per-question results up into per-section-type totals, e.g.
+// { reading: {correct, total}, language: {correct, total}, listening: {correct, total} }.
+// Used for the "your performance in this test, by skill" chart shown
+// right alongside the score.
+function buildSectionBreakdown(allQuestions: any[], questionsReview: any[]) {
+  const breakdown: Record<string, { correct: number; total: number }> = {};
+  allQuestions.forEach((q, i) => {
+    const type = q.section_type || 'other';
+    if (!breakdown[type]) breakdown[type] = { correct: 0, total: 0 };
+    breakdown[type].total++;
+    if (questionsReview[i]?.is_correct) breakdown[type].correct++;
+  });
+  return breakdown;
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -105,12 +120,12 @@ Deno.serve(async (req) => {
 
       const { data: sections } = await admin
         .from('test_sections')
-        .select('name, test_questions(id, question_text, explanation, test_answers(id, answer_text, is_correct))')
+        .select('name, type, test_questions(id, question_text, explanation, test_answers(id, answer_text, is_correct))')
         .eq('test_id', attempt.test_id);
 
       const allQuestions: any[] = [];
       (sections || []).forEach((s: any) => {
-        (s.test_questions || []).forEach((q: any) => allQuestions.push({ ...q, section_name: s.name }));
+        (s.test_questions || []).forEach((q: any) => allQuestions.push({ ...q, section_name: s.name, section_type: s.type }));
       });
 
       const submitted: any[] = Array.isArray(answers) ? answers : [];
@@ -139,6 +154,7 @@ Deno.serve(async (req) => {
       const totalQuestions = allQuestions.length;
       const scorePercentage = totalQuestions ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
       const passed = scorePercentage >= (test?.passing_score ?? 60);
+      const sectionBreakdown = buildSectionBreakdown(allQuestions, questionsReview);
 
       const { error: updateErr } = await admin
         .from('user_test_attempts')
@@ -164,7 +180,8 @@ Deno.serve(async (req) => {
             total_questions: totalQuestions,
             incorrect_answers: totalQuestions - correctAnswers,
             time_taken_seconds: time_taken_seconds || 0,
-            questions_review: questionsReview
+            questions_review: questionsReview,
+            section_breakdown: sectionBreakdown
           }
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -210,12 +227,12 @@ Deno.serve(async (req) => {
 
       const { data: sections } = await admin
         .from('test_sections')
-        .select('name, test_questions(id, question_text, explanation, test_answers(id, answer_text, is_correct))')
+        .select('name, type, test_questions(id, question_text, explanation, test_answers(id, answer_text, is_correct))')
         .eq('test_id', attempt.test_id);
 
       const allQuestions: any[] = [];
       (sections || []).forEach((s: any) => {
-        (s.test_questions || []).forEach((q: any) => allQuestions.push({ ...q, section_name: s.name }));
+        (s.test_questions || []).forEach((q: any) => allQuestions.push({ ...q, section_name: s.name, section_type: s.type }));
       });
 
       const submitted: any[] = Array.isArray(attempt.answers) ? attempt.answers : [];
@@ -248,7 +265,8 @@ Deno.serve(async (req) => {
           passed: attempt.passed,
           time_taken_seconds: attempt.time_taken_seconds,
           total_questions: allQuestions.length,
-          questions_review: questionsReview
+          questions_review: questionsReview,
+          section_breakdown: buildSectionBreakdown(allQuestions, questionsReview)
         }
       });
     }

@@ -44,6 +44,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="assets/js/supabase-client.js"></script>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>[x-cloak]{display:none !important;}</style>
 </head>
@@ -195,6 +197,23 @@
                     </div>
                 </div>
 
+                <!-- Performance report -->
+                <div class="mb-10" x-show="performanceReport && performanceReport.attempts_count > 0">
+                    <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
+                        <i class="fas fa-chart-pie text-flag-red me-2"></i> تقرير الأداء
+                    </h2>
+                    <div class="grid md:grid-cols-2 gap-5">
+                        <div class="de-card rounded-2xl p-5">
+                            <h3 class="font-display font-semibold text-flag-ink text-sm mb-3">نقاط القوة والضعف حسب المهارة</h3>
+                            <div style="height:220px;"><canvas x-ref="performanceSkillCanvas"></canvas></div>
+                        </div>
+                        <div class="de-card rounded-2xl p-5">
+                            <h3 class="font-display font-semibold text-flag-ink text-sm mb-3">تطور النتائج عبر الوقت</h3>
+                            <div style="height:220px;"><canvas x-ref="performanceTrendCanvas"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Recent activity -->
                 <div class="mb-10">
                     <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
@@ -340,11 +359,17 @@
 
     <!-- ============ Test-taking modal ============ -->
     <div x-show="showTestModal" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
-        <div class="de-card w-full max-w-2xl overflow-hidden max-h-[92vh] flex flex-col">
+        <div class="de-card w-full overflow-hidden flex flex-col transition-all duration-300"
+             :class="testModalExpanded ? 'max-w-6xl h-[95vh]' : 'max-w-2xl max-h-[92vh]'">
             <div class="de-flag-ribbon"></div>
             <div class="flex items-center justify-between px-6 py-4 border-b border-black/10 flex-shrink-0">
                 <h3 class="font-display font-semibold text-flag-ink" x-text="activeTest ? activeTest.title : 'جارٍ التحميل...'"></h3>
-                <button @click="closeTestModal()" class="text-flag-ink/40 hover:text-flag-red"><i class="fas fa-times"></i></button>
+                <div class="flex items-center gap-3">
+                    <button @click="testModalExpanded = !testModalExpanded" class="text-flag-ink/40 hover:text-flag-red" :title="testModalExpanded ? 'تصغير' : 'تكبير'">
+                        <i class="fas" :class="testModalExpanded ? 'fa-down-left-and-up-right-to-center' : 'fa-up-right-and-down-left-from-center'"></i>
+                    </button>
+                    <button @click="closeTestModal()" class="text-flag-ink/40 hover:text-flag-red"><i class="fas fa-times"></i></button>
+                </div>
             </div>
 
             <!-- Question view -->
@@ -459,6 +484,11 @@
                             </div>
                         </div>
 
+                        <div class="de-card rounded-xl p-4 max-w-sm mx-auto mb-6" x-show="testResults.section_breakdown" x-init="$nextTick(() => renderResultChart())">
+                            <h4 class="font-display font-semibold text-flag-ink text-sm mb-3">أداؤك حسب المهارة</h4>
+                            <div style="height:200px;"><canvas x-ref="resultChartCanvas"></canvas></div>
+                        </div>
+
                         <div class="flex justify-center gap-3 mb-6">
                             <button @click="closeTestModal()" class="de-btn text-sm py-2.5 px-5" style="background:#EEEAE0;color:#1E293B;">إنهاء</button>
                             <button @click="retakeTest()" class="de-btn de-btn-primary text-sm py-2.5 px-5">
@@ -512,7 +542,7 @@
             <div class="de-flag-ribbon"></div>
             <div class="flex items-center justify-between px-6 py-4 border-b border-black/10 flex-shrink-0">
                 <h3 class="font-display font-semibold text-flag-ink" x-text="selectedAttemptDetail ? selectedAttemptDetail.test_title : ''"></h3>
-                <button @click="showAttemptDetailModal = false" class="text-flag-ink/40 hover:text-flag-red"><i class="fas fa-times"></i></button>
+                <button @click="closeAttemptDetail()" class="text-flag-ink/40 hover:text-flag-red"><i class="fas fa-times"></i></button>
             </div>
             <div class="p-6 text-center overflow-y-auto" x-show="selectedAttemptDetail">
                 <template x-if="selectedAttemptDetail">
@@ -530,6 +560,11 @@
                                 <div class="text-xs text-flag-ink/50 mb-1">تاريخ المحاولة</div>
                                 <div class="font-medium" x-text="formatDate(selectedAttemptDetail.completed_at)"></div>
                             </div>
+                        </div>
+
+                        <div class="de-card rounded-xl p-4 max-w-sm mx-auto mb-6" x-show="selectedAttemptDetail.section_breakdown" x-init="$nextTick(() => renderDetailChart())">
+                            <h4 class="font-display font-semibold text-flag-ink text-sm mb-3">أداؤك حسب المهارة</h4>
+                            <div style="height:200px;"><canvas x-ref="detailChartCanvas"></canvas></div>
                         </div>
 
                         <div class="flex justify-center mb-6">
@@ -635,10 +670,13 @@
                 currentQuestionIndex: 0,
                 selectedAnswers: {},
                 showTestModal: false,
+                testModalExpanded: false,
                 testResults: null,
                 timeLeftSeconds: 0,
                 timerHandle: null,
                 testStartedAt: null,
+                resultChart: null, detailChart: null,
+                performanceReport: null, performanceChart: null, trendChart: null,
                 showWritingPractice: false,
                 writingDraft: '',
                 showWritingSample: false,
@@ -697,9 +735,98 @@
                                 passing_score: t.passing_score, trial_question_count: t.total_questions
                             }));
                         }
+                        this.loadPerformanceReport();
                     } catch (e) {
                         console.error('Error loading dashboard data:', e);
                         this.showToast('تعذّر تحميل بعض بيانات لوحة التحكم');
+                    }
+                },
+
+                async loadPerformanceReport() {
+                    try {
+                        const data = await sbInvoke('performance-report', {});
+                        if (data.success) {
+                            this.performanceReport = data.report;
+                            this.$nextTick(() => this.renderPerformanceCharts());
+                        }
+                    } catch (e) { console.error(e); }
+                },
+
+                skillLabel(key) {
+                    return { reading: 'القراءة', language: 'القواعد والمفردات', listening: 'الاستماع', other: 'أخرى' }[key] || key;
+                },
+
+                buildSkillChart(canvas, breakdown) {
+                    const keys = Object.keys(breakdown || {});
+                    const data = keys.map(k => breakdown[k].total ? Math.round((breakdown[k].correct / breakdown[k].total) * 100) : 0);
+                    return new Chart(canvas, {
+                        type: 'bar',
+                        data: {
+                            labels: keys.map(k => this.skillLabel(k)),
+                            datasets: [{ data, backgroundColor: '#2563EB', borderRadius: 8, maxBarThickness: 36 }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { callbacks: { label: (ctx) => ctx.parsed.x + '%' } }
+                            },
+                            scales: { x: { min: 0, max: 100, ticks: { callback: (v) => v + '%' } } }
+                        }
+                    });
+                },
+
+                renderResultChart() {
+                    if (!this.testResults?.section_breakdown) return;
+                    if (this.resultChart) { this.resultChart.destroy(); this.resultChart = null; }
+                    const canvas = this.$refs.resultChartCanvas;
+                    if (canvas) this.resultChart = this.buildSkillChart(canvas, this.testResults.section_breakdown);
+                },
+
+                renderDetailChart() {
+                    if (!this.selectedAttemptDetail?.section_breakdown) return;
+                    if (this.detailChart) { this.detailChart.destroy(); this.detailChart = null; }
+                    const canvas = this.$refs.detailChartCanvas;
+                    if (canvas) this.detailChart = this.buildSkillChart(canvas, this.selectedAttemptDetail.section_breakdown);
+                },
+
+                renderPerformanceCharts() {
+                    if (!this.performanceReport) return;
+                    if (this.performanceChart) { this.performanceChart.destroy(); this.performanceChart = null; }
+                    if (this.trendChart) { this.trendChart.destroy(); this.trendChart = null; }
+
+                    const skillCanvas = this.$refs.performanceSkillCanvas;
+                    if (skillCanvas && this.performanceReport.section_breakdown) {
+                        this.performanceChart = this.buildSkillChart(skillCanvas, this.performanceReport.section_breakdown);
+                    }
+
+                    const trendCanvas = this.$refs.performanceTrendCanvas;
+                    if (trendCanvas && this.performanceReport.trend && this.performanceReport.trend.length) {
+                        this.trendChart = new Chart(trendCanvas, {
+                            type: 'line',
+                            data: {
+                                labels: this.performanceReport.trend.map(t => this.formatDate(t.completed_at)),
+                                datasets: [{
+                                    data: this.performanceReport.trend.map(t => t.score_percentage),
+                                    borderColor: '#FF7A45',
+                                    backgroundColor: 'rgba(255,122,69,0.12)',
+                                    tension: 0.3,
+                                    fill: true,
+                                    pointBackgroundColor: '#FF7A45'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: { display: false },
+                                    tooltip: { callbacks: { label: (ctx) => ctx.parsed.y + '%' } }
+                                },
+                                scales: { y: { min: 0, max: 100, ticks: { callback: (v) => v + '%' } } }
+                            }
+                        });
                     }
                 },
 
@@ -815,14 +942,20 @@
 
                 retakeAttempt(testId) {
                     const test = this.availableTests.find(t => t.id === testId);
+                    this.closeAttemptDetail();
+                    if (test) this.startTest(test);
+                },
+
+                closeAttemptDetail() {
                     this.showAttemptDetailModal = false;
                     this.selectedAttemptDetail = null;
-                    if (test) this.startTest(test);
+                    if (this.detailChart) { this.detailChart.destroy(); this.detailChart = null; }
                 },
 
                 closeTestModal() {
                     this.stopTimer();
                     this.showTestModal = false;
+                    this.testModalExpanded = false;
                     this.activeTest = null;
                     this.gradedItems = [];
                     this.activeAttemptId = null;
@@ -834,6 +967,7 @@
                     this.showWritingSample = false;
                     this.showTranscript = false;
                     this.audioFailed = false;
+                    if (this.resultChart) { this.resultChart.destroy(); this.resultChart = null; }
                 },
 
                 async viewAttempt(attemptId) {
