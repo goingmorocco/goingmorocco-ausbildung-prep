@@ -40,6 +40,10 @@
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/responsive.css">
 
+    <!-- Supabase client (must load before Alpine, since x-init calls into it) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>[x-cloak]{display:none !important;}</style>
 </head>
@@ -561,7 +565,6 @@
     <script>
         function dashboardApp() {
             return {
-                token: localStorage.getItem('auth_token') || null,
                 user: null,
                 authChecked: false,
                 gateStatus: 'loading', // pending | rejected | ok
@@ -603,24 +606,19 @@
                 },
 
                 async init() {
-                    if (!this.token) {
+                    const { data: { session } } = await sb.auth.getSession();
+                    if (!session) {
                         window.location.href = '/';
                         return;
                     }
                     try {
-                        const res = await fetch('/api/auth/status', { headers: this.authHeaders() });
-                        const data = await res.json();
-                        if (!data.authenticated) {
-                            localStorage.removeItem('auth_token');
-                            window.location.href = '/';
-                            return;
-                        }
-                        if (data.user.role === 'admin') {
+                        const profile = await sbGetProfile(session.user.id);
+                        if (profile.role === 'admin') {
                             window.location.href = '/admin.html';
                             return;
                         }
-                        this.user = data.user;
-                        this.gateStatus = data.user.membership_status === 'active' ? 'ok' : data.user.membership_status;
+                        this.user = profile;
+                        this.gateStatus = profile.membership_status === 'active' ? 'ok' : profile.membership_status;
                         this.authChecked = true;
 
                         if (this.gateStatus === 'ok') {
@@ -632,27 +630,23 @@
                     }
                 },
 
-                authHeaders(json) {
-                    const headers = { 'Authorization': 'Bearer ' + this.token };
-                    if (json) headers['Content-Type'] = 'application/json';
-                    return headers;
-                },
-
                 async loadDashboardData() {
                     try {
-                        const [subRes, attemptsRes, testsRes] = await Promise.all([
-                            fetch('/api/subscription/status', { headers: this.authHeaders() }),
-                            fetch('/api/tests/attempts', { headers: this.authHeaders() }),
-                            fetch('/api/tests', { headers: this.authHeaders() })
+                        const [subRes, attemptsData, testsRes] = await Promise.all([
+                            sb.from('subscriptions').select('*').eq('user_id', this.user.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+                            sbInvoke('test-attempt', { action: 'list' }),
+                            sb.from('tests').select('*').eq('is_active', true)
                         ]);
-                        const subData = await subRes.json();
-                        if (subData.success) this.subscription = subData.subscription;
 
-                        const attemptsData = await attemptsRes.json();
+                        if (subRes.data) this.subscription = subRes.data;
                         if (attemptsData.success) this.testAttempts = attemptsData.attempts;
-
-                        const testsData = await testsRes.json();
-                        if (testsData.success) this.availableTests = testsData.tests;
+                        if (testsRes.data) {
+                            this.availableTests = testsRes.data.map(t => ({
+                                id: t.id, title: t.title, description: t.description, test_type: t.test_type,
+                                level: t.level, duration_minutes: t.duration_minutes, total_questions: t.total_questions,
+                                passing_score: t.passing_score, trial_question_count: t.total_questions
+                            }));
+                        }
                     } catch (e) {
                         console.error('Error loading dashboard data:', e);
                         this.showToast('تعذّر تحميل بعض بيانات لوحة التحكم');
@@ -673,19 +667,14 @@
 
                 async startTest(test) {
                     try {
-                        const startRes = await fetch('/api/tests/attempts', {
-                            method: 'POST', headers: this.authHeaders(true),
-                            body: JSON.stringify({ test_id: test.id })
-                        });
-                        const startData = await startRes.json();
+                        const startData = await sbInvoke('test-attempt', { action: 'start', test_id: test.id });
                         if (!startData.success) {
                             this.showToast(startData.message || 'تعذّر بدء الاختبار');
                             return;
                         }
                         this.activeAttemptId = startData.attempt.id;
 
-                        const detailRes = await fetch('/api/tests/' + test.id, { headers: this.authHeaders() });
-                        const detailData = await detailRes.json();
+                        const detailData = await sbInvoke('test-detail', { test_id: test.id });
                         const sections = (detailData.success && detailData.test.sections) ? detailData.test.sections : [];
                         const flattened = [];
                         sections.forEach(section => {
@@ -753,11 +742,9 @@
                     const timeTaken = this.testStartedAt ? Math.round((Date.now() - this.testStartedAt) / 1000) : 0;
 
                     try {
-                        const res = await fetch('/api/tests/attempts/' + this.activeAttemptId, {
-                            method: 'PUT', headers: this.authHeaders(true),
-                            body: JSON.stringify({ answers, completed_at: new Date().toISOString(), time_taken_seconds: timeTaken })
+                        const data = await sbInvoke('test-attempt', {
+                            action: 'submit', attempt_id: this.activeAttemptId, answers, time_taken_seconds: timeTaken
                         });
-                        const data = await res.json();
                         if (data.success) {
                             this.testResults = data.result;
                             this.loadDashboardData();
@@ -801,8 +788,7 @@
 
                 async viewAttempt(attemptId) {
                     try {
-                        const res = await fetch('/api/tests/attempts/' + attemptId, { headers: this.authHeaders() });
-                        const data = await res.json();
+                        const data = await sbInvoke('test-attempt', { action: 'detail', attempt_id: attemptId });
                         if (data.success) {
                             this.selectedAttemptDetail = data.attempt;
                             this.showAttemptDetailModal = true;
@@ -815,14 +801,29 @@
                 async renewSubscription() {
                     this.renewing = true;
                     try {
-                        const res = await fetch('/api/subscription', { method: 'POST', headers: this.authHeaders() });
-                        const data = await res.json();
-                        if (data.success) {
+                        const start = new Date();
+                        const end = new Date();
+                        end.setMonth(end.getMonth() + 3);
+
+                        let error;
+                        if (this.subscription && this.subscription.id) {
+                            ({ error } = await sb.from('subscriptions').update({
+                                status: 'active', current_period_start: start.toISOString(),
+                                current_period_end: end.toISOString(), cancel_at_period_end: false
+                            }).eq('id', this.subscription.id));
+                        } else {
+                            ({ error } = await sb.from('subscriptions').insert({
+                                user_id: this.user.id, status: 'active',
+                                current_period_start: start.toISOString(), current_period_end: end.toISOString()
+                            }));
+                        }
+
+                        if (!error) {
                             this.showToast('تم تجديد الاشتراك بنجاح');
                             this.showSubscriptionModal = false;
                             this.loadDashboardData();
                         } else {
-                            this.showToast(data.message || 'تعذّر تجديد الاشتراك');
+                            this.showToast('تعذّر تجديد الاشتراك');
                         }
                     } catch (e) {
                         console.error(e);
@@ -832,11 +833,9 @@
                     }
                 },
 
-                logout() {
-                    fetch('/api/auth/logout', { method: 'POST' }).finally(() => {
-                        localStorage.removeItem('auth_token');
-                        window.location.href = '/index.html';
-                    });
+                async logout() {
+                    await sb.auth.signOut();
+                    window.location.href = '/index.html';
                 },
 
                 showToast(msg) {

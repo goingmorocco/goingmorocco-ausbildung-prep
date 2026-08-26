@@ -9,7 +9,13 @@
 // trust a client-sent role) before touching any other user's data.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { corsHeaders } from '../_shared/cors.ts';
+// CORS headers inlined directly (rather than imported from _shared/) to
+// avoid a known Supabase bundler bug where deploying a function by name
+// sometimes fails to resolve sibling _shared/ imports.
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 async function requireAdmin(req: Request) {
   const authClient = createClient(

@@ -1,0 +1,47 @@
+# Publishes the public/ folder to GitHub Pages on every push to main.
+#
+# One-time setup (in the GitHub repo, not in code): Settings -> Pages ->
+# under "Build and deployment", set Source to "GitHub Actions". After
+# that, every push to main redeploys automatically -- no manual steps.
+#
+# This project no longer needs a Node server in production: the frontend
+# talks directly to Supabase (Auth + Postgres + Edge Functions), so
+# public/ is fully static and Pages can serve it on its own.
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload public/ as the Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./public
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

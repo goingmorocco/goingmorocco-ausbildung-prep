@@ -65,6 +65,10 @@
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/responsive.css">
 
+    <!-- Supabase client (must load before Alpine, since x-init calls into it) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+
     <!-- Alpine.js (Intersect plugin must load before core) -->
     <script defer src="https://unpkg.com/@alpinejs/intersect@3.x.x/dist/cdn.min.js"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -91,43 +95,33 @@
             password_confirm: '',
             terms_accepted: false
         },
-        init() {
-            this.checkAuthStatus();
-        },
-        async checkAuthStatus() {
-            try {
-                const token = localStorage.getItem('auth_token');
-                if (!token) return;
-                const response = await fetch('/api/auth/status', {
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                const data = await response.json();
-                if (data.authenticated) {
-                    this.user = data.user;
-                } else {
-                    localStorage.removeItem('auth_token');
+        async init() {
+            const { data: { session } } = await sb.auth.getSession();
+            if (session) {
+                try {
+                    this.user = await sbGetProfile(session.user.id);
+                } catch (e) {
+                    console.error('Failed to load profile:', e);
                 }
-            } catch (error) {
-                console.error('Auth check failed:', error);
             }
         },
         async login(email, password) {
             this.isLoading = true;
             try {
-                const response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-                const data = await response.json();
-                if (data.success) {
-                    this.user = data.user;
-                    localStorage.setItem('auth_token', data.token);
-                    this.closeModal();
-                    window.location.href = data.user.role === 'admin' ? '/admin.html' : '/dashboard.html';
-                } else {
-                    this.showErrorModal('خطأ في تسجيل الدخول', data.message);
+                const { data, error } = await sb.auth.signInWithPassword({ email, password });
+                if (error) {
+                    this.showErrorModal('خطأ في تسجيل الدخول', 'البريد الإلكتروني أو كلمة المرور غير صحيحة');
+                    return;
                 }
+                const profile = await sbGetProfile(data.user.id);
+                if (profile.membership_status === 'rejected') {
+                    await sb.auth.signOut();
+                    this.showErrorModal('تعذّر تسجيل الدخول', 'تم رفض عضويتك. يرجى التواصل مع الدعم لمزيد من المعلومات.');
+                    return;
+                }
+                this.user = profile;
+                this.closeModal();
+                window.location.href = profile.role === 'admin' ? '/admin.html' : '/dashboard.html';
             } catch (error) {
                 this.showErrorModal('خطأ في الاتصال', 'حدث خطأ أثناء الاتصال بالخادم');
             } finally {
@@ -137,20 +131,20 @@
         async register(userData) {
             this.isLoading = true;
             try {
-                const response = await fetch('/api/auth/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(userData)
+                const { error } = await sb.auth.signUp({
+                    email: userData.email,
+                    password: userData.password,
+                    options: { data: { full_name: userData.full_name, phone: userData.phone || null } }
                 });
-                const data = await response.json();
-                if (data.success) {
-                    this.showSuccessModal('تم التسجيل بنجاح', 'تم إنشاء حسابك وهو الآن قيد المراجعة. سنُفعّل وصولك الكامل بعد تأكيد الاشتراك من طرف الإدارة.');
-                    setTimeout(() => {
-                        this.closeModal();
-                    }, 2000);
-                } else {
-                    this.showErrorModal('خطأ في التسجيل', data.message);
+                if (error) {
+                    this.showErrorModal('خطأ في التسجيل', error.message === 'User already registered'
+                        ? 'البريد الإلكتروني موجود بالفعل' : error.message);
+                    return;
                 }
+                this.showSuccessModal('تم التسجيل بنجاح', 'تم إنشاء حسابك وهو الآن قيد المراجعة. سنُفعّل وصولك الكامل بعد تأكيد الاشتراك من طرف الإدارة.');
+                setTimeout(() => {
+                    this.closeModal();
+                }, 2000);
             } catch (error) {
                 this.showErrorModal('خطأ في الاتصال', 'حدث خطأ أثناء الاتصال بالخادم');
             } finally {
@@ -172,13 +166,10 @@
             this.modalTitle = '';
             this.modalContent = '';
         },
-        logout() {
-            fetch('/api/auth/logout', { method: 'POST' })
-                .then(() => {
-                    localStorage.removeItem('auth_token');
-                    this.user = null;
-                    window.location.href = '/index.html';
-                });
+        async logout() {
+            await sb.auth.signOut();
+            this.user = null;
+            window.location.href = '/index.html';
         }
     }" x-init="init()">
 

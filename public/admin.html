@@ -37,6 +37,10 @@
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/responsive.css">
 
+    <!-- Supabase client (must load before Alpine, since x-init calls into it) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>[x-cloak]{display:none !important;}</style>
 </head>
@@ -386,7 +390,6 @@
     <script>
         function adminApp() {
             return {
-                token: localStorage.getItem('auth_token') || null,
                 admin: null,
                 authChecked: false,
 
@@ -402,16 +405,13 @@
                 toast: '',
 
                 async init() {
-                    if (this.token) {
+                    const { data: { session } } = await sb.auth.getSession();
+                    if (session) {
                         try {
-                            const res = await fetch('/api/auth/status', { headers: this.authHeaders() });
-                            const data = await res.json();
-                            if (data.authenticated && data.user.role === 'admin') {
-                                this.admin = data.user;
+                            const profile = await sbGetProfile(session.user.id);
+                            if (profile.role === 'admin') {
+                                this.admin = profile;
                                 this.loadAll();
-                            } else {
-                                localStorage.removeItem('auth_token');
-                                this.token = null;
                             }
                         } catch (e) {
                             console.error(e);
@@ -420,33 +420,24 @@
                     this.authChecked = true;
                 },
 
-                authHeaders(json) {
-                    const headers = { 'Authorization': 'Bearer ' + this.token };
-                    if (json) headers['Content-Type'] = 'application/json';
-                    return headers;
-                },
-
                 async login() {
                     this.isLoggingIn = true;
                     this.loginError = '';
                     try {
-                        const res = await fetch('/api/auth/login', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email: this.loginEmail, password: this.loginPassword })
+                        const { data, error } = await sb.auth.signInWithPassword({
+                            email: this.loginEmail, password: this.loginPassword
                         });
-                        const data = await res.json();
-                        if (!data.success) {
-                            this.loginError = data.message || 'تعذر تسجيل الدخول';
+                        if (error) {
+                            this.loginError = 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
                             return;
                         }
-                        if (data.user.role !== 'admin') {
+                        const profile = await sbGetProfile(data.user.id);
+                        if (profile.role !== 'admin') {
+                            await sb.auth.signOut();
                             this.loginError = 'هذا الحساب ليس حساب مشرف';
                             return;
                         }
-                        this.token = data.token;
-                        localStorage.setItem('auth_token', data.token);
-                        this.admin = data.user;
+                        this.admin = profile;
                         this.loadAll();
                     } catch (e) {
                         this.loginError = 'حدث خطأ أثناء الاتصال بالخادم';
@@ -455,12 +446,9 @@
                     }
                 },
 
-                logout() {
-                    fetch('/api/auth/logout', { method: 'POST' }).finally(() => {
-                        localStorage.removeItem('auth_token');
-                        this.token = null;
-                        this.admin = null;
-                    });
+                async logout() {
+                    await sb.auth.signOut();
+                    this.admin = null;
                 },
 
                 loadAll() {
@@ -471,8 +459,7 @@
 
                 async loadStats() {
                     try {
-                        const res = await fetch('/api/admin/stats', { headers: this.authHeaders() });
-                        const data = await res.json();
+                        const data = await sbInvoke('admin-members', { action: 'stats' });
                         if (data.success) this.stats = data.stats;
                     } catch (e) { console.error(e); }
                 },
@@ -480,38 +467,40 @@
                 async loadMembers() {
                     this.membersLoading = true;
                     try {
-                        const params = new URLSearchParams();
-                        if (this.memberFilter && this.memberFilter !== 'all') params.set('status', this.memberFilter);
-                        if (this.memberSearch) params.set('q', this.memberSearch);
-                        const res = await fetch('/api/admin/members?' + params.toString(), { headers: this.authHeaders() });
-                        const data = await res.json();
-                        if (data.success) this.members = data.members;
+                        const data = await sbInvoke('admin-members', {
+                            action: 'list', status: this.memberFilter, q: this.memberSearch || undefined
+                        });
+                        if (data.success) {
+                            this.members = data.members.map(m => ({
+                                ...m,
+                                subscription: Array.isArray(m.subscriptions) ? (m.subscriptions[0] || null) : (m.subscriptions || null)
+                            }));
+                        }
                     } catch (e) { console.error(e); }
                     finally { this.membersLoading = false; }
                 },
 
                 async loadNotifications() {
                     try {
-                        const res = await fetch('/api/admin/notifications', { headers: this.authHeaders() });
-                        const data = await res.json();
+                        const data = await sbInvoke('admin-notifications', { action: 'list' });
                         if (data.success) this.notifications = data.notifications;
                     } catch (e) { console.error(e); }
                 },
 
                 async approve(id) {
-                    await fetch(`/api/admin/members/${id}/approve`, { method: 'POST', headers: this.authHeaders() });
+                    await sbInvoke('admin-members', { action: 'approve', member_id: id });
                     this.showToast('تمت الموافقة على العضو');
                     this.loadStats(); this.loadMembers();
                 },
 
                 async reject(id) {
-                    await fetch(`/api/admin/members/${id}/reject`, { method: 'POST', headers: this.authHeaders() });
+                    await sbInvoke('admin-members', { action: 'reject', member_id: id });
                     this.showToast('تم رفض العضو');
                     this.loadStats(); this.loadMembers();
                 },
 
                 async resetMember(id) {
-                    await fetch(`/api/admin/members/${id}/reset`, { method: 'POST', headers: this.authHeaders() });
+                    await sbInvoke('admin-members', { action: 'reset', member_id: id });
                     this.showToast('تمت إعادة العضو إلى قيد المراجعة');
                     this.loadStats(); this.loadMembers();
                 },
@@ -522,7 +511,7 @@
 
                 async removeMember() {
                     if (!this.deleteTarget) return;
-                    await fetch(`/api/admin/members/${this.deleteTarget.id}`, { method: 'DELETE', headers: this.authHeaders() });
+                    await sbInvoke('admin-members', { action: 'delete', member_id: this.deleteTarget.id });
                     this.showToast('تم حذف العضو');
                     this.deleteTarget = null;
                     this.loadStats(); this.loadMembers();
@@ -531,16 +520,9 @@
                 async sendNotification() {
                     this.sending = true;
                     try {
-                        const res = await fetch('/api/admin/notifications', {
-                            method: 'POST',
-                            headers: this.authHeaders(true),
-                            body: JSON.stringify({
-                                title: this.notifyTitle,
-                                message: this.notifyMessage,
-                                audience: this.notifyAudience
-                            })
+                        const data = await sbInvoke('admin-notifications', {
+                            action: 'send', title: this.notifyTitle, message: this.notifyMessage, audience: this.notifyAudience
                         });
-                        const data = await res.json();
                         if (data.success) {
                             this.notifyTitle = '';
                             this.notifyMessage = '';
