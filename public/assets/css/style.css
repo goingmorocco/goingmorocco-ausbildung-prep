@@ -68,7 +68,7 @@ body {
 .de-hero-photo-bg {
   background-image:
     linear-gradient(rgba(245,248,252,0.55), rgba(245,248,252,0.55)),
-    url('/images/germany.webp');
+    url('../../images/germany.webp');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

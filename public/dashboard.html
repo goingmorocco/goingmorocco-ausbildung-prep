@@ -7,7 +7,7 @@
     <meta name="description" content="لوحة التحكم الشخصية لمتابعة تقدمك في تحضير اختبارات Ausbildungsaufnahme">
     <meta name="robots" content="noindex, nofollow">
 
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
@@ -608,13 +608,13 @@
                 async init() {
                     const { data: { session } } = await sb.auth.getSession();
                     if (!session) {
-                        window.location.href = '/';
+                        window.location.href = 'index.html';
                         return;
                     }
                     try {
                         const profile = await sbGetProfile(session.user.id);
                         if (profile.role === 'admin') {
-                            window.location.href = '/admin.html';
+                            window.location.href = 'admin.html';
                             return;
                         }
                         this.user = profile;
@@ -835,7 +835,7 @@
 
                 async logout() {
                     await sb.auth.signOut();
-                    window.location.href = '/index.html';
+                    window.location.href = 'index.html';
                 },
 
                 showToast(msg) {
