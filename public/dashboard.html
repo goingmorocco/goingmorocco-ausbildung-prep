@@ -102,6 +102,9 @@
                             </a>
 
                             <div class="hidden md:flex items-center gap-4">
+                                <a href="classroom.html" class="text-sm font-medium text-flag-ink/70 hover:text-flag-red transition-colors">
+                                    <i class="fas fa-chalkboard"></i> الفصل الدراسي
+                                </a>
                                 <div class="flex items-center gap-2">
                                     <span class="de-avatar h-9 w-9 text-xs" x-text="initials(user.full_name)"></span>
                                     <div class="leading-tight">
@@ -137,6 +140,9 @@
                                         <div class="text-xs text-flag-ink/50" x-text="user.email"></div>
                                     </div>
                                 </div>
+                                <a href="classroom.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#1E293B;">
+                                    <i class="fas fa-chalkboard"></i> الفصل الدراسي
+                                </a>
                                 <button @click="showSubscriptionModal = true; showMobileMenu = false" class="de-btn de-btn-gold w-full text-sm py-2">
                                     <i class="fas fa-credit-card"></i> الاشتراك
                                 </button>

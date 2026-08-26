@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الفصل الدراسي - إعداد اختبار Ausbildungsaufnahme</title>
+    <meta name="description" content="المواد التعليمية والفيديوهات الخاصة بالطلاب المقبولين">
+    <meta name="robots" content="noindex, nofollow">
+
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              flag: {
+                black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
+                red: '#2563EB', redbright: '#3B82F6', reddeep: '#1D4ED8',
+                gold: '#38BDF8', goldsoft: '#7DD3FC',
+                accent: '#FF7A45', accentbright: '#FF9466', accentdeep: '#E85A2A',
+                cream: '#F5F8FC', paper: '#FFFFFF', ink: '#1E293B'
+              }
+            },
+            fontFamily: {
+              display: ['"Space Grotesk"', 'sans-serif'],
+              arabic: ['Cairo', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'monospace']
+            }
+          }
+        }
+      }
+    </script>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+    <!-- Supabase client (must load before Alpine, since x-init calls into it) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>[x-cloak]{display:none !important;}</style>
+</head>
+<body class="font-arabic de-paper-bg text-flag-ink antialiased min-h-screen" x-data="classroomApp()" x-init="init()">
+
+    <!-- ============ LOADING ============ -->
+    <div x-show="!authChecked" class="min-h-screen flex items-center justify-center de-dark-bg text-white">
+        <i class="fas fa-circle-notch fa-spin text-2xl"></i>
+    </div>
+
+    <!-- ============ MEMBERSHIP GATE (pending / rejected) ============ -->
+    <template x-if="authChecked && user && gateStatus !== 'ok'">
+        <div class="min-h-screen de-dark-bg flex items-center justify-center p-4">
+            <div class="de-card w-full max-w-md overflow-hidden text-center">
+                <div class="de-flag-ribbon"></div>
+                <div class="p-8">
+                    <template x-if="gateStatus === 'pending'">
+                        <div>
+                            <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5"><i class="fas fa-hourglass-half"></i></span>
+                            <h1 class="font-display text-xl font-bold text-flag-ink mb-3">حسابك قيد المراجعة</h1>
+                            <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">
+                                الفصل الدراسي متاح فقط للأعضاء المفعّلين. سيقوم فريقنا بتفعيل وصولك الكامل بعد تأكيد الدفع.
+                            </p>
+                        </div>
+                    </template>
+                    <template x-if="gateStatus === 'rejected'">
+                        <div>
+                            <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5" style="border-color:#DC2626;color:#DC2626;"><i class="fas fa-circle-xmark"></i></span>
+                            <h1 class="font-display text-xl font-bold text-flag-ink mb-3">تعذّر تفعيل حسابك</h1>
+                            <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">
+                                لم تتم الموافقة على عضويتك. تواصل معنا على
+                                <a href="mailto:info@ausbildung-test-prep.com" class="text-flag-red">info@ausbildung-test-prep.com</a>
+                                لمزيد من المعلومات.
+                            </p>
+                        </div>
+                    </template>
+                    <a href="dashboard.html" class="de-btn w-full text-sm py-3" style="background:#EEEAE0;color:#1E293B;">
+                        <i class="fas fa-arrow-right"></i> العودة إلى لوحة التحكم
+                    </a>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============ CLASSROOM ============ -->
+    <template x-if="authChecked && user && gateStatus === 'ok'">
+        <div>
+            <!-- Header -->
+            <header class="sticky top-0 z-30">
+                <div class="de-light-bg text-flag-ink shadow-sm border-b border-black/5">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="flex justify-between h-16 items-center">
+                            <a href="dashboard.html" class="flex items-center gap-3">
+                                <span class="de-stamp de-stamp-onlight h-10 w-10 text-xs"><i class="fas fa-chalkboard"></i></span>
+                                <span class="font-display font-semibold hidden sm:block">الفصل الدراسي</span>
+                            </a>
+                            <div class="flex items-center gap-4">
+                                <a href="dashboard.html" class="text-sm text-flag-ink/60 hover:text-flag-red transition-colors">
+                                    <i class="fas fa-arrow-right"></i> <span class="hidden sm:inline">لوحة التحكم</span>
+                                </a>
+                                <span class="de-avatar h-9 w-9 text-xs" x-text="initials(user.full_name)"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="de-card-dark text-white rounded-2xl p-6 mb-8 relative overflow-hidden">
+                    <div class="de-corner-mark top-4 end-4 rounded-tr-xl border-b-0 border-s-0 hidden sm:block"></div>
+                    <div class="flex items-center gap-4">
+                        <div class="h-12 w-12 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-chalkboard text-flag-gold text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-display text-xl font-bold mb-1">مرحبًا بك في الفصل الدراسي</h2>
+                            <p class="text-sm text-white/70">مواد تعليمية وفيديوهات يضيفها فريقنا لمساعدتك في التحضير</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PDF materials -->
+                <div class="mb-10">
+                    <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
+                        <i class="fas fa-file-pdf text-flag-red me-2"></i> المواد التعليمية
+                    </h2>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        <template x-for="r in pdfResources" :key="r.id">
+                            <div class="de-card rounded-2xl p-5">
+                                <div class="h-11 w-11 rounded-xl bg-flag-red/10 flex items-center justify-center mb-4">
+                                    <i class="fas fa-file-pdf text-flag-red"></i>
+                                </div>
+                                <span class="de-badge de-badge-red mb-2 inline-block" x-show="r.category" x-text="r.category"></span>
+                                <h3 class="font-display font-semibold text-flag-ink mb-1" x-text="r.title"></h3>
+                                <p class="text-sm text-flag-ink/60 mb-4" x-text="r.description"></p>
+                                <button @click="openPdf(r)" class="de-btn de-btn-primary w-full text-sm py-2.5">
+                                    <i class="fas fa-eye"></i> فتح المستند
+                                </button>
+                            </div>
+                        </template>
+                    </div>
+                    <div x-show="!resourcesLoading && pdfResources.length === 0" class="de-card rounded-2xl p-8 text-center text-sm text-flag-ink/40">
+                        لا توجد مواد تعليمية بعد — سيتم إضافتها قريبًا
+                    </div>
+                </div>
+
+                <!-- YouTube videos -->
+                <div>
+                    <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
+                        <i class="fab fa-youtube text-flag-red me-2"></i> فيديوهات تعليمية
+                    </h2>
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        <template x-for="r in youtubeResources" :key="r.id">
+                            <div class="de-card rounded-2xl overflow-hidden">
+                                <div class="relative aspect-video bg-flag-black">
+                                    <template x-if="!playingVideos[r.id]">
+                                        <button @click="playingVideos[r.id] = true" class="absolute inset-0 w-full h-full group">
+                                            <img :src="'https://img.youtube.com/vi/' + r.youtube_id + '/hqdefault.jpg'" :alt="r.title" class="w-full h-full object-cover">
+                                            <span class="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                                                <span class="h-14 w-14 rounded-full bg-flag-accent flex items-center justify-center text-white text-xl shadow-lg">
+                                                    <i class="fas fa-play ms-1"></i>
+                                                </span>
+                                            </span>
+                                        </button>
+                                    </template>
+                                    <template x-if="playingVideos[r.id]">
+                                        <iframe :src="'https://www.youtube.com/embed/' + r.youtube_id + '?autoplay=1'"
+                                                class="absolute inset-0 w-full h-full" frameborder="0"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowfullscreen></iframe>
+                                    </template>
+                                </div>
+                                <div class="p-4">
+                                    <span class="de-badge de-badge-red mb-2 inline-block" x-show="r.category" x-text="r.category"></span>
+                                    <h3 class="font-display font-semibold text-flag-ink mb-1" x-text="r.title"></h3>
+                                    <p class="text-sm text-flag-ink/60" x-text="r.description"></p>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                    <div x-show="!resourcesLoading && youtubeResources.length === 0" class="de-card rounded-2xl p-8 text-center text-sm text-flag-ink/40">
+                        لا توجد فيديوهات بعد — سيتم إضافتها قريبًا
+                    </div>
+                </div>
+            </main>
+        </div>
+    </template>
+
+    <!-- ============ PDF viewer modal ============ -->
+    <div x-show="viewingPdf" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/70 backdrop-blur-sm p-4">
+        <div class="de-card w-full max-w-4xl h-[90vh] overflow-hidden flex flex-col">
+            <div class="de-flag-ribbon"></div>
+            <div class="flex items-center justify-between px-6 py-4 border-b border-black/10 flex-shrink-0">
+                <h3 class="font-display font-semibold text-flag-ink truncate" x-text="viewingPdf && viewingPdf.title"></h3>
+                <button @click="closePdf()" class="text-flag-ink/40 hover:text-flag-red flex-shrink-0 ms-4"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="flex-1 bg-flag-cream">
+                <iframe x-show="viewingPdf" :src="viewingPdf && viewingPdf.url" class="w-full h-full" frameborder="0"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Toast ============ -->
+    <div x-show="toast" x-cloak x-transition class="fixed bottom-6 inset-x-0 flex justify-center z-50 px-4">
+        <div class="de-card px-5 py-3 rounded-xl flex items-center gap-2 text-sm shadow-xl">
+            <i class="fas fa-circle-exclamation text-red-600"></i>
+            <span x-text="toast"></span>
+        </div>
+    </div>
+
+    <script>
+        function classroomApp() {
+            return {
+                user: null,
+                authChecked: false,
+                gateStatus: 'loading',
+
+                resources: [],
+                resourcesLoading: false,
+                viewingPdf: null,
+                playingVideos: {},
+                toast: '',
+
+                get pdfResources() {
+                    return this.resources.filter(r => r.type === 'pdf');
+                },
+                get youtubeResources() {
+                    return this.resources.filter(r => r.type === 'youtube');
+                },
+
+                async init() {
+                    const { data: { session } } = await sb.auth.getSession();
+                    if (!session) {
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                    try {
+                        const profile = await sbGetProfile(session.user.id);
+                        if (profile.role === 'admin') {
+                            window.location.href = 'admin.html';
+                            return;
+                        }
+                        this.user = profile;
+                        this.gateStatus = profile.membership_status === 'active' ? 'ok' : profile.membership_status;
+                        this.authChecked = true;
+
+                        if (this.gateStatus === 'ok') {
+                            this.loadResources();
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        this.authChecked = true;
+                    }
+                },
+
+                async loadResources() {
+                    this.resourcesLoading = true;
+                    try {
+                        const { data, error } = await sb.from('resources').select('*').order('created_at', { ascending: false });
+                        if (!error) this.resources = data;
+                    } catch (e) {
+                        console.error(e);
+                    } finally {
+                        this.resourcesLoading = false;
+                    }
+                },
+
+                async openPdf(resource) {
+                    try {
+                        const { data, error } = await sb.storage.from('resources').createSignedUrl(resource.file_path, 3600);
+                        if (error || !data) {
+                            this.showToast('تعذّر فتح المستند');
+                            return;
+                        }
+                        this.viewingPdf = { title: resource.title, url: data.signedUrl };
+                    } catch (e) {
+                        console.error(e);
+                        this.showToast('تعذّر فتح المستند');
+                    }
+                },
+
+                closePdf() {
+                    this.viewingPdf = null;
+                },
+
+                showToast(msg) {
+                    this.toast = msg;
+                    setTimeout(() => { this.toast = ''; }, 2800);
+                },
+
+                initials(name) {
+                    if (!name) return '?';
+                    const parts = name.trim().split(/\s+/);
+                    return parts.length > 1 ? parts[0].charAt(0) + parts[1].charAt(0) : parts[0].charAt(0);
+                }
+            };
+        }
+    </script>
+</body>
+</html>

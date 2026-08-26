@@ -129,6 +129,11 @@
                             :class="activeTab === 'notifications' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'">
                         <i class="fas fa-bell me-1"></i> الإشعارات
                     </button>
+                    <button @click="activeTab = 'resources'; loadResources()"
+                            class="px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors"
+                            :class="activeTab === 'resources' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'">
+                        <i class="fas fa-chalkboard me-1"></i> الفصل الدراسي
+                    </button>
                 </div>
 
                 <!-- ===== Overview tab ===== -->
@@ -353,6 +358,94 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- ===== Resources / Classroom tab ===== -->
+                <div x-show="activeTab === 'resources'" x-cloak class="grid lg:grid-cols-5 gap-6">
+                    <div class="lg:col-span-2 de-card rounded-2xl p-6 h-fit">
+                        <h2 class="font-display font-semibold text-flag-ink mb-5">
+                            <i class="fas fa-upload text-flag-red me-2"></i> إضافة مادة جديدة
+                        </h2>
+                        <form @submit.prevent="uploadResource()" class="space-y-4">
+                            <div class="flex gap-2">
+                                <button type="button" @click="resourceType = 'pdf'"
+                                        class="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium border transition-colors"
+                                        :class="resourceType === 'pdf' ? 'bg-flag-black text-white border-flag-black' : 'border-black/15 text-flag-ink/60'">
+                                    <i class="fas fa-file-pdf"></i> ملف PDF
+                                </button>
+                                <button type="button" @click="resourceType = 'youtube'"
+                                        class="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium border transition-colors"
+                                        :class="resourceType === 'youtube' ? 'bg-flag-black text-white border-flag-black' : 'border-black/15 text-flag-ink/60'">
+                                    <i class="fab fa-youtube"></i> فيديو يوتيوب
+                                </button>
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-flag-ink/70 mb-2">العنوان</label>
+                                <input type="text" x-model="resourceTitle" required
+                                       class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-flag-ink/70 mb-2">الوصف (اختياري)</label>
+                                <textarea x-model="resourceDescription" rows="2"
+                                          class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/30 resize-none"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-flag-ink/70 mb-2">التصنيف (اختياري)</label>
+                                <input type="text" x-model="resourceCategory" placeholder="مثال: Goethe B1، عام..."
+                                       class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                            </div>
+
+                            <div x-show="resourceType === 'pdf'">
+                                <label class="block text-sm font-medium text-flag-ink/70 mb-2">ملف PDF</label>
+                                <input type="file" accept="application/pdf" @change="resourceFile = $event.target.files[0]"
+                                       class="w-full text-sm text-flag-ink/70 file:me-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-flag-black/5 file:text-flag-ink file:text-sm">
+                            </div>
+                            <div x-show="resourceType === 'youtube'">
+                                <label class="block text-sm font-medium text-flag-ink/70 mb-2">رابط فيديو يوتيوب</label>
+                                <input type="text" x-model="resourceYoutubeUrl" placeholder="https://www.youtube.com/watch?v=..."
+                                       class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                            </div>
+
+                            <p x-show="uploadError" x-cloak class="text-sm text-red-600" x-text="uploadError"></p>
+
+                            <button type="submit" :disabled="uploading" class="de-btn de-btn-primary w-full text-sm py-3 disabled:opacity-50">
+                                <span x-text="uploading ? 'جاري الرفع...' : 'إضافة إلى الفصل الدراسي'"></span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="lg:col-span-3 de-card rounded-2xl overflow-hidden">
+                        <div class="p-6 border-b border-black/5 flex items-center justify-between">
+                            <h2 class="font-display font-semibold text-flag-ink">المواد الحالية</h2>
+                            <span class="text-xs text-flag-ink/40 font-mono" x-text="resources.length + ' عنصر'"></span>
+                        </div>
+                        <div class="divide-y divide-black/5 max-h-[640px] overflow-y-auto">
+                            <template x-for="r in resources" :key="r.id">
+                                <div class="p-4 sm:p-5 flex items-center justify-between gap-4">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <span class="h-10 w-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                                              :class="r.type === 'pdf' ? 'bg-flag-red/10 text-flag-red' : 'bg-red-50 text-red-600'">
+                                            <i :class="r.type === 'pdf' ? 'fas fa-file-pdf' : 'fab fa-youtube'"></i>
+                                        </span>
+                                        <div class="min-w-0">
+                                            <div class="font-medium text-flag-ink truncate" x-text="r.title"></div>
+                                            <div class="text-xs text-flag-ink/50 truncate" x-text="r.category || (r.type === 'pdf' ? 'ملف PDF' : 'فيديو يوتيوب')"></div>
+                                        </div>
+                                    </div>
+                                    <button @click="confirmDeleteResource(r)" class="h-8 w-8 rounded-lg bg-flag-black/5 text-flag-ink/40 hover:bg-red-50 hover:text-red-600 transition-colors flex-shrink-0" title="حذف">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </template>
+                            <div x-show="!resourcesLoading && resources.length === 0" class="p-10 text-center text-sm text-flag-ink/40">
+                                لا توجد مواد بعد
+                            </div>
+                            <div x-show="resourcesLoading" x-cloak class="p-10 text-center text-sm text-flag-ink/40">
+                                <i class="fas fa-circle-notch fa-spin"></i> جاري التحميل...
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </template>
@@ -373,6 +466,27 @@
                 <div class="flex gap-3">
                     <button @click="deleteTarget = null" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#1E293B;">إلغاء</button>
                     <button @click="removeMember()" class="de-btn de-btn-primary flex-1 text-sm py-2.5">حذف</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Resource delete confirmation modal ============ -->
+    <div x-show="deleteResourceTarget" x-cloak x-transition
+         class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
+        <div class="de-card w-full max-w-sm overflow-hidden" @click.outside="deleteResourceTarget = null">
+            <div class="de-flag-ribbon"></div>
+            <div class="p-6 text-center">
+                <div class="h-12 w-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-trash"></i>
+                </div>
+                <h3 class="font-display font-semibold text-flag-ink mb-2">حذف المادة؟</h3>
+                <p class="text-sm text-flag-ink/60 mb-6">
+                    سيتم حذف <span class="font-medium" x-text="deleteResourceTarget && deleteResourceTarget.title"></span> نهائيًا من الفصل الدراسي. لا يمكن التراجع عن هذا الإجراء.
+                </p>
+                <div class="flex gap-3">
+                    <button @click="deleteResourceTarget = null" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#1E293B;">إلغاء</button>
+                    <button @click="deleteResource()" class="de-btn de-btn-primary flex-1 text-sm py-2.5">حذف</button>
                 </div>
             </div>
         </div>
@@ -400,6 +514,10 @@
 
                 members: [], memberFilter: 'all', memberSearch: '', membersLoading: false,
                 notifications: [], notifyTitle: '', notifyMessage: '', notifyAudience: 'all', sending: false,
+
+                resources: [], resourcesLoading: false, deleteResourceTarget: null,
+                resourceType: 'pdf', resourceTitle: '', resourceDescription: '', resourceCategory: '',
+                resourceFile: null, resourceYoutubeUrl: '', uploading: false, uploadError: '',
 
                 deleteTarget: null,
                 toast: '',
@@ -531,6 +649,97 @@
                         }
                     } catch (e) { console.error(e); }
                     finally { this.sending = false; }
+                },
+
+                async loadResources() {
+                    this.resourcesLoading = true;
+                    try {
+                        const { data, error } = await sb.from('resources').select('*').order('created_at', { ascending: false });
+                        if (!error) this.resources = data;
+                    } catch (e) { console.error(e); }
+                    finally { this.resourcesLoading = false; }
+                },
+
+                extractYoutubeId(url) {
+                    const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{6,})/);
+                    return match ? match[1] : null;
+                },
+
+                async uploadResource() {
+                    this.uploadError = '';
+                    if (!this.resourceTitle.trim()) {
+                        this.uploadError = 'العنوان مطلوب';
+                        return;
+                    }
+
+                    this.uploading = true;
+                    try {
+                        const row = {
+                            title: this.resourceTitle.trim(),
+                            description: this.resourceDescription.trim() || null,
+                            category: this.resourceCategory.trim() || null,
+                            type: this.resourceType,
+                            uploaded_by: this.admin.id
+                        };
+
+                        if (this.resourceType === 'pdf') {
+                            if (!this.resourceFile) {
+                                this.uploadError = 'يرجى اختيار ملف PDF';
+                                this.uploading = false;
+                                return;
+                            }
+                            const safeName = this.resourceFile.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+                            const path = `${crypto.randomUUID()}-${safeName}`;
+                            const { error: upErr } = await sb.storage.from('resources').upload(path, this.resourceFile);
+                            if (upErr) throw upErr;
+                            row.file_path = path;
+                        } else {
+                            const videoId = this.extractYoutubeId(this.resourceYoutubeUrl.trim());
+                            if (!videoId) {
+                                this.uploadError = 'رابط يوتيوب غير صالح';
+                                this.uploading = false;
+                                return;
+                            }
+                            row.youtube_id = videoId;
+                        }
+
+                        const { error: insErr } = await sb.from('resources').insert(row);
+                        if (insErr) throw insErr;
+
+                        this.resourceTitle = '';
+                        this.resourceDescription = '';
+                        this.resourceCategory = '';
+                        this.resourceFile = null;
+                        this.resourceYoutubeUrl = '';
+                        this.showToast('تمت إضافة المادة بنجاح');
+                        this.loadResources();
+                    } catch (e) {
+                        console.error(e);
+                        this.uploadError = 'حدث خطأ أثناء الرفع';
+                    } finally {
+                        this.uploading = false;
+                    }
+                },
+
+                confirmDeleteResource(resource) {
+                    this.deleteResourceTarget = resource;
+                },
+
+                async deleteResource() {
+                    const r = this.deleteResourceTarget;
+                    if (!r) return;
+                    try {
+                        if (r.type === 'pdf' && r.file_path) {
+                            await sb.storage.from('resources').remove([r.file_path]);
+                        }
+                        await sb.from('resources').delete().eq('id', r.id);
+                        this.showToast('تم حذف المادة');
+                        this.deleteResourceTarget = null;
+                        this.loadResources();
+                    } catch (e) {
+                        console.error(e);
+                        this.showToast('تعذّر حذف المادة');
+                    }
                 },
 
                 showToast(msg) {
