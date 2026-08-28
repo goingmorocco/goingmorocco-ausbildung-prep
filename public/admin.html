@@ -402,6 +402,17 @@
                                 <input type="text" x-model="resourceCategory" placeholder="مثال: Goethe B1، عام..."
                                        class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/30">
                             </div>
+                            <div>
+                                <label class="block text-sm font-medium text-flag-ink/70 mb-2">المهارة (لعرضها في صفحات التدريب السريع)</label>
+                                <select x-model="resourceSkill"
+                                        class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/30 bg-white">
+                                    <option value="">عام (بدون تصنيف مهارة)</option>
+                                    <option value="reading">القراءة</option>
+                                    <option value="listening">الاستماع</option>
+                                    <option value="writing">الكتابة</option>
+                                    <option value="speaking">المحادثة</option>
+                                </select>
+                            </div>
 
                             <div x-show="resourceType === 'pdf'">
                                 <label class="block text-sm font-medium text-flag-ink/70 mb-2">ملف PDF</label>
@@ -590,7 +601,7 @@
 
                 threads: [], threadsLoading: false, activeThread: null, threadMessages: [],
                 adminNewMessage: '', adminSending: false, totalUnread: 0, supportChannel: null,
-                resourceType: 'pdf', resourceTitle: '', resourceDescription: '', resourceCategory: '',
+                resourceType: 'pdf', resourceTitle: '', resourceDescription: '', resourceCategory: '', resourceSkill: '',
                 resourceFile: null, resourceYoutubeUrl: '', uploading: false, uploadError: '',
 
                 deleteTarget: null,
@@ -752,6 +763,7 @@
                             title: this.resourceTitle.trim(),
                             description: this.resourceDescription.trim() || null,
                             category: this.resourceCategory.trim() || null,
+                            skill: this.resourceSkill || null,
                             type: this.resourceType,
                             uploaded_by: this.admin.id
                         };
@@ -783,6 +795,7 @@
                         this.resourceTitle = '';
                         this.resourceDescription = '';
                         this.resourceCategory = '';
+                        this.resourceSkill = '';
                         this.resourceFile = null;
                         this.resourceYoutubeUrl = '';
                         this.showToast('تمت إضافة المادة بنجاح');

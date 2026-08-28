@@ -19,8 +19,8 @@
  *      you're using the CLI).
  *   2. Set these environment variables (from Supabase dashboard ->
  *      Project Settings -> API):
- *        export SUPABASE_URL="https://qonzvlatldtsalscffmm.supabase.co"
- *        export SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvbnp2bGF0bGR0c2Fsc2NmZm1tIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NzUyMjU2MSwiZXhwIjoyMTAzMDk4NTYxfQ.TvvrbxoJB9Z-a3GECoMVqZh0Hb5CSEJs4-YVLjKDby4"
+ *        export SUPABASE_URL="https://xxxx.supabase.co"
+ *        export SUPABASE_SERVICE_ROLE_KEY="..."
  *      The service role key bypasses RLS -- never expose it to the
  *      browser, only use it in scripts/servers you control.
  *   3. npm install @supabase/supabase-js   (one-time)
@@ -60,7 +60,8 @@ async function upsertTest(test) {
         duration_minutes: test.duration_minutes,
         total_questions: test.total_questions,
         passing_score: test.passing_score,
-        is_active: test.is_active
+        is_active: test.is_active,
+        is_skill_practice: !!test.is_skill_practice
       },
       { onConflict: 'test_type' }
     )

@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تدريب سريع - إعداد اختبار Ausbildungsaufnahme</title>
+    <meta name="robots" content="noindex, nofollow">
+
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              flag: {
+                black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
+                red: '#2563EB', redbright: '#3B82F6', reddeep: '#1D4ED8',
+                gold: '#38BDF8', goldsoft: '#7DD3FC',
+                accent: '#FF7A45', accentbright: '#FF9466', accentdeep: '#E85A2A',
+                cream: '#F5F8FC', paper: '#FFFFFF', ink: '#1E293B'
+              }
+            },
+            fontFamily: {
+              display: ['"Space Grotesk"', 'sans-serif'],
+              arabic: ['Cairo', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'monospace']
+            }
+          }
+        }
+      }
+    </script>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>[x-cloak]{display:none !important;}</style>
+</head>
+<body class="font-arabic de-paper-bg text-flag-ink antialiased min-h-screen" x-data="skillPracticeApp()" x-init="init()">
+
+    <!-- ============ LOADING ============ -->
+    <div x-show="!authChecked" class="min-h-screen flex items-center justify-center de-dark-bg text-white">
+        <i class="fas fa-circle-notch fa-spin text-2xl"></i>
+    </div>
+
+    <!-- ============ MEMBERSHIP GATE ============ -->
+    <template x-if="authChecked && user && gateStatus !== 'ok'">
+        <div class="min-h-screen de-dark-bg flex items-center justify-center p-4">
+            <div class="de-card w-full max-w-md overflow-hidden text-center">
+                <div class="de-flag-ribbon"></div>
+                <div class="p-8">
+                    <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5"><i class="fas fa-hourglass-half"></i></span>
+                    <h1 class="font-display text-xl font-bold text-flag-ink mb-3">حسابك قيد المراجعة</h1>
+                    <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">التدريبات السريعة متاحة فقط للأعضاء المفعّلين.</p>
+                    <a href="dashboard.html" class="de-btn w-full text-sm py-3" style="background:#EEEAE0;color:#1E293B;">
+                        <i class="fas fa-arrow-right"></i> العودة إلى لوحة التحكم
+                    </a>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============ MAIN ============ -->
+    <template x-if="authChecked && user && gateStatus === 'ok'">
+        <div>
+            <header class="sticky top-0 z-30">
+                <div class="de-light-bg text-flag-ink shadow-sm border-b border-black/5">
+                    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="flex justify-between h-16 items-center">
+                            <a href="dashboard.html" class="flex items-center gap-3">
+                                <span class="de-stamp de-stamp-onlight h-10 w-10 text-xs"><i class="fas" :class="skillMeta.icon"></i></span>
+                                <span class="font-display font-semibold" x-text="skillMeta.title"></span>
+                            </a>
+                            <a href="dashboard.html" class="text-sm text-flag-ink/60 hover:text-flag-red transition-colors">
+                                <i class="fas fa-arrow-right"></i> <span class="hidden sm:inline">لوحة التحكم</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+                <!-- ===== INTRO ===== -->
+                <template x-if="phase === 'intro'">
+                    <div>
+                        <div class="de-card-dark text-white rounded-2xl p-6 mb-8 relative overflow-hidden">
+                            <div class="de-corner-mark top-4 end-4 rounded-tr-xl border-b-0 border-s-0 hidden sm:block"></div>
+                            <div class="flex items-center gap-4">
+                                <div class="h-12 w-12 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <i class="fas text-flag-gold text-xl" :class="skillMeta.icon"></i>
+                                </div>
+                                <div>
+                                    <h2 class="font-display text-xl font-bold mb-1" x-text="skillMeta.title"></h2>
+                                    <p class="text-sm text-white/70" x-text="skillMeta.description"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="de-card rounded-2xl p-6 mb-8 text-center">
+                            <div class="flex items-center justify-center gap-2 text-flag-ink/50 text-sm mb-6">
+                                <i class="fas fa-clock"></i> حوالي <span x-text="test ? test.duration_minutes : '5-8'"></span> دقائق
+                                <span class="mx-1">·</span>
+                                <i class="fas fa-list-check"></i> <span x-text="test ? test.total_questions : ''"></span> أسئلة
+                            </div>
+
+                            <div x-show="previousAttempt" x-cloak class="de-card rounded-xl p-4 max-w-xs mx-auto mb-6 bg-flag-cream/60">
+                                <div class="text-xs text-flag-ink/50 mb-1">آخر نتيجة لك</div>
+                                <div class="text-3xl font-display font-bold text-flag-ink" x-text="previousAttempt ? previousAttempt.score_percentage + '%' : ''"></div>
+                                <div class="text-xs text-flag-ink/40 mt-1" x-text="previousAttempt ? formatDate(previousAttempt.completed_at) : ''"></div>
+                            </div>
+                            <p x-show="!previousAttempt" class="text-sm text-flag-ink/40 mb-6">لم تخض هذا التدريب من قبل — هذه أول محاولة لك</p>
+
+                            <button @click="startPractice()" class="de-btn de-btn-primary text-sm py-3 px-8">
+                                <i class="fas fa-play"></i> ابدأ التدريب
+                            </button>
+                        </div>
+
+                        <!-- Resources -->
+                        <div x-show="resources.length > 0">
+                            <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
+                                <i class="fas fa-book text-flag-red me-2"></i> للمزيد من التدريب
+                            </h2>
+                            <div class="grid sm:grid-cols-2 gap-4">
+                                <template x-for="r in resources" :key="r.id">
+                                    <button @click="r.type === 'pdf' ? openPdf(r) : openVideo(r)" class="de-card rounded-2xl p-4 flex items-center gap-3 text-start w-full">
+                                        <span class="h-11 w-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                                              :class="r.type === 'pdf' ? 'bg-flag-red/10 text-flag-red' : 'bg-red-50 text-red-600'">
+                                            <i :class="r.type === 'pdf' ? 'fas fa-file-pdf' : 'fab fa-youtube'"></i>
+                                        </span>
+                                        <div class="min-w-0">
+                                            <h3 class="font-display font-semibold text-flag-ink text-sm truncate" x-text="r.title"></h3>
+                                            <p class="text-xs text-flag-ink/50" x-text="r.type === 'pdf' ? 'اضغط لفتح المستند' : 'اضغط لمشاهدة الفيديو'"></p>
+                                        </div>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- ===== TAKING ===== -->
+                <template x-if="phase === 'taking' && currentQuestion">
+                    <div class="de-card rounded-2xl p-6">
+                        <div class="mb-4 flex items-center justify-between bg-flag-cream rounded-lg p-3">
+                            <span class="text-xs text-flag-ink/50">الوقت المتبقي</span>
+                            <span class="font-mono text-lg font-semibold text-flag-red" x-text="formatCountdown(timeLeftSeconds)"></span>
+                        </div>
+
+                        <div class="mb-6">
+                            <div class="flex justify-between mb-2 text-xs text-flag-ink/50">
+                                <span>السؤال <span x-text="currentQuestionIndex + 1"></span> من <span x-text="gradedItems.length"></span></span>
+                                <span x-text="Math.round(((currentQuestionIndex + 1) / gradedItems.length) * 100) + '%'"></span>
+                            </div>
+                            <div class="w-full bg-black/10 rounded-full h-2">
+                                <div class="de-flag-ribbon rounded-full h-2" :style="{ width: (((currentQuestionIndex + 1) / gradedItems.length) * 100) + '%' }"></div>
+                            </div>
+                        </div>
+
+                        <template x-if="currentQuestion.sectionAudioUrl && !audioFailed">
+                            <div class="de-card rounded-xl p-4 mb-4 bg-flag-cream">
+                                <audio :src="currentQuestion.sectionAudioUrl" controls preload="none"
+                                       @error="audioFailed = true; showTranscript = true" class="w-full mb-3"></audio>
+                                <button @click="showTranscript = !showTranscript" class="text-xs text-flag-red hover:text-flag-reddeep">
+                                    <i class="fas fa-file-lines"></i> <span x-text="showTranscript ? 'إخفاء النص المكتوب' : 'إظهار النص المكتوب'"></span>
+                                </button>
+                                <p class="text-sm text-flag-ink/80 whitespace-pre-line mt-3" x-show="showTranscript" x-text="currentQuestion.sectionPassage"></p>
+                            </div>
+                        </template>
+                        <div class="de-card rounded-xl p-4 mb-4 bg-flag-cream"
+                             x-show="currentQuestion.sectionPassage && !(currentQuestion.sectionAudioUrl && !audioFailed)">
+                            <p class="text-xs text-flag-ink/40 mb-2" x-show="currentQuestion.sectionType === 'listening'">
+                                <i class="fas fa-circle-info"></i> الاستماع الصوتي غير متاح بعد لهذا التدريب — نص بديل للقراءة
+                            </p>
+                            <p class="text-sm text-flag-ink/80 whitespace-pre-line" x-text="currentQuestion.sectionPassage"></p>
+                        </div>
+
+                        <div class="de-card rounded-xl p-5 mb-6">
+                            <p class="font-medium text-flag-ink mb-4" x-text="currentQuestion.question_text"></p>
+                            <div class="space-y-2">
+                                <template x-for="opt in currentQuestion.answers" :key="opt.id">
+                                    <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
+                                           :class="selectedAnswers[currentQuestion.id] === opt.id ? 'border-flag-red bg-flag-red/5' : 'border-black/10 hover:border-black/20'"
+                                           @click="selectedAnswers[currentQuestion.id] = opt.id">
+                                        <span class="h-4 w-4 rounded-full border flex-shrink-0"
+                                              :class="selectedAnswers[currentQuestion.id] === opt.id ? 'border-flag-red bg-flag-red' : 'border-black/30'"></span>
+                                        <span class="text-sm text-flag-ink" x-text="opt.answer_text"></span>
+                                    </label>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between gap-3">
+                            <button @click="currentQuestionIndex = Math.max(0, currentQuestionIndex - 1)" :disabled="currentQuestionIndex === 0"
+                                    class="de-btn text-sm py-2 px-4 disabled:opacity-40" style="background:#EEEAE0;color:#1E293B;">
+                                <i class="fas fa-arrow-right"></i> السابق
+                            </button>
+                            <button x-show="currentQuestionIndex < gradedItems.length - 1"
+                                    @click="currentQuestionIndex = Math.min(gradedItems.length - 1, currentQuestionIndex + 1)"
+                                    class="de-btn text-sm py-2 px-4" style="background:#EEEAE0;color:#1E293B;">
+                                التالي <i class="fas fa-arrow-left"></i>
+                            </button>
+                            <button x-show="currentQuestionIndex === gradedItems.length - 1" @click="submitPractice()" class="de-btn de-btn-primary text-sm py-2 px-5">
+                                <i class="fas fa-paper-plane"></i> إرسال
+                            </button>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- ===== RESULTS ===== -->
+                <template x-if="phase === 'results' && testResults">
+                    <div>
+                        <div class="de-card rounded-2xl p-6 text-center mb-8">
+                            <i class="fas fa-chart-bar text-4xl mb-3" :class="testResults.passed ? 'text-emerald-600' : 'text-red-600'"></i>
+                            <p class="text-sm font-medium mb-6" :class="testResults.passed ? 'text-emerald-700' : 'text-red-600'"
+                               x-text="testResults.passed ? 'ناجح' : 'راسب'"></p>
+
+                            <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto mb-3">
+                                <div class="de-card rounded-xl p-4">
+                                    <div class="text-xs text-flag-ink/50 mb-1">المحاولة السابقة</div>
+                                    <div class="text-2xl font-display font-bold text-flag-ink" x-text="previousAttempt ? previousAttempt.score_percentage + '%' : '—'"></div>
+                                </div>
+                                <div class="de-card rounded-xl p-4">
+                                    <div class="text-xs text-flag-ink/50 mb-1">هذه المحاولة</div>
+                                    <div class="text-2xl font-display font-bold" :class="testResults.passed ? 'text-emerald-600' : 'text-red-600'" x-text="testResults.score_percentage + '%'"></div>
+                                </div>
+                            </div>
+                            <div x-show="previousAttempt" x-cloak class="mb-6">
+                                <span class="de-badge" :class="scoreDelta() > 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : (scoreDelta() < 0 ? 'bg-red-50 text-red-600 border border-red-200' : 'de-badge-gold')">
+                                    <i class="fas" :class="scoreDelta() > 0 ? 'fa-arrow-up' : (scoreDelta() < 0 ? 'fa-arrow-down' : 'fa-minus')"></i>
+                                    <span x-text="(scoreDelta() > 0 ? '+' : '') + scoreDelta() + '% مقارنة بالمرة السابقة'"></span>
+                                </span>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3 text-sm text-start max-w-sm mx-auto mb-6">
+                                <div class="de-card rounded-lg p-3">
+                                    <div class="text-xs text-flag-ink/50 mb-1">الوقت المستغرق</div>
+                                    <div class="font-medium" x-text="formatDuration(testResults.time_taken_seconds)"></div>
+                                </div>
+                                <div class="de-card rounded-lg p-3">
+                                    <div class="text-xs text-flag-ink/50 mb-1">الإجابات الصحيحة</div>
+                                    <div class="font-medium" x-text="testResults.correct_answers + '/' + testResults.total_questions"></div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-center gap-3">
+                                <a href="dashboard.html" class="de-btn text-sm py-2.5 px-5" style="background:#EEEAE0;color:#1E293B;">لوحة التحكم</a>
+                                <button @click="retakePractice()" class="de-btn de-btn-primary text-sm py-2.5 px-5">
+                                    <i class="fas fa-rotate-right"></i> أعد المحاولة
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="text-start space-y-3 max-w-xl mx-auto mb-8">
+                            <h4 class="font-display font-semibold text-flag-ink text-sm mb-2">مراجعة الأسئلة</h4>
+                            <template x-for="q in testResults.questions_review" :key="q.id">
+                                <div class="de-card rounded-xl p-4" :style="{ borderInlineStartWidth: '4px', borderInlineStartColor: q.is_correct ? '#059669' : '#DC2626' }">
+                                    <p class="text-sm font-medium text-flag-ink mb-2" x-text="q.question_text"></p>
+                                    <p class="text-xs text-flag-ink/60">إجابتك: <span x-text="q.selected_answer_text || '—'"></span></p>
+                                    <p class="text-xs text-flag-ink/60">الإجابة الصحيحة: <span x-text="q.correct_answer_text"></span></p>
+                                    <p class="text-xs text-flag-ink/40 italic mt-1" x-show="q.explanation" x-text="q.explanation"></p>
+                                </div>
+                            </template>
+                        </div>
+
+                        <div x-show="resources.length > 0">
+                            <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
+                                <i class="fas fa-book text-flag-red me-2"></i> للمزيد من التدريب
+                            </h2>
+                            <div class="grid sm:grid-cols-2 gap-4">
+                                <template x-for="r in resources" :key="r.id">
+                                    <button @click="r.type === 'pdf' ? openPdf(r) : openVideo(r)" class="de-card rounded-2xl p-4 flex items-center gap-3 text-start w-full">
+                                        <span class="h-11 w-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                                              :class="r.type === 'pdf' ? 'bg-flag-red/10 text-flag-red' : 'bg-red-50 text-red-600'">
+                                            <i :class="r.type === 'pdf' ? 'fas fa-file-pdf' : 'fab fa-youtube'"></i>
+                                        </span>
+                                        <div class="min-w-0">
+                                            <h3 class="font-display font-semibold text-flag-ink text-sm truncate" x-text="r.title"></h3>
+                                            <p class="text-xs text-flag-ink/50" x-text="r.type === 'pdf' ? 'اضغط لفتح المستند' : 'اضغط لمشاهدة الفيديو'"></p>
+                                        </div>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </main>
+        </div>
+    </template>
+
+    <!-- ============ PDF viewer modal ============ -->
+    <div x-show="viewingPdf" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/70 backdrop-blur-sm p-4">
+        <div class="de-card w-full max-w-4xl h-[90vh] overflow-hidden flex flex-col">
+            <div class="de-flag-ribbon"></div>
+            <div class="flex items-center justify-between px-6 py-4 border-b border-black/10 flex-shrink-0">
+                <h3 class="font-display font-semibold text-flag-ink truncate" x-text="viewingPdf && viewingPdf.title"></h3>
+                <button @click="closePdf()" class="text-flag-ink/40 hover:text-flag-red flex-shrink-0 ms-4"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="flex-1 bg-flag-cream">
+                <iframe x-show="viewingPdf" :src="viewingPdf && viewingPdf.url" class="w-full h-full" frameborder="0"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Video lightbox ============ -->
+    <div x-show="viewingVideo" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/70 backdrop-blur-sm p-4">
+        <div class="de-card w-full max-w-2xl overflow-hidden">
+            <div class="de-flag-ribbon"></div>
+            <div class="flex items-center justify-between px-5 py-3 border-b border-black/10">
+                <h3 class="font-display font-semibold text-flag-ink text-sm truncate" x-text="viewingVideo && viewingVideo.title"></h3>
+                <button @click="closeVideo()" class="text-flag-ink/40 hover:text-flag-red flex-shrink-0 ms-4"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="aspect-video bg-flag-black">
+                <template x-if="viewingVideo">
+                    <iframe :src="'https://www.youtube.com/embed/' + viewingVideo.youtube_id + '?autoplay=1'" class="w-full h-full" frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                </template>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Toast ============ -->
+    <div x-show="toast" x-cloak x-transition class="fixed bottom-6 inset-x-0 flex justify-center z-50 px-4">
+        <div class="de-card px-5 py-3 rounded-xl flex items-center gap-2 text-sm shadow-xl">
+            <i class="fas fa-circle-exclamation text-red-600"></i>
+            <span x-text="toast"></span>
+        </div>
+    </div>
+
+    <script>
+        function skillPracticeApp() {
+            return {
+                skill: null,
+                skillMeta: { title: 'تدريب سريع', description: '', icon: 'fa-bolt' },
+                user: null,
+                authChecked: false,
+                gateStatus: 'loading',
+
+                phase: 'intro', // intro | taking | results
+                test: null,
+                previousAttempt: null,
+                resources: [],
+
+                activeAttemptId: null,
+                gradedItems: [],
+                currentQuestionIndex: 0,
+                selectedAnswers: {},
+                testResults: null,
+                showTranscript: false,
+                audioFailed: false,
+                timeLeftSeconds: 0,
+                timerHandle: null,
+                testStartedAt: null,
+
+                viewingPdf: null,
+                viewingVideo: null,
+                toast: '',
+
+                get currentQuestion() {
+                    return this.gradedItems[this.currentQuestionIndex] || null;
+                },
+
+                async init() {
+                    const params = new URLSearchParams(window.location.search);
+                    this.skill = params.get('skill');
+                    const meta = {
+                        reading: { title: 'تدريب القراءة', icon: 'fa-book-open', description: 'نص قصير وأسئلة استيعاب — تدريب سريع لتحسين مهارة القراءة.' },
+                        listening: { title: 'تدريب الاستماع', icon: 'fa-headphones', description: 'حوار قصير وأسئلة استيعاب — تدريب سريع لتحسين مهارة الاستماع.' },
+                        writing: { title: 'أساسيات الكتابة', icon: 'fa-pen', description: 'تدريب على القواعد والروابط اللغوية — أساسيات الكتابة الجيدة بالألمانية.' }
+                    };
+                    if (!this.skill || !meta[this.skill]) {
+                        window.location.href = 'dashboard.html';
+                        return;
+                    }
+                    this.skillMeta = meta[this.skill];
+
+                    const { data: { session } } = await sb.auth.getSession();
+                    if (!session) {
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                    try {
+                        const profile = await sbGetProfile(session.user.id);
+                        if (profile.role === 'admin') {
+                            window.location.href = 'admin.html';
+                            return;
+                        }
+                        this.user = profile;
+                        this.gateStatus = profile.membership_status === 'active' ? 'ok' : profile.membership_status;
+                        this.authChecked = true;
+
+                        if (this.gateStatus === 'ok') this.loadIntroData();
+                    } catch (e) {
+                        console.error(e);
+                        this.authChecked = true;
+                    }
+                },
+
+                async loadIntroData() {
+                    try {
+                        const { data: test } = await sb.from('tests').select('*')
+                            .eq('test_type', 'skill_' + this.skill).eq('is_skill_practice', true).single();
+                        if (!test) return;
+                        this.test = test;
+
+                        const { data: prev } = await sb.from('user_test_attempts').select('*')
+                            .eq('user_id', this.user.id).eq('test_id', test.id)
+                            .not('completed_at', 'is', null)
+                            .order('completed_at', { ascending: false }).limit(1).maybeSingle();
+                        this.previousAttempt = prev || null;
+
+                        const { data: allResources } = await sb.from('resources').select('*').order('created_at', { ascending: false });
+                        if (allResources) {
+                            const matched = allResources.filter(r => r.skill === this.skill);
+                            this.resources = matched.length ? matched : allResources.filter(r => !r.skill).slice(0, 4);
+                        }
+                    } catch (e) {
+                        console.error(e);
+                    }
+                },
+
+                async startPractice() {
+                    try {
+                        const startData = await sbInvoke('test-attempt', { action: 'start', test_id: this.test.id });
+                        if (!startData.success) {
+                            this.showToast(startData.message || 'تعذّر بدء التدريب');
+                            return;
+                        }
+                        this.activeAttemptId = startData.attempt.id;
+
+                        const detailData = await sbInvoke('test-detail', { test_id: this.test.id });
+                        const sections = (detailData.success && detailData.test.sections) ? detailData.test.sections : [];
+                        const flattened = [];
+                        sections.forEach(section => {
+                            section.items.forEach(item => {
+                                flattened.push({
+                                    ...item,
+                                    sectionType: section.type,
+                                    sectionPassage: section.passage,
+                                    sectionAudioUrl: section.audio_url || null
+                                });
+                            });
+                        });
+                        if (!flattened.length) {
+                            this.showToast('لا توجد أسئلة متاحة حاليًا');
+                            return;
+                        }
+
+                        this.gradedItems = flattened;
+                        this.currentQuestionIndex = 0;
+                        this.selectedAnswers = {};
+                        this.testResults = null;
+                        this.showTranscript = false;
+                        this.audioFailed = false;
+                        this.phase = 'taking';
+                        this.testStartedAt = Date.now();
+                        this.startTimer(Math.max(180, flattened.length * 60));
+                    } catch (e) {
+                        console.error(e);
+                        this.showToast('حدث خطأ أثناء بدء التدريب');
+                    }
+                },
+
+                startTimer(seconds) {
+                    this.stopTimer();
+                    this.timeLeftSeconds = seconds;
+                    this.timerHandle = setInterval(() => {
+                        if (this.timeLeftSeconds <= 1) {
+                            this.timeLeftSeconds = 0;
+                            this.stopTimer();
+                            this.submitPractice();
+                        } else {
+                            this.timeLeftSeconds--;
+                        }
+                    }, 1000);
+                },
+
+                stopTimer() {
+                    if (this.timerHandle) { clearInterval(this.timerHandle); this.timerHandle = null; }
+                },
+
+                async submitPractice() {
+                    this.stopTimer();
+                    const answers = Object.entries(this.selectedAnswers).map(([question_id, answer_id]) => ({ question_id, answer_id }));
+                    const timeTaken = this.testStartedAt ? Math.round((Date.now() - this.testStartedAt) / 1000) : 0;
+                    try {
+                        const data = await sbInvoke('test-attempt', {
+                            action: 'submit', attempt_id: this.activeAttemptId, answers, time_taken_seconds: timeTaken
+                        });
+                        if (data.success) {
+                            this.testResults = data.result;
+                            this.phase = 'results';
+                        } else {
+                            this.showToast(data.message || 'حدث خطأ أثناء إرسال التدريب');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        this.showToast('حدث خطأ أثناء إرسال التدريب');
+                    }
+                },
+
+                scoreDelta() {
+                    if (!this.testResults || !this.previousAttempt) return 0;
+                    return this.testResults.score_percentage - this.previousAttempt.score_percentage;
+                },
+
+                retakePractice() {
+                    this.previousAttempt = { score_percentage: this.testResults.score_percentage, completed_at: new Date().toISOString() };
+                    this.phase = 'intro';
+                    this.startPractice();
+                },
+
+                async openPdf(resource) {
+                    try {
+                        const { data, error } = await sb.storage.from('resources').createSignedUrl(resource.file_path, 3600);
+                        if (error || !data) { this.showToast('تعذّر فتح المستند'); return; }
+                        this.viewingPdf = { title: resource.title, url: data.signedUrl };
+                    } catch (e) {
+                        console.error(e);
+                        this.showToast('تعذّر فتح المستند');
+                    }
+                },
+                closePdf() { this.viewingPdf = null; },
+                openVideo(resource) { this.viewingVideo = resource; },
+                closeVideo() { this.viewingVideo = null; },
+
+                showToast(msg) {
+                    this.toast = msg;
+                    setTimeout(() => { this.toast = ''; }, 2800);
+                },
+
+                formatDate(iso) {
+                    if (!iso) return '—';
+                    return new Date(iso).toLocaleDateString('ar-MA', { year: 'numeric', month: 'short', day: 'numeric' });
+                },
+                formatDuration(totalSeconds) {
+                    const s = totalSeconds || 0;
+                    const mins = Math.floor(s / 60);
+                    const secs = s % 60;
+                    return mins > 0 ? `${mins}د ${secs}ث` : `${secs}ث`;
+                },
+                formatCountdown(totalSeconds) {
+                    const s = Math.max(0, totalSeconds || 0);
+                    const mins = Math.floor(s / 60).toString().padStart(2, '0');
+                    const secs = (s % 60).toString().padStart(2, '0');
+                    return `${mins}:${secs}`;
+                }
+            };
+        }
+    </script>
+</body>
+</html>

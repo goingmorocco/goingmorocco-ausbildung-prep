@@ -245,6 +245,36 @@
                     </div>
                 </div>
 
+                <!-- Quick drills -->
+                <div class="mb-10">
+                    <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
+                        <i class="fas fa-bolt text-flag-red me-2"></i> تدريبات سريعة
+                    </h2>
+                    <div class="grid sm:grid-cols-3 gap-4">
+                        <a href="skill-practice.html?skill=reading" class="de-card rounded-2xl p-5 block hover:border-flag-red/30 transition-colors">
+                            <div class="h-11 w-11 rounded-xl bg-flag-red/10 flex items-center justify-center mb-3">
+                                <i class="fas fa-book-open text-flag-red"></i>
+                            </div>
+                            <h3 class="font-display font-semibold text-flag-ink mb-1">تدريب القراءة</h3>
+                            <p class="text-xs text-flag-ink/50">نص قصير + أسئلة — 5-8 دقائق</p>
+                        </a>
+                        <a href="skill-practice.html?skill=listening" class="de-card rounded-2xl p-5 block hover:border-flag-red/30 transition-colors">
+                            <div class="h-11 w-11 rounded-xl bg-flag-gold/20 flex items-center justify-center mb-3">
+                                <i class="fas fa-headphones text-flag-ink"></i>
+                            </div>
+                            <h3 class="font-display font-semibold text-flag-ink mb-1">تدريب الاستماع</h3>
+                            <p class="text-xs text-flag-ink/50">حوار قصير + أسئلة — 5-8 دقائق</p>
+                        </a>
+                        <a href="skill-practice.html?skill=writing" class="de-card rounded-2xl p-5 block hover:border-flag-red/30 transition-colors">
+                            <div class="h-11 w-11 rounded-xl bg-flag-red/10 flex items-center justify-center mb-3">
+                                <i class="fas fa-pen text-flag-red"></i>
+                            </div>
+                            <h3 class="font-display font-semibold text-flag-ink mb-1">أساسيات الكتابة</h3>
+                            <p class="text-xs text-flag-ink/50">قواعد وروابط لغوية — 5-8 دقائق</p>
+                        </a>
+                    </div>
+                </div>
+
                 <!-- Available tests -->
                 <div id="available-tests" class="mb-10">
                     <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
@@ -730,7 +760,7 @@
                         const [subRes, attemptsData, testsRes] = await Promise.all([
                             sb.from('subscriptions').select('*').eq('user_id', this.user.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
                             sbInvoke('test-attempt', { action: 'list' }),
-                            sb.from('tests').select('*').eq('is_active', true)
+                            sb.from('tests').select('*').eq('is_active', true).eq('is_skill_practice', false)
                         ]);
 
                         if (subRes.data) this.subscription = subRes.data;

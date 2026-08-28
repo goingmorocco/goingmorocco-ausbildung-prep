@@ -7,6 +7,15 @@
 // under /public/audio/<testId>__<sectionKey>.mp3. Those files do not exist
 // until you run `node scripts/generate-audio.js` (see that file for setup).
 // Until then the frontend gracefully falls back to the transcript.
+//
+// `is_skill_practice: true` marks the short 5-8 minute single-skill
+// drills (test_skill_reading / test_skill_listening / test_skill_writing)
+// used by public/skill-practice.html, as opposed to the long realistic
+// exams. The "writing" skill test is deliberately a grammar/connectors/
+// word-choice quiz, not free-composition writing -- free text can't be
+// auto-graded reliably, so it focuses on the gradable mechanics instead.
+// Real essay practice stays in the ungraded Schreiben prompts on the full
+// exams.
 
 const mockTests = [
   {
@@ -18,7 +27,8 @@ const mockTests = [
     "duration_minutes": 165,
     "total_questions": 60,
     "passing_score": 60,
-    "is_active": true
+    "is_active": true,
+    "is_skill_practice": false
   },
   {
     "id": "test_goethe_b2",
@@ -29,7 +39,8 @@ const mockTests = [
     "duration_minutes": 180,
     "total_questions": 60,
     "passing_score": 60,
-    "is_active": true
+    "is_active": true,
+    "is_skill_practice": false
   },
   {
     "id": "test_telc_b1_beruf",
@@ -40,7 +51,8 @@ const mockTests = [
     "duration_minutes": 150,
     "total_questions": 60,
     "passing_score": 60,
-    "is_active": true
+    "is_active": true,
+    "is_skill_practice": false
   },
   {
     "id": "test_telc_b2_beruf",
@@ -51,7 +63,8 @@ const mockTests = [
     "duration_minutes": 150,
     "total_questions": 60,
     "passing_score": 60,
-    "is_active": true
+    "is_active": true,
+    "is_skill_practice": false
   },
   {
     "id": "test_osd_b1",
@@ -62,7 +75,8 @@ const mockTests = [
     "duration_minutes": 160,
     "total_questions": 60,
     "passing_score": 60,
-    "is_active": true
+    "is_active": true,
+    "is_skill_practice": false
   },
   {
     "id": "test_osd_b2",
@@ -73,7 +87,44 @@ const mockTests = [
     "duration_minutes": 210,
     "total_questions": 64,
     "passing_score": 60,
-    "is_active": true
+    "is_active": true,
+    "is_skill_practice": false
+  },
+  {
+    "id": "test_skill_reading",
+    "title": "تدريب سريع: القراءة",
+    "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق، مثالي للتدريب اليومي السريع",
+    "test_type": "skill_reading",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true
+  },
+  {
+    "id": "test_skill_listening",
+    "title": "تدريب سريع: الاستماع",
+    "description": "حوار قصير وست أسئلة استيعاب — حوالي 6 دقائق، مثالي للتدريب اليومي السريع",
+    "test_type": "skill_listening",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true
+  },
+  {
+    "id": "test_skill_writing",
+    "title": "تدريب سريع: أساسيات الكتابة",
+    "description": "تدريب على القواعد والروابط اللغوية الأساسية للكتابة الجيدة — حوالي 6 دقائق",
+    "test_type": "skill_writing",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 7,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true
   }
 ];
 
@@ -12062,6 +12113,506 @@ const mockContent = {
       "prompt": "Schreiben Sie eine Meinungsäußerung (ca. 120 Wörter) zum Thema: \"Sollte die Vier-Tage-Woche gesetzlich verpflichtend werden?\" Nennen Sie Argumente dafür und dagegen und formulieren Sie einen klaren Standpunkt.",
       "sample_answer": "Die Frage, ob die Vier-Tage-Woche gesetzlich verpflichtend werden sollte, wird kontrovers diskutiert. Befürworter argumentieren, dass kürzere Arbeitszeiten die Gesundheit der Beschäftigten verbessern und die Produktivität sogar steigern können, wie erste Pilotprojekte zeigen. Gegner hingegen warnen, dass nicht jede Branche gleich davon profitieren kann, etwa im Gesundheitswesen oder im Handel, wo durchgehende Anwesenheit notwendig ist.\n\nMeiner Meinung nach wäre eine gesetzliche Pflicht zu starr. Sinnvoller erscheint mir, Unternehmen finanzielle Anreize zu bieten, damit sie das Modell freiwillig testen können. So ließe sich herausfinden, in welchen Branchen es tatsächlich funktioniert, ohne alle Betriebe pauschal zu zwingen."
     }
+  },
+  "test_skill_reading": {
+    "sections": [
+      {
+        "key": "reading1",
+        "name": "قراءة سريعة",
+        "type": "reading",
+        "official_duration_minutes": null,
+        "instructions": "اقرأ النص التالي ثم أجب عن الأسئلة.",
+        "passage": "Ein Tag im Café\n\nMarwa arbeitet seit drei Monaten als Barista in einem kleinen Café in der Innenstadt. Ihr Arbeitstag beginnt um sieben Uhr morgens, wenn sie den ersten Kaffee für die Frühkunden zubereitet. Am liebsten mag sie die Zeit zwischen acht und neun Uhr, wenn viele Studierende vor der Uni noch schnell einen Cappuccino holen. Nach der Arbeit lernt sie meistens zwei Stunden Deutsch, weil sie nächstes Jahr eine Ausbildung im Gesundheitswesen beginnen möchte.",
+        "items": [
+          {
+            "id": "sr_q1",
+            "question_text": "Marwa arbeitet seit drei Monaten als Barista.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt genau das.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "sr_q1_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "sr_q1_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sr_q2",
+            "question_text": "Ihr Arbeitstag beginnt um neun Uhr.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er beginnt um sieben Uhr morgens.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "sr_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "sr_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "sr_q3",
+            "question_text": "Welche Zeit mag Marwa am liebsten?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt genau diese Zeit.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "sr_q3_a1",
+                "answer_text": "Zwischen acht und neun Uhr",
+                "is_correct": true
+              },
+              {
+                "id": "sr_q3_a2",
+                "answer_text": "Zwischen sieben und acht Uhr",
+                "is_correct": false
+              },
+              {
+                "id": "sr_q3_a3",
+                "answer_text": "Am Nachmittag",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sr_q4",
+            "question_text": "Wer kommt in dieser Zeit oft ins Café?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt Studierende vor der Uni.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "sr_q4_a1",
+                "answer_text": "Studierende vor der Uni",
+                "is_correct": true
+              },
+              {
+                "id": "sr_q4_a2",
+                "answer_text": "Kinder nach der Schule",
+                "is_correct": false
+              },
+              {
+                "id": "sr_q4_a3",
+                "answer_text": "Touristen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sr_q5",
+            "question_text": "Marwa lernt nach der Arbeit Deutsch.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt, sie lernt danach zwei Stunden Deutsch.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "sr_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "sr_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sr_q6",
+            "question_text": "Was möchte Marwa nächstes Jahr beginnen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt genau dieses Ziel.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "sr_q6_a1",
+                "answer_text": "Eine Ausbildung im Gesundheitswesen",
+                "is_correct": true
+              },
+              {
+                "id": "sr_q6_a2",
+                "answer_text": "Ein Studium",
+                "is_correct": false
+              },
+              {
+                "id": "sr_q6_a3",
+                "answer_text": "Eine eigene Firma",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_listening": {
+    "sections": [
+      {
+        "key": "listening1",
+        "name": "استماع سريع",
+        "type": "listening",
+        "official_duration_minutes": null,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص المكالمة كما لو كنت تسمعها، ثم أجب عن الأسئلة.",
+        "passage": "Anruf bei der Arztpraxis:\n\"Praxis Dr. Berger, guten Tag.\nGuten Tag, hier ist Amina Saidi. Ich hätte gerne einen Termin für eine allgemeine Untersuchung.\nGerne, haben Sie schon einmal einen Termin bei uns gehabt?\nNein, das ist mein erster Termin hier.\nKein Problem. Ich habe am Donnerstag um 14:30 Uhr einen freien Platz, passt Ihnen das?\nJa, das passt sehr gut.\nPerfekt, bitte bringen Sie Ihre Versichertenkarte und einen Ausweis mit.\nMache ich, vielen Dank!\"",
+        "audio_url": "/audio/test_skill_listening__listening1.mp3",
+        "items": [
+          {
+            "id": "sl_q1",
+            "question_text": "Wie heißt die anrufende Person?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie stellt sich als Amina Saidi vor.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "sl_q1_a1",
+                "answer_text": "Amina Saidi",
+                "is_correct": true
+              },
+              {
+                "id": "sl_q1_a2",
+                "answer_text": "Amina Berger",
+                "is_correct": false
+              },
+              {
+                "id": "sl_q1_a3",
+                "answer_text": "Sara Saidi",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sl_q2",
+            "question_text": "Worum bittet sie?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie bittet um einen Termin für eine allgemeine Untersuchung.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "sl_q2_a1",
+                "answer_text": "Um einen Termin für eine allgemeine Untersuchung",
+                "is_correct": true
+              },
+              {
+                "id": "sl_q2_a2",
+                "answer_text": "Um ein Rezept",
+                "is_correct": false
+              },
+              {
+                "id": "sl_q2_a3",
+                "answer_text": "Um eine Krankschreibung",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sl_q3",
+            "question_text": "Sie hatte schon einmal einen Termin in dieser Praxis.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie sagt, das sei ihr erster Termin dort.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "sl_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "sl_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "sl_q4",
+            "question_text": "An welchem Tag ist der freie Termin?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der freie Platz ist am Donnerstag.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "sl_q4_a1",
+                "answer_text": "Donnerstag",
+                "is_correct": true
+              },
+              {
+                "id": "sl_q4_a2",
+                "answer_text": "Montag",
+                "is_correct": false
+              },
+              {
+                "id": "sl_q4_a3",
+                "answer_text": "Freitag",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sl_q5",
+            "question_text": "Um wie viel Uhr ist der Termin?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Termin ist um 14:30 Uhr.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "sl_q5_a1",
+                "answer_text": "14:30 Uhr",
+                "is_correct": true
+              },
+              {
+                "id": "sl_q5_a2",
+                "answer_text": "13:30 Uhr",
+                "is_correct": false
+              },
+              {
+                "id": "sl_q5_a3",
+                "answer_text": "15:00 Uhr",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sl_q6",
+            "question_text": "Was soll sie zum Termin mitbringen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie soll Versichertenkarte und Ausweis mitbringen.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "sl_q6_a1",
+                "answer_text": "Versichertenkarte und Ausweis",
+                "is_correct": true
+              },
+              {
+                "id": "sl_q6_a2",
+                "answer_text": "Nur den Ausweis",
+                "is_correct": false
+              },
+              {
+                "id": "sl_q6_a3",
+                "answer_text": "Eine Überweisung vom Hausarzt",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_writing": {
+    "sections": [
+      {
+        "key": "writing1",
+        "name": "أساسيات الكتابة",
+        "type": "language",
+        "official_duration_minutes": null,
+        "instructions": "اختر الكلمة أو الأداة الصحيحة لبناء جملة سليمة.",
+        "items": [
+          {
+            "id": "sw_q1",
+            "question_text": "Ich habe keine Zeit, ___ ich muss arbeiten.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"weil\" يعطي السبب — مناسب للربط هنا.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "sw_q1_a1",
+                "answer_text": "weil",
+                "is_correct": true
+              },
+              {
+                "id": "sw_q1_a2",
+                "answer_text": "obwohl",
+                "is_correct": false
+              },
+              {
+                "id": "sw_q1_a3",
+                "answer_text": "damit",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sw_q2",
+            "question_text": "Zuerst frühstücke ich, ___ gehe ich zur Arbeit.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"danach\" يشير إلى الترتيب الزمني.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "sw_q2_a1",
+                "answer_text": "danach",
+                "is_correct": true
+              },
+              {
+                "id": "sw_q2_a2",
+                "answer_text": "deshalb",
+                "is_correct": false
+              },
+              {
+                "id": "sw_q2_a3",
+                "answer_text": "obwohl",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sw_q3",
+            "question_text": "Er hat viel gelernt, ___ hat er die Prüfung bestanden.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"deshalb\" يعبّر عن النتيجة.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "sw_q3_a1",
+                "answer_text": "deshalb",
+                "is_correct": true
+              },
+              {
+                "id": "sw_q3_a2",
+                "answer_text": "aber",
+                "is_correct": false
+              },
+              {
+                "id": "sw_q3_a3",
+                "answer_text": "wenn",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sw_q4",
+            "question_text": "Sehr geehrte Damen und Herren, ich schreibe Ihnen ___.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"bezüglich\" + مضاف إليه هي الصيغة الرسمية الصحيحة.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "sw_q4_a1",
+                "answer_text": "bezüglich Ihrer Anzeige",
+                "is_correct": true
+              },
+              {
+                "id": "sw_q4_a2",
+                "answer_text": "wegen Ihre Anzeige",
+                "is_correct": false
+              },
+              {
+                "id": "sw_q4_a3",
+                "answer_text": "über Ihre Anzeige, dass",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sw_q5",
+            "question_text": "Ich möchte ___ betonen, dass der Termin wichtig ist.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"ausdrücklich betonen\" تعبير صحيح ومتماسك.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "sw_q5_a1",
+                "answer_text": "ausdrücklich",
+                "is_correct": true
+              },
+              {
+                "id": "sw_q5_a2",
+                "answer_text": "ausdrücklichere",
+                "is_correct": false
+              },
+              {
+                "id": "sw_q5_a3",
+                "answer_text": "ausdrücken",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sw_q6",
+            "question_text": "___ des schlechten Wetters fand die Veranstaltung statt.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"Trotz\" تفيد التضاد (رغم الطقس السيئ).",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "sw_q6_a1",
+                "answer_text": "Trotz",
+                "is_correct": true
+              },
+              {
+                "id": "sw_q6_a2",
+                "answer_text": "Wegen",
+                "is_correct": false
+              },
+              {
+                "id": "sw_q6_a3",
+                "answer_text": "Ohne",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sw_q7",
+            "question_text": "Ich freue mich ___ Ihre Antwort.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"sich freuen auf\" + حالة النصب هي التركيبة الصحيحة.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "sw_q7_a1",
+                "answer_text": "auf",
+                "is_correct": true
+              },
+              {
+                "id": "sw_q7_a2",
+                "answer_text": "für",
+                "is_correct": false
+              },
+              {
+                "id": "sw_q7_a3",
+                "answer_text": "an",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
   }
 };
 
