@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تدريب سريع - إعداد اختبار Ausbildungsaufnahme</title>
+    <title>Lesen - تدريبات القراءة - إعداد اختبار Ausbildungsaufnahme</title>
+    <meta name="description" content="مكتبة متجددة من تدريبات القراءة القصيرة">
     <meta name="robots" content="noindex, nofollow">
 
     <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -45,7 +46,7 @@
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>[x-cloak]{display:none !important;}</style>
 </head>
-<body class="font-arabic de-paper-bg text-flag-ink antialiased min-h-screen" x-data="skillPracticeApp()" x-init="init()">
+<body class="font-arabic de-paper-bg text-flag-ink antialiased min-h-screen" x-data="lesenApp()" x-init="init()">
 
     <!-- ============ LOADING ============ -->
     <div x-show="!authChecked" class="min-h-screen flex items-center justify-center de-dark-bg text-white">
@@ -60,7 +61,7 @@
                 <div class="p-8">
                     <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5"><i class="fas fa-hourglass-half"></i></span>
                     <h1 class="font-display text-xl font-bold text-flag-ink mb-3">حسابك قيد المراجعة</h1>
-                    <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">التدريبات السريعة متاحة فقط للأعضاء المفعّلين.</p>
+                    <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">تدريبات Lesen متاحة فقط للأعضاء المفعّلين.</p>
                     <a href="dashboard.html" class="de-btn w-full text-sm py-3" style="background:#EEEAE0;color:#1E293B;">
                         <i class="fas fa-arrow-right"></i> العودة إلى لوحة التحكم
                     </a>
@@ -74,11 +75,11 @@
         <div>
             <header class="sticky top-0 z-30">
                 <div class="de-light-bg text-flag-ink shadow-sm border-b border-black/5">
-                    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="flex justify-between h-16 items-center">
                             <a href="dashboard.html" class="flex items-center gap-3">
-                                <span class="de-stamp de-stamp-onlight h-10 w-10 text-xs"><i class="fas" :class="skillMeta.icon"></i></span>
-                                <span class="font-display font-semibold" x-text="skillMeta.title"></span>
+                                <span class="de-stamp de-stamp-onlight h-10 w-10 text-xs"><i class="fas fa-book-open"></i></span>
+                                <span class="font-display font-semibold">Lesen</span>
                             </a>
                             <a href="dashboard.html" class="text-sm text-flag-ink/60 hover:text-flag-red transition-colors">
                                 <i class="fas fa-arrow-right"></i> <span class="hidden sm:inline">لوحة التحكم</span>
@@ -88,64 +89,43 @@
                 </div>
             </header>
 
-            <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-
-                <!-- ===== INTRO (always the page's base content; the test-taking modal overlays on top when open) ===== -->
-                <div>
-                    <div class="de-card-dark text-white rounded-2xl p-6 mb-8 relative overflow-hidden">
-                        <div class="de-corner-mark top-4 end-4 rounded-tr-xl border-b-0 border-s-0 hidden sm:block"></div>
-                        <div class="flex items-center gap-4">
-                            <div class="h-12 w-12 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
-                                <i class="fas text-flag-gold text-xl" :class="skillMeta.icon"></i>
-                            </div>
-                            <div>
-                                <h2 class="font-display text-xl font-bold mb-1" x-text="skillMeta.title"></h2>
-                                <p class="text-sm text-white/70" x-text="skillMeta.description"></p>
-                            </div>
+            <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="de-card-dark text-white rounded-2xl p-6 mb-8 relative overflow-hidden">
+                    <div class="de-corner-mark top-4 end-4 rounded-tr-xl border-b-0 border-s-0 hidden sm:block"></div>
+                    <div class="flex items-center gap-4">
+                        <div class="h-12 w-12 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-book-open text-flag-gold text-xl"></i>
                         </div>
-                    </div>
-
-                    <div class="de-card rounded-2xl p-6 mb-8 text-center">
-                        <div class="flex items-center justify-center gap-2 text-flag-ink/50 text-sm mb-6">
-                            <i class="fas fa-clock"></i> حوالي <span x-text="test ? test.duration_minutes : '5-8'"></span> دقائق
-                            <span class="mx-1">·</span>
-                            <i class="fas fa-list-check"></i> <span x-text="test ? test.total_questions : ''"></span> أسئلة
-                        </div>
-
-                        <div x-show="previousAttempt" x-cloak class="de-card rounded-xl p-4 max-w-xs mx-auto mb-6 bg-flag-cream/60">
-                            <div class="text-xs text-flag-ink/50 mb-1">آخر نتيجة لك</div>
-                            <div class="text-3xl font-display font-bold text-flag-ink" x-text="previousAttempt ? previousAttempt.score_percentage + '%' : ''"></div>
-                            <div class="text-xs text-flag-ink/40 mt-1" x-text="previousAttempt ? formatDate(previousAttempt.completed_at) : ''"></div>
-                        </div>
-                        <p x-show="!previousAttempt" class="text-sm text-flag-ink/40 mb-6">لم تخض هذا التدريب من قبل — هذه أول محاولة لك</p>
-
-                        <button @click="startPractice()" class="de-btn de-btn-primary text-sm py-3 px-8">
-                            <i class="fas fa-play"></i> ابدأ التدريب
-                        </button>
-                    </div>
-
-                    <!-- Resources -->
-                    <div x-show="resources.length > 0">
-                        <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
-                            <i class="fas fa-book text-flag-red me-2"></i> للمزيد من التدريب
-                        </h2>
-                        <div class="grid sm:grid-cols-2 gap-4">
-                            <template x-for="r in resources" :key="r.id">
-                                <button @click="r.type === 'pdf' ? openPdf(r) : openVideo(r)" class="de-card rounded-2xl p-4 flex items-center gap-3 text-start w-full">
-                                    <span class="h-11 w-11 rounded-xl flex items-center justify-center flex-shrink-0"
-                                          :class="r.type === 'pdf' ? 'bg-flag-red/10 text-flag-red' : 'bg-red-50 text-red-600'">
-                                        <i :class="r.type === 'pdf' ? 'fas fa-file-pdf' : 'fab fa-youtube'"></i>
-                                    </span>
-                                    <div class="min-w-0">
-                                        <h3 class="font-display font-semibold text-flag-ink text-sm truncate" x-text="r.title"></h3>
-                                        <p class="text-xs text-flag-ink/50" x-text="r.type === 'pdf' ? 'اضغط لفتح المستند' : 'اضغط لمشاهدة الفيديو'"></p>
-                                    </div>
-                                </button>
-                            </template>
+                        <div>
+                            <h2 class="font-display text-xl font-bold mb-1">تدريبات القراءة</h2>
+                            <p class="text-sm text-white/70">نصوص قصيرة ومتنوعة — تدريبات جديدة تُضاف باستمرار</p>
                         </div>
                     </div>
                 </div>
 
+                <!-- Test library -->
+                <div class="grid sm:grid-cols-2 gap-5 mb-10">
+                    <template x-for="t in tests" :key="t.id">
+                        <button @click="startPractice(t)" class="de-card rounded-2xl p-5 text-start w-full">
+                            <div class="flex items-start justify-between gap-3 mb-3">
+                                <div class="h-11 w-11 rounded-xl bg-flag-red/10 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-book-open text-flag-red"></i>
+                                </div>
+                                <span x-show="lastScores[t.id] !== undefined" x-cloak class="de-badge de-badge-gold flex-shrink-0" x-text="lastScores[t.id] + '%'"></span>
+                            </div>
+                            <h3 class="font-display font-semibold text-flag-ink mb-1" x-text="t.title"></h3>
+                            <p class="text-sm text-flag-ink/60 mb-3" x-text="t.description"></p>
+                            <div class="flex items-center gap-2 text-xs text-flag-ink/40">
+                                <i class="fas fa-clock"></i> <span x-text="t.duration_minutes"></span> دقائق
+                                <span class="mx-1">·</span>
+                                <i class="fas fa-list-check"></i> <span x-text="t.total_questions"></span> أسئلة
+                            </div>
+                        </button>
+                    </template>
+                </div>
+                <div x-show="!testsLoading && tests.length === 0" class="de-card rounded-2xl p-8 text-center text-sm text-flag-ink/40">
+                    لا توجد تدريبات متاحة حاليًا — سيتم إضافتها قريبًا
+                </div>
             </main>
         </div>
     </template>
@@ -156,8 +136,8 @@
              :class="testModalExpanded ? 'max-w-4xl h-[95vh]' : 'max-w-2xl max-h-[92vh]'">
             <div class="de-flag-ribbon"></div>
             <div class="flex items-center justify-between px-6 py-4 border-b border-black/10 flex-shrink-0">
-                <h3 class="font-display font-semibold text-flag-ink" x-text="skillMeta.title"></h3>
-                <div class="flex items-center gap-3">
+                <h3 class="font-display font-semibold text-flag-ink truncate" x-text="activeTest ? activeTest.title : ''"></h3>
+                <div class="flex items-center gap-3 flex-shrink-0">
                     <button @click="testModalExpanded = !testModalExpanded" class="text-flag-ink/40 hover:text-flag-red" :title="testModalExpanded ? 'تصغير' : 'تكبير'">
                         <i class="fas" :class="testModalExpanded ? 'fa-down-left-and-up-right-to-center' : 'fa-up-right-and-down-left-from-center'"></i>
                     </button>
@@ -184,21 +164,7 @@
                             </div>
                         </div>
 
-                        <template x-if="currentQuestion.sectionAudioUrl && !audioFailed">
-                            <div class="de-card rounded-xl p-4 mb-4 bg-flag-cream">
-                                <audio :src="currentQuestion.sectionAudioUrl" controls preload="none"
-                                       @error="audioFailed = true; showTranscript = true" class="w-full mb-3"></audio>
-                                <button @click="showTranscript = !showTranscript" class="text-xs text-flag-red hover:text-flag-reddeep">
-                                    <i class="fas fa-file-lines"></i> <span x-text="showTranscript ? 'إخفاء النص المكتوب' : 'إظهار النص المكتوب'"></span>
-                                </button>
-                                <p class="text-sm text-flag-ink/80 whitespace-pre-line mt-3" x-show="showTranscript" x-text="currentQuestion.sectionPassage"></p>
-                            </div>
-                        </template>
-                        <div class="de-card rounded-xl p-4 mb-4 bg-flag-cream"
-                             x-show="currentQuestion.sectionPassage && !(currentQuestion.sectionAudioUrl && !audioFailed)">
-                            <p class="text-xs text-flag-ink/40 mb-2" x-show="currentQuestion.sectionType === 'listening'">
-                                <i class="fas fa-circle-info"></i> الاستماع الصوتي غير متاح بعد لهذا التدريب — نص بديل للقراءة
-                            </p>
+                        <div class="de-card rounded-xl p-4 mb-4 bg-flag-cream" x-show="currentQuestion.sectionPassage">
                             <p class="text-sm text-flag-ink/80 whitespace-pre-line" x-text="currentQuestion.sectionPassage"></p>
                         </div>
 
@@ -246,14 +212,14 @@
                         <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto mb-3">
                             <div class="de-card rounded-xl p-4">
                                 <div class="text-xs text-flag-ink/50 mb-1">المحاولة السابقة</div>
-                                <div class="text-2xl font-display font-bold text-flag-ink" x-text="previousAttempt ? previousAttempt.score_percentage + '%' : '—'"></div>
+                                <div class="text-2xl font-display font-bold text-flag-ink" x-text="previousAttemptScore !== null ? previousAttemptScore + '%' : '—'"></div>
                             </div>
                             <div class="de-card rounded-xl p-4">
                                 <div class="text-xs text-flag-ink/50 mb-1">هذه المحاولة</div>
                                 <div class="text-2xl font-display font-bold" :class="testResults.passed ? 'text-emerald-600' : 'text-red-600'" x-text="testResults.score_percentage + '%'"></div>
                             </div>
                         </div>
-                        <div x-show="previousAttempt" x-cloak class="mb-6">
+                        <div x-show="previousAttemptScore !== null" x-cloak class="mb-6">
                             <span class="de-badge" :class="scoreDelta() > 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : (scoreDelta() < 0 ? 'bg-red-50 text-red-600 border border-red-200' : 'de-badge-gold')">
                                 <i class="fas" :class="scoreDelta() > 0 ? 'fa-arrow-up' : (scoreDelta() < 0 ? 'fa-arrow-down' : 'fa-minus')"></i>
                                 <span x-text="(scoreDelta() > 0 ? '+' : '') + scoreDelta() + '% مقارنة بالمرة السابقة'"></span>
@@ -290,7 +256,7 @@
                             </template>
                         </div>
 
-                        <!-- Resources, shown right after the result as requested -->
+                        <!-- Resources, shown right after the result -->
                         <div x-show="resources.length > 0" class="text-start max-w-xl mx-auto">
                             <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
                                 <i class="fas fa-book text-flag-red me-2"></i> للمزيد من التدريب
@@ -356,27 +322,26 @@
     </div>
 
     <script>
-        function skillPracticeApp() {
+        function lesenApp() {
             return {
-                skill: null,
-                skillMeta: { title: 'تدريب سريع', description: '', icon: 'fa-bolt' },
                 user: null,
                 authChecked: false,
                 gateStatus: 'loading',
 
-                showTestModal: false,
-                testModalExpanded: false,
-                test: null,
-                previousAttempt: null,
+                tests: [],
+                testsLoading: false,
+                lastScores: {}, // test_id -> most recent completed score
                 resources: [],
 
+                showTestModal: false,
+                testModalExpanded: false,
+                activeTest: null,
+                previousAttemptScore: null,
                 activeAttemptId: null,
                 gradedItems: [],
                 currentQuestionIndex: 0,
                 selectedAnswers: {},
                 testResults: null,
-                showTranscript: false,
-                audioFailed: false,
                 timeLeftSeconds: 0,
                 timerHandle: null,
                 testStartedAt: null,
@@ -390,19 +355,6 @@
                 },
 
                 async init() {
-                    const params = new URLSearchParams(window.location.search);
-                    this.skill = params.get('skill');
-                    const meta = {
-                        reading: { title: 'تدريب القراءة', icon: 'fa-book-open', description: 'نص قصير وأسئلة استيعاب — تدريب سريع لتحسين مهارة القراءة.' },
-                        listening: { title: 'تدريب الاستماع', icon: 'fa-headphones', description: 'حوار قصير وأسئلة استيعاب — تدريب سريع لتحسين مهارة الاستماع.' },
-                        writing: { title: 'أساسيات الكتابة', icon: 'fa-pen', description: 'تدريب على القواعد والروابط اللغوية — أساسيات الكتابة الجيدة بالألمانية.' }
-                    };
-                    if (!this.skill || !meta[this.skill]) {
-                        window.location.href = 'dashboard.html';
-                        return;
-                    }
-                    this.skillMeta = meta[this.skill];
-
                     const { data: { session } } = await sb.auth.getSession();
                     if (!session) {
                         window.location.href = 'index.html';
@@ -418,56 +370,63 @@
                         this.gateStatus = profile.membership_status === 'active' ? 'ok' : profile.membership_status;
                         this.authChecked = true;
 
-                        if (this.gateStatus === 'ok') this.loadIntroData();
+                        if (this.gateStatus === 'ok') this.loadLibrary();
                     } catch (e) {
                         console.error(e);
                         this.authChecked = true;
                     }
                 },
 
-                async loadIntroData() {
+                async loadLibrary() {
+                    this.testsLoading = true;
                     try {
-                        const { data: test } = await sb.from('tests').select('*')
-                            .eq('test_type', 'skill_' + this.skill).eq('is_skill_practice', true).single();
-                        if (!test) return;
-                        this.test = test;
+                        const { data: tests } = await sb.from('tests').select('*')
+                            .eq('skill', 'reading').eq('is_skill_practice', true).eq('is_active', true)
+                            .order('created_at', { ascending: false }); // newest first, older tests move down
+                        this.tests = tests || [];
 
-                        const { data: prev } = await sb.from('user_test_attempts').select('*')
-                            .eq('user_id', this.user.id).eq('test_id', test.id)
-                            .not('completed_at', 'is', null)
-                            .order('completed_at', { ascending: false }).limit(1).maybeSingle();
-                        this.previousAttempt = prev || null;
+                        if (this.tests.length) {
+                            const ids = this.tests.map(t => t.id);
+                            const { data: attempts } = await sb.from('user_test_attempts').select('*')
+                                .eq('user_id', this.user.id).in('test_id', ids)
+                                .not('completed_at', 'is', null)
+                                .order('completed_at', { ascending: false });
+                            const scores = {};
+                            (attempts || []).forEach(a => {
+                                if (!(a.test_id in scores)) scores[a.test_id] = a.score; // first = most recent, since sorted desc
+                            });
+                            this.lastScores = scores;
+                        }
 
                         const { data: allResources } = await sb.from('resources').select('*').order('created_at', { ascending: false });
                         if (allResources) {
-                            const matched = allResources.filter(r => r.skill === this.skill);
+                            const matched = allResources.filter(r => r.skill === 'reading');
                             this.resources = matched.length ? matched : allResources.filter(r => !r.skill).slice(0, 4);
                         }
                     } catch (e) {
                         console.error(e);
+                    } finally {
+                        this.testsLoading = false;
                     }
                 },
 
-                async startPractice() {
+                async startPractice(test) {
+                    this.activeTest = test;
+                    this.previousAttemptScore = this.lastScores[test.id] !== undefined ? this.lastScores[test.id] : null;
                     try {
-                        const startData = await sbInvoke('test-attempt', { action: 'start', test_id: this.test.id });
+                        const startData = await sbInvoke('test-attempt', { action: 'start', test_id: test.id });
                         if (!startData.success) {
                             this.showToast(startData.message || 'تعذّر بدء التدريب');
                             return;
                         }
                         this.activeAttemptId = startData.attempt.id;
 
-                        const detailData = await sbInvoke('test-detail', { test_id: this.test.id });
+                        const detailData = await sbInvoke('test-detail', { test_id: test.id });
                         const sections = (detailData.success && detailData.test.sections) ? detailData.test.sections : [];
                         const flattened = [];
                         sections.forEach(section => {
                             section.items.forEach(item => {
-                                flattened.push({
-                                    ...item,
-                                    sectionType: section.type,
-                                    sectionPassage: section.passage,
-                                    sectionAudioUrl: section.audio_url || null
-                                });
+                                flattened.push({ ...item, sectionPassage: section.passage });
                             });
                         });
                         if (!flattened.length) {
@@ -479,8 +438,6 @@
                         this.currentQuestionIndex = 0;
                         this.selectedAnswers = {};
                         this.testResults = null;
-                        this.showTranscript = false;
-                        this.audioFailed = false;
                         this.showTestModal = true;
                         this.testStartedAt = Date.now();
                         this.startTimer(Math.max(180, flattened.length * 60));
@@ -528,27 +485,27 @@
                 },
 
                 scoreDelta() {
-                    if (!this.testResults || !this.previousAttempt) return 0;
-                    return this.testResults.score_percentage - this.previousAttempt.score_percentage;
+                    if (!this.testResults || this.previousAttemptScore === null) return 0;
+                    return this.testResults.score_percentage - this.previousAttemptScore;
                 },
 
                 closeTestModal() {
                     this.stopTimer();
                     this.showTestModal = false;
                     this.testModalExpanded = false;
+                    this.activeTest = null;
                     this.gradedItems = [];
                     this.activeAttemptId = null;
                     this.testResults = null;
                     this.selectedAnswers = {};
                     this.currentQuestionIndex = 0;
-                    this.showTranscript = false;
-                    this.audioFailed = false;
-                    this.loadIntroData(); // refresh "previous score" for next time
+                    this.loadLibrary(); // refresh last-score badges for next time
                 },
 
                 retakePractice() {
-                    this.previousAttempt = { score_percentage: this.testResults.score_percentage, completed_at: new Date().toISOString() };
-                    this.startPractice();
+                    this.previousAttemptScore = this.testResults.score_percentage;
+                    const t = this.activeTest;
+                    this.startPractice(t);
                 },
 
                 async openPdf(resource) {
@@ -570,10 +527,6 @@
                     setTimeout(() => { this.toast = ''; }, 2800);
                 },
 
-                formatDate(iso) {
-                    if (!iso) return '—';
-                    return new Date(iso).toLocaleDateString('ar-MA', { year: 'numeric', month: 'short', day: 'numeric' });
-                },
                 formatDuration(totalSeconds) {
                     const s = totalSeconds || 0;
                     const mins = Math.floor(s / 60);

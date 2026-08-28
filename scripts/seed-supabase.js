@@ -61,7 +61,8 @@ async function upsertTest(test) {
         total_questions: test.total_questions,
         passing_score: test.passing_score,
         is_active: test.is_active,
-        is_skill_practice: !!test.is_skill_practice
+        is_skill_practice: !!test.is_skill_practice,
+        skill: test.skill || null
       },
       { onConflict: 'test_type' }
     )

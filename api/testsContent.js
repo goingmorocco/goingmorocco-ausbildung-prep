@@ -9,9 +9,13 @@
 // Until then the frontend gracefully falls back to the transcript.
 //
 // `is_skill_practice: true` marks the short 5-8 minute single-skill
-// drills (test_skill_reading / test_skill_listening / test_skill_writing)
-// used by public/skill-practice.html, as opposed to the long realistic
-// exams. The "writing" skill test is deliberately a grammar/connectors/
+// drills (as opposed to the long realistic exams). `skill` groups them
+// (reading/listening/writing/speaking) so a page like public/lesen.html
+// can query "every reading drill, newest first" regardless of how many
+// exist -- each individual drill still has its own unique test_type
+// (e.g. 'skill_reading_market') so upserting by test_type stays safe.
+//
+// The "writing" skill drills are deliberately a grammar/connectors/
 // word-choice quiz, not free-composition writing -- free text can't be
 // auto-graded reliably, so it focuses on the gradable mechanics instead.
 // Real essay practice stays in the ungraded Schreiben prompts on the full
@@ -28,7 +32,8 @@ const mockTests = [
     "total_questions": 60,
     "passing_score": 60,
     "is_active": true,
-    "is_skill_practice": false
+    "is_skill_practice": false,
+    "skill": null
   },
   {
     "id": "test_goethe_b2",
@@ -40,7 +45,8 @@ const mockTests = [
     "total_questions": 60,
     "passing_score": 60,
     "is_active": true,
-    "is_skill_practice": false
+    "is_skill_practice": false,
+    "skill": null
   },
   {
     "id": "test_telc_b1_beruf",
@@ -52,7 +58,8 @@ const mockTests = [
     "total_questions": 60,
     "passing_score": 60,
     "is_active": true,
-    "is_skill_practice": false
+    "is_skill_practice": false,
+    "skill": null
   },
   {
     "id": "test_telc_b2_beruf",
@@ -64,7 +71,8 @@ const mockTests = [
     "total_questions": 60,
     "passing_score": 60,
     "is_active": true,
-    "is_skill_practice": false
+    "is_skill_practice": false,
+    "skill": null
   },
   {
     "id": "test_osd_b1",
@@ -76,7 +84,8 @@ const mockTests = [
     "total_questions": 60,
     "passing_score": 60,
     "is_active": true,
-    "is_skill_practice": false
+    "is_skill_practice": false,
+    "skill": null
   },
   {
     "id": "test_osd_b2",
@@ -88,7 +97,8 @@ const mockTests = [
     "total_questions": 64,
     "passing_score": 60,
     "is_active": true,
-    "is_skill_practice": false
+    "is_skill_practice": false,
+    "skill": null
   },
   {
     "id": "test_skill_reading",
@@ -100,7 +110,8 @@ const mockTests = [
     "total_questions": 6,
     "passing_score": 60,
     "is_active": true,
-    "is_skill_practice": true
+    "is_skill_practice": true,
+    "skill": "reading"
   },
   {
     "id": "test_skill_listening",
@@ -112,7 +123,8 @@ const mockTests = [
     "total_questions": 6,
     "passing_score": 60,
     "is_active": true,
-    "is_skill_practice": true
+    "is_skill_practice": true,
+    "skill": "listening"
   },
   {
     "id": "test_skill_writing",
@@ -124,7 +136,47 @@ const mockTests = [
     "total_questions": 7,
     "passing_score": 60,
     "is_active": true,
-    "is_skill_practice": true
+    "is_skill_practice": true,
+    "skill": "writing"
+  },
+  {
+    "id": "test_skill_reading_market",
+    "title": "تدريب القراءة: في السوبرماركت",
+    "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_reading_market",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "reading"
+  },
+  {
+    "id": "test_skill_reading_trip",
+    "title": "تدريب القراءة: رحلة نهاية الأسبوع",
+    "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_reading_trip",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "reading"
+  },
+  {
+    "id": "test_skill_reading_neighbor",
+    "title": "تدريب القراءة: الجار الجديد",
+    "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_reading_neighbor",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "reading"
   }
 ];
 
@@ -12605,6 +12657,466 @@ const mockContent = {
               {
                 "id": "sw_q7_a3",
                 "answer_text": "an",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_reading_market": {
+    "sections": [
+      {
+        "key": "reading1",
+        "name": "قراءة سريعة",
+        "type": "reading",
+        "official_duration_minutes": null,
+        "instructions": "اقرأ النص التالي ثم أجب عن الأسئلة.",
+        "passage": "Im Supermarkt\n\nJeden Samstagmorgen geht Yassin mit seiner Mutter zum Supermarkt in der Nähe ihrer Wohnung. Zuerst kaufen sie frisches Obst und Gemüse, weil es dort am günstigsten ist, wenn der Markt gerade geöffnet hat. Danach gehen sie zur Fleischabteilung, wo Yassins Mutter immer mit dem Verkäufer spricht, den sie schon seit Jahren kennt. Am Ende der Einkaufsrunde stehen sie oft lange an der Kasse, weil samstags sehr viele Leute einkaufen. Yassin findet das manchmal anstrengend, aber er hilft trotzdem gerne beim Tragen der Taschen.",
+        "items": [
+          {
+            "id": "srm_q1",
+            "question_text": "Yassin geht jeden Samstag mit seiner Mutter einkaufen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt genau das.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "srm_q1_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "srm_q1_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srm_q2",
+            "question_text": "Was kaufen sie zuerst?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt Obst und Gemüse als erste Station.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "srm_q2_a1",
+                "answer_text": "Frisches Obst und Gemüse",
+                "is_correct": true
+              },
+              {
+                "id": "srm_q2_a2",
+                "answer_text": "Fleisch",
+                "is_correct": false
+              },
+              {
+                "id": "srm_q2_a3",
+                "answer_text": "Brot",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srm_q3",
+            "question_text": "Warum kaufen sie das zuerst?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt genau diesen Grund.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "srm_q3_a1",
+                "answer_text": "Weil es dann am günstigsten ist",
+                "is_correct": true
+              },
+              {
+                "id": "srm_q3_a2",
+                "answer_text": "Weil es dann am frischesten ist",
+                "is_correct": false
+              },
+              {
+                "id": "srm_q3_a3",
+                "answer_text": "Weil dort keine Schlange ist",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srm_q4",
+            "question_text": "Yassins Mutter kennt den Verkäufer an der Fleischabteilung nicht.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie kennt ihn schon seit Jahren.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "srm_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "srm_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "srm_q5",
+            "question_text": "Warum stehen sie oft lange an der Kasse?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt genau diesen Grund.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "srm_q5_a1",
+                "answer_text": "Weil samstags viele Leute einkaufen",
+                "is_correct": true
+              },
+              {
+                "id": "srm_q5_a2",
+                "answer_text": "Weil die Kasse kaputt ist",
+                "is_correct": false
+              },
+              {
+                "id": "srm_q5_a3",
+                "answer_text": "Weil sie viel Geld zählen müssen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srm_q6",
+            "question_text": "Yassin hilft beim Tragen der Taschen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt, er hilft gerne dabei.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "srm_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "srm_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_reading_trip": {
+    "sections": [
+      {
+        "key": "reading1",
+        "name": "قراءة سريعة",
+        "type": "reading",
+        "official_duration_minutes": null,
+        "instructions": "اقرأ النص التالي ثم أجب عن الأسئلة.",
+        "passage": "Ein Ausflug am Wochenende\n\nLetztes Wochenende ist Fatima mit zwei Freundinnen in die Berge gefahren. Sie sind früh um sechs Uhr losgefahren, um den schönen Sonnenaufgang nicht zu verpassen. Nach zwei Stunden Autofahrt haben sie ihr Auto geparkt und sind eine kleine Wanderung gestartet. Der Weg war nicht sehr schwierig, aber ziemlich lang, ungefähr drei Stunden bis zum Gipfel. Oben haben sie zusammen ein Picknick gemacht und die Aussicht genossen. Fatima war so müde, dass sie im Auto auf der Rückfahrt fast eingeschlafen wäre.",
+        "items": [
+          {
+            "id": "srt_q1",
+            "question_text": "Wohin ist Fatima gefahren?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt die Berge als Ziel.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "srt_q1_a1",
+                "answer_text": "In die Berge",
+                "is_correct": true
+              },
+              {
+                "id": "srt_q1_a2",
+                "answer_text": "Ans Meer",
+                "is_correct": false
+              },
+              {
+                "id": "srt_q1_a3",
+                "answer_text": "In eine andere Stadt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srt_q2",
+            "question_text": "Um wie viel Uhr sind sie losgefahren?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt sechs Uhr morgens.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "srt_q2_a1",
+                "answer_text": "Um sechs Uhr",
+                "is_correct": true
+              },
+              {
+                "id": "srt_q2_a2",
+                "answer_text": "Um acht Uhr",
+                "is_correct": false
+              },
+              {
+                "id": "srt_q2_a3",
+                "answer_text": "Um zehn Uhr",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srt_q3",
+            "question_text": "Sie sind losgefahren, um den Sonnenaufgang zu sehen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text nennt genau diesen Grund.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "srt_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "srt_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srt_q4",
+            "question_text": "Wie lange hat die Wanderung bis zum Gipfel gedauert?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt ungefähr drei Stunden.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "srt_q4_a1",
+                "answer_text": "Ungefähr drei Stunden",
+                "is_correct": true
+              },
+              {
+                "id": "srt_q4_a2",
+                "answer_text": "Eine Stunde",
+                "is_correct": false
+              },
+              {
+                "id": "srt_q4_a3",
+                "answer_text": "Fünf Stunden",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srt_q5",
+            "question_text": "Der Wanderweg war sehr schwierig.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt, er war nicht sehr schwierig, aber lang.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "srt_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "srt_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "srt_q6",
+            "question_text": "Was haben sie oben gemacht?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt ein Picknick.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "srt_q6_a1",
+                "answer_text": "Ein Picknick gemacht",
+                "is_correct": true
+              },
+              {
+                "id": "srt_q6_a2",
+                "answer_text": "Fotos verkauft",
+                "is_correct": false
+              },
+              {
+                "id": "srt_q6_a3",
+                "answer_text": "Ein Zelt aufgebaut",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_reading_neighbor": {
+    "sections": [
+      {
+        "key": "reading1",
+        "name": "قراءة سريعة",
+        "type": "reading",
+        "official_duration_minutes": null,
+        "instructions": "اقرأ النص التالي ثم أجب عن الأسئلة.",
+        "passage": "Der neue Nachbar\n\nSeit letzter Woche wohnt ein neuer Nachbar im dritten Stock, direkt über der Wohnung von Herrn Alaoui. Der junge Mann heißt Tom und kommt ursprünglich aus Hamburg, wo er als Ingenieur gearbeitet hat. Er ist wegen einer neuen Stelle in die Stadt gezogen und kennt hier noch niemanden. Gestern hat Herr Alaoui ihn zufällig im Treppenhaus getroffen und ihn zu einem Kaffee eingeladen. Tom hat sich sehr gefreut, weil er sich in der neuen Stadt noch etwas einsam gefühlt hat. Sie haben sich fast zwei Stunden lang unterhalten.",
+        "items": [
+          {
+            "id": "srn_q1",
+            "question_text": "In welchem Stock wohnt der neue Nachbar?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt den dritten Stock.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "srn_q1_a1",
+                "answer_text": "Im dritten Stock",
+                "is_correct": true
+              },
+              {
+                "id": "srn_q1_a2",
+                "answer_text": "Im ersten Stock",
+                "is_correct": false
+              },
+              {
+                "id": "srn_q1_a3",
+                "answer_text": "Im Erdgeschoss",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srn_q2",
+            "question_text": "Woher kommt Tom ursprünglich?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt Hamburg.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "srn_q2_a1",
+                "answer_text": "Aus Hamburg",
+                "is_correct": true
+              },
+              {
+                "id": "srn_q2_a2",
+                "answer_text": "Aus Berlin",
+                "is_correct": false
+              },
+              {
+                "id": "srn_q2_a3",
+                "answer_text": "Aus München",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srn_q3",
+            "question_text": "Tom ist wegen einer neuen Stelle umgezogen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text nennt genau diesen Grund.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "srn_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "srn_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srn_q4",
+            "question_text": "Wo haben sich Herr Alaoui und Tom getroffen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt das Treppenhaus.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "srn_q4_a1",
+                "answer_text": "Im Treppenhaus",
+                "is_correct": true
+              },
+              {
+                "id": "srn_q4_a2",
+                "answer_text": "Im Supermarkt",
+                "is_correct": false
+              },
+              {
+                "id": "srn_q4_a3",
+                "answer_text": "Im Park",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srn_q5",
+            "question_text": "Tom kannte schon viele Leute in der neuen Stadt.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er kannte noch niemanden und fühlte sich einsam.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "srn_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "srn_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "srn_q6",
+            "question_text": "Wie lange haben sie sich unterhalten?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt fast zwei Stunden.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "srn_q6_a1",
+                "answer_text": "Fast zwei Stunden",
+                "is_correct": true
+              },
+              {
+                "id": "srn_q6_a2",
+                "answer_text": "Zehn Minuten",
+                "is_correct": false
+              },
+              {
+                "id": "srn_q6_a3",
+                "answer_text": "Den ganzen Tag",
                 "is_correct": false
               }
             ]
