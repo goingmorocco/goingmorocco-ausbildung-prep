@@ -401,41 +401,48 @@
                                 </div>
                                 <p class="text-xs text-flag-ink/50 mb-3" x-show="currentQuestion.sectionInstructions" x-text="currentQuestion.sectionInstructions"></p>
 
-                                <!-- Listening sections with real audio: play audio, transcript hidden behind a toggle (matches real exam conditions) -->
-                                <template x-if="currentQuestion.sectionType === 'listening' && currentQuestion.sectionAudioUrl && !audioFailed">
-                                    <div class="de-card rounded-xl p-4 mb-4 bg-flag-cream">
-                                        <audio :src="currentQuestion.sectionAudioUrl" controls preload="none"
-                                               @error="audioFailed = true; showTranscript = true"
-                                               class="w-full mb-3"></audio>
-                                        <button @click="showTranscript = !showTranscript" class="text-xs text-flag-red hover:text-flag-reddeep">
-                                            <i class="fas fa-file-lines"></i>
-                                            <span x-text="showTranscript ? 'إخفاء النص المكتوب' : 'إظهار النص المكتوب (بعد الاستماع يُفضّل)'"></span>
-                                        </button>
-                                        <p class="text-sm text-flag-ink/80 whitespace-pre-line mt-3" x-show="showTranscript" x-text="currentQuestion.sectionPassage"></p>
-                                    </div>
-                                </template>
-
-                                <!-- Reading/language sections, or listening without generated audio yet: show the passage directly -->
-                                <div class="de-card rounded-xl p-4 mb-4 bg-flag-cream"
-                                     x-show="currentQuestion.sectionPassage && !(currentQuestion.sectionType === 'listening' && currentQuestion.sectionAudioUrl && !audioFailed)">
-                                    <p class="text-xs text-flag-ink/40 mb-2" x-show="currentQuestion.sectionType === 'listening'">
-                                        <i class="fas fa-circle-info"></i> الاستماع الصوتي غير متاح بعد لهذا القسم — نص بديل للقراءة
-                                    </p>
-                                    <p class="text-sm text-flag-ink/80 whitespace-pre-line" x-text="currentQuestion.sectionPassage"></p>
-                                </div>
-
-                                <div class="de-card rounded-xl p-5 mb-6">
-                                    <p class="font-medium text-flag-ink mb-4" x-text="currentQuestion.question_text"></p>
-                                    <div class="space-y-2">
-                                        <template x-for="opt in currentQuestion.answers" :key="opt.id">
-                                            <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
-                                                   :class="selectedAnswers[currentQuestion.id] === opt.id ? 'border-flag-red bg-flag-red/5' : 'border-black/10 hover:border-black/20'"
-                                                   @click="selectedAnswers[currentQuestion.id] = opt.id">
-                                                <span class="h-4 w-4 rounded-full border flex-shrink-0"
-                                                      :class="selectedAnswers[currentQuestion.id] === opt.id ? 'border-flag-red bg-flag-red' : 'border-black/30'"></span>
-                                                <span class="text-sm text-flag-ink" x-text="opt.answer_text"></span>
-                                            </label>
+                                <!-- Expanded mode with a passage/transcript: show side-by-side instead of
+                                     stacked, so a long passage doesn't push the question off-screen. -->
+                                <div :class="testModalExpanded && currentQuestion.sectionPassage ? 'grid grid-cols-2 gap-6 items-start' : ''">
+                                    <div>
+                                        <!-- Listening sections with real audio: play audio, transcript hidden behind a toggle (matches real exam conditions) -->
+                                        <template x-if="currentQuestion.sectionType === 'listening' && currentQuestion.sectionAudioUrl && !audioFailed">
+                                            <div class="de-card rounded-xl p-4 mb-4 bg-flag-cream" :class="testModalExpanded ? 'max-h-[65vh] overflow-y-auto' : ''">
+                                                <audio :src="currentQuestion.sectionAudioUrl" controls preload="none"
+                                                       @error="audioFailed = true; showTranscript = true"
+                                                       class="w-full mb-3"></audio>
+                                                <button @click="showTranscript = !showTranscript" class="text-xs text-flag-red hover:text-flag-reddeep">
+                                                    <i class="fas fa-file-lines"></i>
+                                                    <span x-text="showTranscript ? 'إخفاء النص المكتوب' : 'إظهار النص المكتوب (بعد الاستماع يُفضّل)'"></span>
+                                                </button>
+                                                <p class="text-sm text-flag-ink/80 whitespace-pre-line mt-3" x-show="showTranscript" x-text="currentQuestion.sectionPassage"></p>
+                                            </div>
                                         </template>
+
+                                        <!-- Reading/language sections, or listening without generated audio yet: show the passage directly -->
+                                        <div class="de-card rounded-xl p-4 mb-4 bg-flag-cream"
+                                             :class="testModalExpanded ? 'max-h-[65vh] overflow-y-auto' : ''"
+                                             x-show="currentQuestion.sectionPassage && !(currentQuestion.sectionType === 'listening' && currentQuestion.sectionAudioUrl && !audioFailed)">
+                                            <p class="text-xs text-flag-ink/40 mb-2" x-show="currentQuestion.sectionType === 'listening'">
+                                                <i class="fas fa-circle-info"></i> الاستماع الصوتي غير متاح بعد لهذا القسم — نص بديل للقراءة
+                                            </p>
+                                            <p class="text-sm text-flag-ink/80 whitespace-pre-line" x-text="currentQuestion.sectionPassage"></p>
+                                        </div>
+                                    </div>
+
+                                    <div class="de-card rounded-xl p-5 mb-6" :class="testModalExpanded && currentQuestion.sectionPassage ? 'max-h-[65vh] overflow-y-auto' : ''">
+                                        <p class="font-medium text-flag-ink mb-4" x-text="currentQuestion.question_text"></p>
+                                        <div class="space-y-2">
+                                            <template x-for="opt in currentQuestion.answers" :key="opt.id">
+                                                <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
+                                                       :class="selectedAnswers[currentQuestion.id] === opt.id ? 'border-flag-red bg-flag-red/5' : 'border-black/10 hover:border-black/20'"
+                                                       @click="selectedAnswers[currentQuestion.id] = opt.id">
+                                                    <span class="h-4 w-4 rounded-full border flex-shrink-0"
+                                                          :class="selectedAnswers[currentQuestion.id] === opt.id ? 'border-flag-red bg-flag-red' : 'border-black/30'"></span>
+                                                    <span class="text-sm text-flag-ink" x-text="opt.answer_text"></span>
+                                                </label>
+                                            </template>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
