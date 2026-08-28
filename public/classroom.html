@@ -95,14 +95,71 @@
             <header class="sticky top-0 z-30">
                 <div class="de-light-bg text-flag-ink shadow-sm border-b border-black/5">
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div class="flex justify-between h-16 items-center">
-                            <a href="dashboard.html" class="flex items-center gap-3">
+                        <div class="flex justify-between items-center h-16 gap-3">
+                            <a href="dashboard.html" class="flex items-center gap-3 flex-shrink-0">
                                 <span class="de-stamp de-stamp-onlight h-10 w-10 text-xs"><i class="fas fa-chalkboard"></i></span>
-                                <span class="font-display font-semibold hidden sm:block">الفصل الدراسي</span>
+                                <span class="font-display font-semibold hidden lg:block">الفصل الدراسي</span>
                             </a>
-                            <div class="flex items-center gap-4">
+
+                            <!-- Search (centered, dropdown appears on focus) -->
+                            <div class="flex-1 max-w-md relative" @click.outside="searchOpen = false">
+                                <div class="relative">
+                                    <i class="fas fa-search absolute top-1/2 -translate-y-1/2 start-3.5 text-flag-ink/30 text-sm"></i>
+                                    <input type="text" x-model="searchQuery" x-ref="searchInput"
+                                           @focus="searchOpen = true" @keydown.escape="searchOpen = false; $refs.searchInput.blur()"
+                                           placeholder="ابحث في الفصل الدراسي..."
+                                           class="w-full ps-10 pe-4 py-2 rounded-full border border-black/10 text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30 bg-flag-cream/60 focus:bg-white transition-colors">
+                                </div>
+
+                                <div x-show="searchOpen" x-cloak x-transition
+                                     class="absolute top-full mt-2 start-0 w-full sm:w-96 de-card rounded-2xl overflow-hidden z-50 max-h-[70vh] flex flex-col">
+                                    <!-- Filters, revealed once the student starts typing -->
+                                    <div class="p-3 border-b border-black/5" x-show="searchQuery.trim() !== ''" x-cloak>
+                                        <div class="flex flex-wrap gap-1.5 mb-2">
+                                            <button @click="selectedType = 'all'" class="px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors"
+                                                    :class="selectedType === 'all' ? 'bg-flag-black text-white' : 'bg-flag-cream text-flag-ink/60'">الكل</button>
+                                            <button @click="selectedType = 'pdf'" class="px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors"
+                                                    :class="selectedType === 'pdf' ? 'bg-flag-black text-white' : 'bg-flag-cream text-flag-ink/60'"><i class="fas fa-file-pdf"></i> PDF</button>
+                                            <button @click="selectedType = 'youtube'" class="px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors"
+                                                    :class="selectedType === 'youtube' ? 'bg-flag-black text-white' : 'bg-flag-cream text-flag-ink/60'"><i class="fab fa-youtube"></i> فيديو</button>
+                                        </div>
+                                        <div class="flex flex-wrap gap-1.5" x-show="categories.length > 0">
+                                            <button @click="selectedCategory = 'all'" class="px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors"
+                                                    :class="selectedCategory === 'all' ? 'bg-flag-red text-white' : 'bg-flag-cream text-flag-ink/60'">كل التصنيفات</button>
+                                            <template x-for="cat in categories" :key="cat">
+                                                <button @click="selectedCategory = cat" class="px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors"
+                                                        :class="selectedCategory === cat ? 'bg-flag-red text-white' : 'bg-flag-cream text-flag-ink/60'" x-text="cat"></button>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <!-- Live results -->
+                                    <div class="overflow-y-auto flex-1">
+                                        <template x-for="r in searchResults" :key="r.id">
+                                            <button @click="selectSearchResult(r)" class="w-full text-start p-3 flex items-center gap-3 hover:bg-flag-cream/60 transition-colors border-b border-black/5 last:border-0">
+                                                <span class="h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                                                      :class="r.type === 'pdf' ? 'bg-flag-red/10 text-flag-red' : 'bg-red-50 text-red-600'">
+                                                    <i :class="r.type === 'pdf' ? 'fas fa-file-pdf' : 'fab fa-youtube'"></i>
+                                                </span>
+                                                <div class="min-w-0">
+                                                    <div class="text-sm font-medium text-flag-ink truncate" x-text="r.title"></div>
+                                                    <div class="text-xs text-flag-ink/40 truncate" x-text="r.category || (r.type === 'pdf' ? 'ملف PDF' : 'فيديو')"></div>
+                                                </div>
+                                            </button>
+                                        </template>
+                                        <div x-show="searchQuery.trim() !== '' && searchResults.length === 0" class="p-6 text-center text-sm text-flag-ink/40">
+                                            لا توجد نتائج مطابقة
+                                        </div>
+                                        <div x-show="searchQuery.trim() === ''" class="p-6 text-center text-sm text-flag-ink/40">
+                                            ابدأ الكتابة للبحث في المواد والفيديوهات
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-4 flex-shrink-0">
                                 <a href="dashboard.html" class="text-sm text-flag-ink/60 hover:text-flag-red transition-colors">
-                                    <i class="fas fa-arrow-right"></i> <span class="hidden sm:inline">لوحة التحكم</span>
+                                    <i class="fas fa-arrow-right"></i> <span class="hidden lg:inline">لوحة التحكم</span>
                                 </a>
                                 <span class="de-avatar h-9 w-9 text-xs" x-text="initials(user.full_name)"></span>
                             </div>
@@ -125,41 +182,8 @@
                     </div>
                 </div>
 
-                <!-- Search & filters -->
-                <div class="de-card rounded-2xl p-4 sm:p-5 mb-8">
-                    <div class="relative mb-4">
-                        <i class="fas fa-search absolute top-1/2 -translate-y-1/2 start-4 text-flag-ink/30 text-sm"></i>
-                        <input type="text" x-model="searchQuery" placeholder="ابحث عن مادة أو فيديو..."
-                               class="w-full ps-11 pe-4 py-2.5 rounded-lg border border-black/10 text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30">
-                    </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <span class="text-xs text-flag-ink/40 font-medium">النوع:</span>
-                        <button @click="selectedType = 'all'" class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-                                :class="selectedType === 'all' ? 'bg-flag-black text-white' : 'bg-flag-cream text-flag-ink/60'">الكل</button>
-                        <button @click="selectedType = 'pdf'" class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-                                :class="selectedType === 'pdf' ? 'bg-flag-black text-white' : 'bg-flag-cream text-flag-ink/60'"><i class="fas fa-file-pdf"></i> PDF</button>
-                        <button @click="selectedType = 'youtube'" class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-                                :class="selectedType === 'youtube' ? 'bg-flag-black text-white' : 'bg-flag-cream text-flag-ink/60'"><i class="fab fa-youtube"></i> فيديو</button>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-2 mt-3" x-show="categories.length > 0">
-                        <span class="text-xs text-flag-ink/40 font-medium">التصنيف:</span>
-                        <button @click="selectedCategory = 'all'" class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-                                :class="selectedCategory === 'all' ? 'bg-flag-red text-white' : 'bg-flag-cream text-flag-ink/60'">الكل</button>
-                        <template x-for="cat in categories" :key="cat">
-                            <button @click="selectedCategory = cat" class="px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-                                    :class="selectedCategory === cat ? 'bg-flag-red text-white' : 'bg-flag-cream text-flag-ink/60'" x-text="cat"></button>
-                        </template>
-                    </div>
-                    <div x-show="hasActiveFilters" x-cloak class="mt-3 pt-3 border-t border-black/5 flex items-center justify-between">
-                        <span class="text-xs text-flag-ink/40" x-text="(pdfResources.length + youtubeResources.length) + ' نتيجة'"></span>
-                        <button @click="clearFilters()" class="text-xs text-flag-red hover:text-flag-reddeep font-medium">
-                            <i class="fas fa-times"></i> مسح الفلاتر
-                        </button>
-                    </div>
-                </div>
-
                 <!-- PDF materials -->
-                <div class="mb-10" x-show="selectedType !== 'youtube'">
+                <div class="mb-10">
                     <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
                         <i class="fas fa-file-pdf text-flag-red me-2"></i> المواد التعليمية
                     </h2>
@@ -178,53 +202,37 @@
                             </div>
                         </template>
                     </div>
-                    <div x-show="!resourcesLoading && pdfResources.length === 0 && allPdfCount === 0" class="de-card rounded-2xl p-8 text-center text-sm text-flag-ink/40">
+                    <div x-show="!resourcesLoading && pdfResources.length === 0" class="de-card rounded-2xl p-8 text-center text-sm text-flag-ink/40">
                         لا توجد مواد تعليمية بعد — سيتم إضافتها قريبًا
-                    </div>
-                    <div x-show="!resourcesLoading && pdfResources.length === 0 && allPdfCount > 0" class="de-card rounded-2xl p-8 text-center text-sm text-flag-ink/40">
-                        لا توجد نتائج مطابقة لبحثك في هذا القسم
                     </div>
                 </div>
 
                 <!-- YouTube videos -->
-                <div x-show="selectedType !== 'pdf'">
+                <div>
                     <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
                         <i class="fab fa-youtube text-flag-red me-2"></i> فيديوهات تعليمية
                     </h2>
                     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
                         <template x-for="r in youtubeResources" :key="r.id">
-                            <div class="de-card rounded-2xl overflow-hidden">
+                            <button @click="openVideo(r)" class="de-card rounded-2xl overflow-hidden text-start w-full">
                                 <div class="relative aspect-video bg-flag-black">
-                                    <template x-if="!playingVideos[r.id]">
-                                        <button @click="playingVideos[r.id] = true" class="absolute inset-0 w-full h-full group">
-                                            <img :src="'https://img.youtube.com/vi/' + r.youtube_id + '/hqdefault.jpg'" :alt="r.title" class="w-full h-full object-cover">
-                                            <span class="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors flex items-center justify-center">
-                                                <span class="h-14 w-14 rounded-full bg-flag-accent flex items-center justify-center text-white text-xl shadow-lg">
-                                                    <i class="fas fa-play ms-1"></i>
-                                                </span>
-                                            </span>
-                                        </button>
-                                    </template>
-                                    <template x-if="playingVideos[r.id]">
-                                        <iframe :src="'https://www.youtube.com/embed/' + r.youtube_id + '?autoplay=1'"
-                                                class="absolute inset-0 w-full h-full" frameborder="0"
-                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                allowfullscreen></iframe>
-                                    </template>
+                                    <img :src="'https://img.youtube.com/vi/' + r.youtube_id + '/hqdefault.jpg'" :alt="r.title" class="w-full h-full object-cover">
+                                    <span class="absolute inset-0 bg-black/30 hover:bg-black/40 transition-colors flex items-center justify-center">
+                                        <span class="h-14 w-14 rounded-full bg-flag-accent flex items-center justify-center text-white text-xl shadow-lg">
+                                            <i class="fas fa-play ms-1"></i>
+                                        </span>
+                                    </span>
                                 </div>
                                 <div class="p-4">
                                     <span class="de-badge de-badge-red mb-2 inline-block" x-show="r.category" x-text="r.category"></span>
                                     <h3 class="font-display font-semibold text-flag-ink mb-1" x-text="r.title"></h3>
                                     <p class="text-sm text-flag-ink/60" x-text="r.description"></p>
                                 </div>
-                            </div>
+                            </button>
                         </template>
                     </div>
-                    <div x-show="!resourcesLoading && youtubeResources.length === 0 && allYoutubeCount === 0" class="de-card rounded-2xl p-8 text-center text-sm text-flag-ink/40">
+                    <div x-show="!resourcesLoading && youtubeResources.length === 0" class="de-card rounded-2xl p-8 text-center text-sm text-flag-ink/40">
                         لا توجد فيديوهات بعد — سيتم إضافتها قريبًا
-                    </div>
-                    <div x-show="!resourcesLoading && youtubeResources.length === 0 && allYoutubeCount > 0" class="de-card rounded-2xl p-8 text-center text-sm text-flag-ink/40">
-                        لا توجد نتائج مطابقة لبحثك في هذا القسم
                     </div>
                 </div>
             </main>
@@ -241,6 +249,32 @@
             </div>
             <div class="flex-1 bg-flag-cream">
                 <iframe x-show="viewingPdf" :src="viewingPdf && viewingPdf.url" class="w-full h-full" frameborder="0"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Video lightbox (medium) ============ -->
+    <!-- The iframe only exists in the DOM while a video is open (x-if,
+         not x-show) so closing it actually stops playback/loading --
+         and since this is the only video player on the page, at most
+         one video can ever be loading at once. -->
+    <div x-show="viewingVideo" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/70 backdrop-blur-sm p-4">
+        <div class="de-card w-full max-w-2xl overflow-hidden">
+            <div class="de-flag-ribbon"></div>
+            <div class="flex items-center justify-between px-5 py-3 border-b border-black/10">
+                <h3 class="font-display font-semibold text-flag-ink text-sm truncate" x-text="viewingVideo && viewingVideo.title"></h3>
+                <button @click="closeVideo()" class="text-flag-ink/40 hover:text-flag-red flex-shrink-0 ms-4"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="aspect-video bg-flag-black">
+                <template x-if="viewingVideo">
+                    <iframe :src="'https://www.youtube.com/embed/' + viewingVideo.youtube_id + '?autoplay=1'"
+                            class="w-full h-full" frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                </template>
+            </div>
+            <div class="p-4" x-show="viewingVideo && viewingVideo.description">
+                <p class="text-sm text-flag-ink/60" x-text="viewingVideo && viewingVideo.description"></p>
             </div>
         </div>
     </div>
@@ -263,32 +297,27 @@
                 resources: [],
                 resourcesLoading: false,
                 viewingPdf: null,
-                playingVideos: {},
+                viewingVideo: null,
+                searchOpen: false,
                 toast: '',
                 searchQuery: '',
                 selectedCategory: 'all',
                 selectedType: 'all',
 
                 get pdfResources() {
-                    if (this.selectedType === 'youtube') return [];
-                    return this.resources.filter(r => r.type === 'pdf' && this.matchesSearch(r) && this.matchesCategory(r));
+                    return this.resources.filter(r => r.type === 'pdf');
                 },
                 get youtubeResources() {
-                    if (this.selectedType === 'pdf') return [];
-                    return this.resources.filter(r => r.type === 'youtube' && this.matchesSearch(r) && this.matchesCategory(r));
-                },
-                get allPdfCount() {
-                    return this.resources.filter(r => r.type === 'pdf').length;
-                },
-                get allYoutubeCount() {
-                    return this.resources.filter(r => r.type === 'youtube').length;
+                    return this.resources.filter(r => r.type === 'youtube');
                 },
                 get categories() {
                     const set = new Set(this.resources.map(r => r.category).filter(Boolean));
                     return Array.from(set).sort();
                 },
-                get hasActiveFilters() {
-                    return this.searchQuery.trim() !== '' || this.selectedCategory !== 'all' || this.selectedType !== 'all';
+                get searchResults() {
+                    return this.resources
+                        .filter(r => this.matchesSearch(r) && this.matchesCategory(r) && (this.selectedType === 'all' || r.type === this.selectedType))
+                        .slice(0, 10);
                 },
 
                 matchesSearch(r) {
@@ -299,10 +328,10 @@
                 matchesCategory(r) {
                     return this.selectedCategory === 'all' || r.category === this.selectedCategory;
                 },
-                clearFilters() {
-                    this.searchQuery = '';
-                    this.selectedCategory = 'all';
-                    this.selectedType = 'all';
+                selectSearchResult(r) {
+                    this.searchOpen = false;
+                    if (r.type === 'pdf') this.openPdf(r);
+                    else this.openVideo(r);
                 },
 
                 async init() {
@@ -358,6 +387,14 @@
 
                 closePdf() {
                     this.viewingPdf = null;
+                },
+
+                openVideo(resource) {
+                    this.viewingVideo = resource;
+                },
+
+                closeVideo() {
+                    this.viewingVideo = null;
                 },
 
                 showToast(msg) {
