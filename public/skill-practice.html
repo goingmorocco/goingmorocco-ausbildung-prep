@@ -52,15 +52,15 @@
         <i class="fas fa-circle-notch fa-spin text-2xl"></i>
     </div>
 
-    <!-- ============ MEMBERSHIP GATE ============ -->
-    <template x-if="authChecked && user && gateStatus !== 'ok'">
+    <!-- ============ MEMBERSHIP GATE (rejected only -- pending is the free tier) ============ -->
+    <template x-if="authChecked && user && gateStatus === 'rejected'">
         <div class="min-h-screen de-dark-bg flex items-center justify-center p-4">
             <div class="de-card w-full max-w-md overflow-hidden text-center">
                 <div class="de-flag-ribbon"></div>
                 <div class="p-8">
-                    <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5"><i class="fas fa-hourglass-half"></i></span>
-                    <h1 class="font-display text-xl font-bold text-flag-ink mb-3">حسابك قيد المراجعة</h1>
-                    <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">التدريبات السريعة متاحة فقط للأعضاء المفعّلين.</p>
+                    <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5" style="border-color:#DC2626;color:#DC2626;"><i class="fas fa-circle-xmark"></i></span>
+                    <h1 class="font-display text-xl font-bold text-flag-ink mb-3">تعذّر تفعيل حسابك</h1>
+                    <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">لم تتم الموافقة على عضويتك. تواصل معنا على <a href="mailto:info@ausbildung-test-prep.com" class="text-flag-red">info@ausbildung-test-prep.com</a> لمزيد من المعلومات.</p>
                     <a href="dashboard.html" class="de-btn w-full text-sm py-3" style="background:#EEEAE0;color:#1E293B;">
                         <i class="fas fa-arrow-right"></i> العودة إلى لوحة التحكم
                     </a>
@@ -103,6 +103,22 @@
                                 <p class="text-sm text-white/70" x-text="skillMeta.description"></p>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Free tier quota banner -->
+                    <div x-show="isFreeTier" x-cloak class="de-card rounded-2xl p-5 mb-8 flex items-center justify-between gap-4 flex-wrap" style="border-color:rgba(56,189,248,0.4);">
+                        <div class="flex items-center gap-3">
+                            <span class="de-stamp de-stamp-onlight h-11 w-11 text-xs"><i class="fas fa-bolt"></i></span>
+                            <div>
+                                <h3 class="font-display font-semibold text-flag-ink">أنت على الخطة المجانية</h3>
+                                <p class="text-sm text-flag-ink/60">
+                                    <span x-text="freeTestsUsed"></span> من 6 اختبارات مجانية مستخدمة — إعادة تدريب سبق لك تجربته لا تُحتسب أبدًا
+                                </p>
+                            </div>
+                        </div>
+                        <button @click="showUpgradePrompt = true" class="de-btn de-btn-primary text-sm py-2.5 px-5 flex-shrink-0">
+                            <i class="fas fa-arrow-up"></i> اشترك الآن
+                        </button>
                     </div>
 
                     <div class="de-card rounded-2xl p-6 mb-8 text-center">
@@ -358,6 +374,24 @@
         </div>
     </div>
 
+    <!-- ============ Upgrade prompt ============ -->
+    <div x-show="showUpgradePrompt" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
+        <div class="de-card w-full max-w-sm overflow-hidden text-center">
+            <div class="de-flag-ribbon"></div>
+            <div class="p-8">
+                <span class="de-stamp de-stamp-onlight h-16 w-16 text-xs mx-auto mb-5"><i class="fas fa-arrow-up"></i></span>
+                <h3 class="font-display text-xl font-bold text-flag-ink mb-3">اشترك للوصول الكامل</h3>
+                <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">
+                    الخطة المجانية تمنحك 6 تدريبات قصيرة للتجربة. للوصول إلى الاختبارات الكاملة المطابقة للاختبار الرسمي، والفصل الدراسي، ومزايا الذكاء الاصطناعي، اشترك مقابل 200 درهم شهريًا فقط.
+                </p>
+                <div class="flex gap-3">
+                    <button @click="showUpgradePrompt = false" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#1E293B;">لاحقًا</button>
+                    <a href="dashboard.html" class="de-btn de-btn-primary flex-1 text-sm py-2.5 text-center">لوحة التحكم</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ============ Toast ============ -->
     <div x-show="toast" x-cloak x-transition class="fixed bottom-6 inset-x-0 flex justify-center z-50 px-4">
         <div class="de-card px-5 py-3 rounded-xl flex items-center gap-2 text-sm shadow-xl">
@@ -374,6 +408,9 @@
                 user: null,
                 authChecked: false,
                 gateStatus: 'loading',
+                isFreeTier: false,
+                freeTestsUsed: 0,
+                showUpgradePrompt: false,
 
                 showTestModal: false,
                 testModalExpanded: false,
@@ -428,10 +465,14 @@
                             return;
                         }
                         this.user = profile;
-                        this.gateStatus = profile.membership_status === 'active' ? 'ok' : profile.membership_status;
+                        this.isFreeTier = profile.membership_status !== 'active';
+                        this.gateStatus = profile.membership_status === 'rejected' ? 'rejected' : 'ok';
                         this.authChecked = true;
 
-                        if (this.gateStatus === 'ok') this.loadIntroData();
+                        if (this.gateStatus === 'ok') {
+                            this.loadIntroData();
+                            if (this.isFreeTier) this.loadFreeQuota();
+                        }
                     } catch (e) {
                         console.error(e);
                         this.authChecked = true;
@@ -465,6 +506,7 @@
                     try {
                         const startData = await sbInvoke('test-attempt', { action: 'start', test_id: this.test.id });
                         if (!startData.success) {
+                            if (startData.code === 'upgrade_required') { this.showUpgradePrompt = true; return; }
                             this.showToast(startData.message || 'تعذّر بدء التدريب');
                             return;
                         }
@@ -532,6 +574,7 @@
                         });
                         if (data.success) {
                             this.testResults = data.result;
+                            if (this.isFreeTier) this.loadFreeQuota();
                         } else {
                             this.showToast(data.message || 'حدث خطأ أثناء إرسال التدريب');
                         }
@@ -576,6 +619,14 @@
                     }
                 },
                 closePdf() { this.viewingPdf = null; },
+
+                async loadFreeQuota() {
+                    try {
+                        const { data, error } = await sb.rpc('free_tests_used');
+                        if (!error) this.freeTestsUsed = data;
+                    } catch (e) { console.error(e); }
+                },
+
 
                 async getHint() {
                     if (!this.currentQuestion || this.hintsShown[this.currentQuestion.id]) return;

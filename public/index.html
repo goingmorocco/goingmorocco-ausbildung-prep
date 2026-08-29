@@ -342,9 +342,9 @@
                 <div class="flex flex-col sm:flex-row justify-center gap-4">
                     <template x-if="!user">
                         <div class="flex flex-col sm:flex-row gap-4">
-                            <a href="#pricing" class="de-btn de-btn-gold de-glow-pulse">
+                            <button @click="showModal = true; modalTitle = 'إنشاء حساب'; modalContent = $refs['register-form'].innerHTML" class="de-btn de-btn-gold de-glow-pulse">
                                 <i class="fas fa-play"></i> ابدأ مجانًا
-                            </a>
+                            </button>
                             <a href="#how-it-works" class="de-btn de-btn-ghost">
                                 <i class="fas fa-info-circle"></i> تعرف على المزيد
                             </a>
@@ -441,9 +441,9 @@
                             <div><i class="fas fa-check-circle me-1 text-emerald-600"></i> 60% للنجاح</div>
                             <div><i class="fas fa-user-graduate me-1"></i> مناسب لـ Ausbildung</div>
                         </div>
-                        <a href="#" class="de-btn de-btn-primary w-full text-sm py-2.5">
-                            <i class="fas fa-play"></i> تجربة مجانية
-                        </a>
+                        <button @click="showModal = true; modalTitle = 'إنشاء حساب'; modalContent = $refs['register-form'].innerHTML" class="de-btn de-btn-primary w-full text-sm py-2.5">
+                            <i class="fas fa-user-plus"></i> سجّل مجانًا
+                        </button>
                     </div>
 
                     <!-- Goethe B2 -->
@@ -467,9 +467,9 @@
                             <div><i class="fas fa-check-circle me-1 text-emerald-600"></i> 60% للنجاح</div>
                             <div><i class="fas fa-user-graduate me-1"></i> مطلوب لمعظم البرامج</div>
                         </div>
-                        <a href="#" class="de-btn de-btn-primary w-full text-sm py-2.5">
-                            <i class="fas fa-play"></i> تجربة مجانية
-                        </a>
+                        <button @click="showModal = true; modalTitle = 'إنشاء حساب'; modalContent = $refs['register-form'].innerHTML" class="de-btn de-btn-primary w-full text-sm py-2.5">
+                            <i class="fas fa-user-plus"></i> سجّل مجانًا
+                        </button>
                     </div>
 
                     <!-- telc B1 Beruf -->
@@ -493,9 +493,9 @@
                             <div><i class="fas fa-check-circle me-1 text-emerald-600"></i> 60% للنجاح</div>
                             <div><i class="fas fa-hard-hat me-1"></i> مصطلحات مهنية</div>
                         </div>
-                        <a href="#" class="de-btn de-btn-primary w-full text-sm py-2.5">
-                            <i class="fas fa-play"></i> تجربة مجانية
-                        </a>
+                        <button @click="showModal = true; modalTitle = 'إنشاء حساب'; modalContent = $refs['register-form'].innerHTML" class="de-btn de-btn-primary w-full text-sm py-2.5">
+                            <i class="fas fa-user-plus"></i> سجّل مجانًا
+                        </button>
                     </div>
 
                     <!-- telc B2 Beruf -->
@@ -519,9 +519,9 @@
                             <div><i class="fas fa-check-circle me-1 text-emerald-600"></i> 60% للنجاح</div>
                             <div><i class="fas fa-chart-line me-1"></i> تواصل مهني</div>
                         </div>
-                        <a href="#" class="de-btn de-btn-primary w-full text-sm py-2.5">
-                            <i class="fas fa-play"></i> تجربة مجانية
-                        </a>
+                        <button @click="showModal = true; modalTitle = 'إنشاء حساب'; modalContent = $refs['register-form'].innerHTML" class="de-btn de-btn-primary w-full text-sm py-2.5">
+                            <i class="fas fa-user-plus"></i> سجّل مجانًا
+                        </button>
                     </div>
 
                     <!-- ÖSD B1 -->
@@ -545,9 +545,9 @@
                             <div><i class="fas fa-check-circle me-1 text-emerald-600"></i> 60% للنجاح</div>
                             <div><i class="fas fa-globe-europe me-1"></i> معترف به بالاتحاد الأوروبي</div>
                         </div>
-                        <a href="#" class="de-btn de-btn-primary w-full text-sm py-2.5">
-                            <i class="fas fa-play"></i> تجربة مجانية
-                        </a>
+                        <button @click="showModal = true; modalTitle = 'إنشاء حساب'; modalContent = $refs['register-form'].innerHTML" class="de-btn de-btn-primary w-full text-sm py-2.5">
+                            <i class="fas fa-user-plus"></i> سجّل مجانًا
+                        </button>
                     </div>
 
                     <!-- ÖSD B2 -->
@@ -571,9 +571,9 @@
                             <div><i class="fas fa-check-circle me-1 text-emerald-600"></i> 60% للنجاح</div>
                             <div><i class="fas fa-briefcase me-1"></i> أكاديمية ومهنية</div>
                         </div>
-                        <a href="#" class="de-btn de-btn-primary w-full text-sm py-2.5">
-                            <i class="fas fa-play"></i> تجربة مجانية
-                        </a>
+                        <button @click="showModal = true; modalTitle = 'إنشاء حساب'; modalContent = $refs['register-form'].innerHTML" class="de-btn de-btn-primary w-full text-sm py-2.5">
+                            <i class="fas fa-user-plus"></i> سجّل مجانًا
+                        </button>
                     </div>
                 </div>
             </div>

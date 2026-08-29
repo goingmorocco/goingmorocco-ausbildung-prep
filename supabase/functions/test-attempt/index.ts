@@ -79,6 +79,17 @@ Deno.serve(async (req) => {
         });
       }
 
+      const { data: allowed, error: accessError } = await authClient.rpc('can_access_test', {
+        target_test_id: test_id
+      });
+      if (accessError) throw accessError;
+      if (!allowed) {
+        return new Response(
+          JSON.stringify({ success: false, message: 'هذا الاختبار غير متاح في الخطة المجانية', code: 'upgrade_required' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       const { data: attempt, error } = await admin
         .from('user_test_attempts')
         .insert({ user_id: user.id, test_id, started_at: new Date().toISOString() })

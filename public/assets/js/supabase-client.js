@@ -5,8 +5,8 @@
 // safe to expose in client-side code by design (it only grants access
 // allowed by your Row Level Security policies); never put the service
 // role key here or anywhere in frontend code.
-const SUPABASE_URL = 'https://qonzvlatldtsalscffmm.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvbnp2bGF0bGR0c2Fsc2NmZm1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MjI1NjEsImV4cCI6MjEwMzA5ODU2MX0.bP5C_sRr1ZrhojxJPc_wm9i23H5_xvw_HPt30_kvtwk';
+const SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -27,13 +27,15 @@ async function sbInvoke(functionName, body) {
     // without exposing the parsed body directly, so fall back to a
     // generic message when that happens.
     let message = 'حدث خطأ أثناء الاتصال بالخادم';
+    let code = null;
     try {
       if (error.context && typeof error.context.json === 'function') {
         const parsed = await error.context.json();
         if (parsed && parsed.message) message = parsed.message;
+        if (parsed && parsed.code) code = parsed.code;
       }
     } catch (_) { /* ignore parse failure, use generic message */ }
-    return { success: false, message };
+    return { success: false, message, code };
   }
   return data;
 }

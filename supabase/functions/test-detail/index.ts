@@ -53,6 +53,20 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    // Access check must happen via the user-scoped client (auth.uid()
+    // inside can_access_test() needs the caller's own JWT, not the
+    // service role's).
+    const { data: allowed, error: accessError } = await authClient.rpc('can_access_test', {
+      target_test_id: test_id
+    });
+    if (accessError) throw accessError;
+    if (!allowed) {
+      return new Response(
+        JSON.stringify({ success: false, message: 'هذا الاختبار غير متاح في الخطة المجانية', code: 'upgrade_required' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { data: test, error: testError } = await admin
       .from('tests')
       .select('*')
