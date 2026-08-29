@@ -258,14 +258,14 @@
                             <h3 class="font-display font-semibold text-flag-ink mb-1">تدريب القراءة</h3>
                             <p class="text-xs text-flag-ink/50">نص قصير + أسئلة — 5-8 دقائق</p>
                         </a>
-                        <a href="skill-practice.html?skill=listening" class="de-card rounded-2xl p-5 block hover:border-flag-red/30 transition-colors">
+                        <a href="hoeren.html" class="de-card rounded-2xl p-5 block hover:border-flag-red/30 transition-colors">
                             <div class="h-11 w-11 rounded-xl bg-flag-gold/20 flex items-center justify-center mb-3">
                                 <i class="fas fa-headphones text-flag-ink"></i>
                             </div>
                             <h3 class="font-display font-semibold text-flag-ink mb-1">تدريب الاستماع</h3>
                             <p class="text-xs text-flag-ink/50">حوار قصير + أسئلة — 5-8 دقائق</p>
                         </a>
-                        <a href="skill-practice.html?skill=writing" class="de-card rounded-2xl p-5 block hover:border-flag-red/30 transition-colors">
+                        <a href="schreiben.html" class="de-card rounded-2xl p-5 block hover:border-flag-red/30 transition-colors">
                             <div class="h-11 w-11 rounded-xl bg-flag-red/10 flex items-center justify-center mb-3">
                                 <i class="fas fa-pen text-flag-red"></i>
                             </div>
@@ -462,6 +462,17 @@
 
                                     <div class="de-card rounded-xl p-5 mb-6" :class="testModalExpanded && currentQuestion.sectionPassage ? 'max-h-[65vh] overflow-y-auto' : ''">
                                         <p class="font-medium text-flag-ink mb-4" x-text="currentQuestion.question_text"></p>
+
+                                        <div class="mb-4">
+                                            <button x-show="!hintsShown[currentQuestion.id]" @click="getHint()" :disabled="hintLoading"
+                                                    class="text-xs text-flag-red hover:text-flag-reddeep disabled:opacity-50">
+                                                <i class="fas" :class="hintLoading ? 'fa-circle-notch fa-spin' : 'fa-lightbulb'"></i>
+                                                <span x-text="hintLoading ? 'جاري التحضير...' : 'اطلب تلميحًا'"></span>
+                                            </button>
+                                            <div x-show="hintsShown[currentQuestion.id]" x-cloak class="text-xs text-flag-ink/70 bg-flag-gold/10 border border-flag-gold/30 rounded-lg p-3">
+                                                <i class="fas fa-lightbulb text-flag-gold"></i> <span x-text="hintsShown[currentQuestion.id]"></span>
+                                            </div>
+                                        </div>
                                         <div class="space-y-2">
                                             <template x-for="opt in currentQuestion.answers" :key="opt.id">
                                                 <label class="flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
@@ -546,7 +557,7 @@
                             </template>
                         </div>
 
-                        <!-- Ungraded writing practice, shown after the graded review -->
+                        <!-- Writing practice, shown after the graded review, with real AI grading -->
                         <div class="text-start max-w-xl mx-auto" x-show="activeTest && activeTest.writing">
                             <template x-if="activeTest && activeTest.writing">
                                 <div class="de-card rounded-xl p-5" style="border-color:rgba(37,99,235,0.4);">
@@ -558,12 +569,49 @@
                                     </div>
                                     <p class="text-xs text-flag-ink/50 mb-3" x-text="activeTest.writing.instructions"></p>
                                     <p class="text-sm font-medium text-flag-ink whitespace-pre-line mb-3" x-text="activeTest.writing.prompt"></p>
-                                    <textarea x-model="writingDraft" rows="5" placeholder="اكتب إجابتك هنا (تدريب حر، لا يُرسل ولا يُقيَّم)..."
+                                    <textarea x-model="writingDraft" rows="6" placeholder="اكتب إجابتك هنا..."
                                               class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30 mb-3"></textarea>
-                                    <button @click="showWritingSample = !showWritingSample" class="de-btn text-xs py-2 px-4" style="background:#EEEAE0;color:#1E293B;">
-                                        <span x-text="showWritingSample ? 'إخفاء نموذج الإجابة' : 'إظهار نموذج الإجابة'"></span>
-                                    </button>
-                                    <div x-show="showWritingSample" x-cloak class="mt-3 p-3 rounded-lg bg-flag-cream text-sm text-flag-ink/80 whitespace-pre-line" x-text="activeTest.writing.sample_answer"></div>
+
+                                    <div class="flex flex-wrap gap-2 mb-3">
+                                        <button @click="gradeWriting()" :disabled="gradingWriting || writingDraft.trim().length < 10"
+                                                class="de-btn de-btn-primary text-xs py-2 px-4 disabled:opacity-50">
+                                            <i class="fas" :class="gradingWriting ? 'fa-circle-notch fa-spin' : 'fa-robot'"></i>
+                                            <span x-text="gradingWriting ? 'جاري التقييم...' : 'قيّم كتابتي بالذكاء الاصطناعي'"></span>
+                                        </button>
+                                        <button @click="showWritingSample = !showWritingSample" class="de-btn text-xs py-2 px-4" style="background:#EEEAE0;color:#1E293B;">
+                                            <span x-text="showWritingSample ? 'إخفاء نموذج الإجابة' : 'إظهار نموذج الإجابة'"></span>
+                                        </button>
+                                    </div>
+                                    <div x-show="showWritingSample" x-cloak class="mt-3 mb-3 p-3 rounded-lg bg-flag-cream text-sm text-flag-ink/80 whitespace-pre-line" x-text="activeTest.writing.sample_answer"></div>
+
+                                    <!-- AI grading result -->
+                                    <div x-show="writingGradeResult" x-cloak class="mt-4 pt-4 border-t border-black/10">
+                                        <div class="grid grid-cols-3 gap-2 mb-4 text-center">
+                                            <div class="de-card rounded-lg p-2">
+                                                <div class="text-[10px] text-flag-ink/50 mb-1">استيفاء الموضوع</div>
+                                                <div class="font-display font-bold text-flag-ink" x-text="writingGradeResult ? writingGradeResult.task_fulfillment_score + '%' : ''"></div>
+                                            </div>
+                                            <div class="de-card rounded-lg p-2">
+                                                <div class="text-[10px] text-flag-ink/50 mb-1">تنوع اللغة</div>
+                                                <div class="font-display font-bold text-flag-ink" x-text="writingGradeResult ? writingGradeResult.range_of_expression_score + '%' : ''"></div>
+                                            </div>
+                                            <div class="de-card rounded-lg p-2">
+                                                <div class="text-[10px] text-flag-ink/50 mb-1">القواعد</div>
+                                                <div class="font-display font-bold text-flag-ink" x-text="writingGradeResult ? writingGradeResult.grammar_score + '%' : ''"></div>
+                                            </div>
+                                        </div>
+                                        <div class="de-card rounded-xl p-4 text-center mb-3">
+                                            <div class="text-xs text-flag-ink/50 mb-1">التقييم العام</div>
+                                            <div class="text-2xl font-display font-bold text-flag-red" x-text="writingGradeResult ? writingGradeResult.overall_score + '%' : ''"></div>
+                                        </div>
+                                        <div class="de-card rounded-xl p-4">
+                                            <p class="text-xs font-medium text-flag-ink/50 mb-2"><i class="fas fa-comment-dots"></i> ملاحظات</p>
+                                            <p class="text-sm text-flag-ink/80 whitespace-pre-line" x-text="writingGradeResult ? writingGradeResult.feedback : ''"></p>
+                                        </div>
+                                        <p class="text-[11px] text-flag-ink/40 mt-2">
+                                            <i class="fas fa-circle-info"></i> هذا تقييم آلي بالذكاء الاصطناعي، وقد يختلف قليلاً في كل مرة — استخدمه كدليل إرشادي وليس كنتيجة رسمية نهائية.
+                                        </p>
+                                    </div>
                                 </div>
                             </template>
                         </div>
@@ -717,6 +765,10 @@
                 showWritingPractice: false,
                 writingDraft: '',
                 showWritingSample: false,
+                gradingWriting: false,
+                writingGradeResult: null,
+                hintsShown: {},
+                hintLoading: false,
                 showTranscript: false,
                 audioFailed: false,
 
@@ -917,9 +969,11 @@
                         this.showTestModal = true;
                         this.showWritingPractice = false;
                         this.writingDraft = '';
+                        this.writingGradeResult = null;
                         this.showWritingSample = false;
                         this.showTranscript = false;
                         this.audioFailed = false;
+                        this.hintsShown = {};
                         this.testStartedAt = Date.now();
                         this.startTimer(Math.max(180, flattened.length * 90));
                     } catch (e) {
@@ -1001,10 +1055,52 @@
                     this.currentQuestionIndex = 0;
                     this.showWritingPractice = false;
                     this.writingDraft = '';
+                    this.writingGradeResult = null;
                     this.showWritingSample = false;
                     this.showTranscript = false;
                     this.audioFailed = false;
                     if (this.resultChart) { this.resultChart.destroy(); this.resultChart = null; }
+                },
+
+                async gradeWriting() {
+                    if (!this.activeTest || !this.activeTest.writing) return;
+                    this.gradingWriting = true;
+                    this.writingGradeResult = null;
+                    try {
+                        const data = await sbInvoke('grade-writing', {
+                            writing_prompt_id: this.activeTest.writing.id,
+                            submission_text: this.writingDraft
+                        });
+                        if (data.success) {
+                            this.writingGradeResult = data.result;
+                        } else {
+                            this.showToast(data.message || 'تعذّر تقييم النص');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        this.showToast('حدث خطأ أثناء التقييم');
+                    } finally {
+                        this.gradingWriting = false;
+                    }
+                },
+
+                async getHint() {
+                    if (!this.currentQuestion || this.hintsShown[this.currentQuestion.id]) return;
+                    const qId = this.currentQuestion.id;
+                    this.hintLoading = true;
+                    try {
+                        const data = await sbInvoke('get-hint', { question_id: qId });
+                        if (data.success) {
+                            this.hintsShown[qId] = data.hint;
+                        } else {
+                            this.showToast(data.message || 'تعذّر الحصول على تلميح');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        this.showToast('حدث خطأ أثناء طلب التلميح');
+                    } finally {
+                        this.hintLoading = false;
+                    }
                 },
 
                 async viewAttempt(attemptId) {

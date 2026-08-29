@@ -10,16 +10,17 @@
 //
 // `is_skill_practice: true` marks the short 5-8 minute single-skill
 // drills (as opposed to the long realistic exams). `skill` groups them
-// (reading/listening/writing/speaking) so a page like public/lesen.html
-// can query "every reading drill, newest first" regardless of how many
-// exist -- each individual drill still has its own unique test_type
+// (reading/listening/writing/speaking) so a library page like
+// public/lesen.html, public/hoeren.html, or public/schreiben.html can
+// query "every drill for this skill, newest first" regardless of how
+// many exist -- each individual drill still has its own unique test_type
 // (e.g. 'skill_reading_market') so upserting by test_type stays safe.
 //
-// The "writing" skill drills are deliberately a grammar/connectors/
-// word-choice quiz, not free-composition writing -- free text can't be
-// auto-graded reliably, so it focuses on the gradable mechanics instead.
-// Real essay practice stays in the ungraded Schreiben prompts on the full
-// exams.
+// The "writing" skill drills are deliberately grammar/connectors/
+// word-choice/register quizzes, not free-composition writing -- free
+// text can't be auto-graded reliably, so they focus on the gradable
+// mechanics instead. Real essay practice stays in the ungraded Schreiben
+// prompts on the full exams.
 
 const mockTests = [
   {
@@ -177,6 +178,58 @@ const mockTests = [
     "is_active": true,
     "is_skill_practice": true,
     "skill": "reading"
+  },
+  {
+    "id": "test_skill_listening_restaurant",
+    "title": "تدريب الاستماع: حجز طاولة في مطعم",
+    "description": "حوار قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_listening_restaurant",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "listening"
+  },
+  {
+    "id": "test_skill_listening_directions",
+    "title": "تدريب الاستماع: السؤال عن الطريق",
+    "description": "حوار قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_listening_directions",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "listening"
+  },
+  {
+    "id": "test_skill_writing_formal",
+    "title": "تدريب الكتابة: الأسلوب الرسمي",
+    "description": "تدريب على اختيار الصيغة الرسمية المناسبة في المراسلات — حوالي 6 دقائق",
+    "test_type": "skill_writing_formal",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 7,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "writing"
+  },
+  {
+    "id": "test_skill_writing_clauses",
+    "title": "تدريب الكتابة: الجمل الفرعية",
+    "description": "تدريب على بناء الجمل الفرعية والروابط اللغوية — حوالي 6 دقائق",
+    "test_type": "skill_writing_clauses",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 7,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "writing"
   }
 ];
 
@@ -13117,6 +13170,696 @@ const mockContent = {
               {
                 "id": "srn_q6_a3",
                 "answer_text": "Den ganzen Tag",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_listening_restaurant": {
+    "sections": [
+      {
+        "key": "listening1",
+        "name": "استماع سريع",
+        "type": "listening",
+        "official_duration_minutes": null,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص المكالمة كما لو كنت تسمعها، ثم أجب عن الأسئلة.",
+        "passage": "Anruf im Restaurant:\n\"Restaurant Alpenblick, guten Abend.\nGuten Abend, ich möchte gerne einen Tisch reservieren, für Freitagabend.\nGerne, für wie viele Personen?\nFür vier Personen, bitte.\nUm wie viel Uhr möchten Sie kommen?\nUm 20 Uhr, wenn das möglich ist.\nJa, das passt gut. Auf welchen Namen darf ich reservieren?\nAuf den Namen Karim Idrissi.\nSehr gerne, Herr Idrissi. Haben Sie noch besondere Wünsche, zum Beispiel einen Tisch am Fenster?\nJa, wenn möglich, gerne am Fenster.\nKein Problem, wir notieren das. Bis Freitag!\"",
+        "audio_url": "/audio/test_skill_listening_restaurant__listening1.mp3",
+        "items": [
+          {
+            "id": "slr_q1",
+            "question_text": "Für welchen Tag reserviert die Person?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Anrufer nennt Freitagabend.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "slr_q1_a1",
+                "answer_text": "Freitagabend",
+                "is_correct": true
+              },
+              {
+                "id": "slr_q1_a2",
+                "answer_text": "Samstagabend",
+                "is_correct": false
+              },
+              {
+                "id": "slr_q1_a3",
+                "answer_text": "Sonntagmittag",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slr_q2",
+            "question_text": "Für wie viele Personen ist die Reservierung?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Anrufer nennt vier Personen.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "slr_q2_a1",
+                "answer_text": "Vier Personen",
+                "is_correct": true
+              },
+              {
+                "id": "slr_q2_a2",
+                "answer_text": "Zwei Personen",
+                "is_correct": false
+              },
+              {
+                "id": "slr_q2_a3",
+                "answer_text": "Sechs Personen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slr_q3",
+            "question_text": "Um wie viel Uhr möchte er kommen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Anrufer nennt 20 Uhr.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "slr_q3_a1",
+                "answer_text": "Um 20 Uhr",
+                "is_correct": true
+              },
+              {
+                "id": "slr_q3_a2",
+                "answer_text": "Um 19 Uhr",
+                "is_correct": false
+              },
+              {
+                "id": "slr_q3_a3",
+                "answer_text": "Um 21 Uhr",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slr_q4",
+            "question_text": "Auf welchen Namen wird reserviert?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Anrufer nennt den Namen Karim Idrissi.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "slr_q4_a1",
+                "answer_text": "Karim Idrissi",
+                "is_correct": true
+              },
+              {
+                "id": "slr_q4_a2",
+                "answer_text": "Karim Alaoui",
+                "is_correct": false
+              },
+              {
+                "id": "slr_q4_a3",
+                "answer_text": "Yassin Idrissi",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slr_q5",
+            "question_text": "Er möchte einen Tisch am Fenster.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er bittet um einen Tisch am Fenster.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "slr_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "slr_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slr_q6",
+            "question_text": "Die Reservierung war nicht möglich.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Reservierung wurde bestätigt.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "slr_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "slr_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_listening_directions": {
+    "sections": [
+      {
+        "key": "listening1",
+        "name": "استماع سريع",
+        "type": "listening",
+        "official_duration_minutes": null,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص الحوار كما لو كنت تسمعه، ثم أجب عن الأسئلة.",
+        "passage": "Auf der Straße:\n\"Entschuldigung, wissen Sie, wo die Post ist?\nJa klar, gehen Sie hier geradeaus bis zur Ampel, dann links.\nUnd dann?\nDann sehen Sie eine Bäckerei auf der rechten Seite, direkt danach ist die Post.\nWie weit ist das von hier?\nUngefähr zehn Minuten zu Fuß.\nVielen Dank für Ihre Hilfe!\nKein Problem, einen schönen Tag noch!\"",
+        "audio_url": "/audio/test_skill_listening_directions__listening1.mp3",
+        "items": [
+          {
+            "id": "sld_q1",
+            "question_text": "Wonach fragt die Person?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Person fragt nach der Post.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "sld_q1_a1",
+                "answer_text": "Nach dem Weg zur Post",
+                "is_correct": true
+              },
+              {
+                "id": "sld_q1_a2",
+                "answer_text": "Nach dem Weg zum Bahnhof",
+                "is_correct": false
+              },
+              {
+                "id": "sld_q1_a3",
+                "answer_text": "Nach der Uhrzeit",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sld_q2",
+            "question_text": "Was soll man zuerst tun?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Man soll zuerst geradeaus bis zur Ampel gehen.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "sld_q2_a1",
+                "answer_text": "Geradeaus bis zur Ampel gehen",
+                "is_correct": true
+              },
+              {
+                "id": "sld_q2_a2",
+                "answer_text": "Sofort links abbiegen",
+                "is_correct": false
+              },
+              {
+                "id": "sld_q2_a3",
+                "answer_text": "Die Straße überqueren",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sld_q3",
+            "question_text": "In welche Richtung soll man an der Ampel abbiegen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "An der Ampel soll man links abbiegen.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "sld_q3_a1",
+                "answer_text": "Links",
+                "is_correct": true
+              },
+              {
+                "id": "sld_q3_a2",
+                "answer_text": "Rechts",
+                "is_correct": false
+              },
+              {
+                "id": "sld_q3_a3",
+                "answer_text": "Geradeaus weiter",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sld_q4",
+            "question_text": "Neben der Post ist eine Bäckerei.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Direkt vor der Post ist eine Bäckerei.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "sld_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "sld_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sld_q5",
+            "question_text": "Wie lange dauert der Weg zu Fuß?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Weg dauert ungefähr zehn Minuten.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "sld_q5_a1",
+                "answer_text": "Ungefähr zehn Minuten",
+                "is_correct": true
+              },
+              {
+                "id": "sld_q5_a2",
+                "answer_text": "Fünf Minuten",
+                "is_correct": false
+              },
+              {
+                "id": "sld_q5_a3",
+                "answer_text": "Eine halbe Stunde",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sld_q6",
+            "question_text": "Die Bäckerei ist auf der linken Seite.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Bäckerei ist auf der rechten Seite.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "sld_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "sld_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_writing_formal": {
+    "sections": [
+      {
+        "key": "writing1",
+        "name": "الأسلوب الرسمي",
+        "type": "language",
+        "official_duration_minutes": null,
+        "instructions": "اختر الصيغة الرسمية الصحيحة المناسبة لرسالة أو بريد إلكتروني رسمي.",
+        "items": [
+          {
+            "id": "swf_q1",
+            "question_text": "بداية رسالة رسمية إلى شخص لا تعرف اسمه:",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"Sehr geehrte Damen und Herren\" هي الصيغة الرسمية المعتمدة.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "swf_q1_a1",
+                "answer_text": "Sehr geehrte Damen und Herren,",
+                "is_correct": true
+              },
+              {
+                "id": "swf_q1_a2",
+                "answer_text": "Hallo zusammen,",
+                "is_correct": false
+              },
+              {
+                "id": "swf_q1_a3",
+                "answer_text": "Hi,",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swf_q2",
+            "question_text": "طلب معلومات بشكل رسمي:",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "الصيغة الشرطية المهذبة مناسبة للسياق الرسمي.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "swf_q2_a1",
+                "answer_text": "Ich würde mich freuen, wenn Sie mir mitteilen könnten...",
+                "is_correct": true
+              },
+              {
+                "id": "swf_q2_a2",
+                "answer_text": "Sag mir bitte...",
+                "is_correct": false
+              },
+              {
+                "id": "swf_q2_a3",
+                "answer_text": "Ich will wissen...",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swf_q3",
+            "question_text": "إنهاء رسالة رسمية:",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"Mit freundlichen Grüßen\" هي الخاتمة الرسمية المعتادة.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "swf_q3_a1",
+                "answer_text": "Mit freundlichen Grüßen",
+                "is_correct": true
+              },
+              {
+                "id": "swf_q3_a2",
+                "answer_text": "Bis bald",
+                "is_correct": false
+              },
+              {
+                "id": "swf_q3_a3",
+                "answer_text": "Tschüss",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swf_q4",
+            "question_text": "الإشارة إلى مرفق في البريد الإلكتروني:",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "صيغة رسمية معتادة للإشارة إلى مرفقات.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "swf_q4_a1",
+                "answer_text": "Anbei finden Sie die gewünschten Unterlagen.",
+                "is_correct": true
+              },
+              {
+                "id": "swf_q4_a2",
+                "answer_text": "Hier sind die Sachen.",
+                "is_correct": false
+              },
+              {
+                "id": "swf_q4_a3",
+                "answer_text": "Ich habe was angehängt.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swf_q5",
+            "question_text": "الاعتذار بشكل رسمي عن تأخير:",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "صيغة رسمية للاعتذار.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "swf_q5_a1",
+                "answer_text": "Ich bitte um Entschuldigung für die Verzögerung.",
+                "is_correct": true
+              },
+              {
+                "id": "swf_q5_a2",
+                "answer_text": "Sorry für die Verspätung.",
+                "is_correct": false
+              },
+              {
+                "id": "swf_q5_a3",
+                "answer_text": "Tut mir leid, war spät dran.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swf_q6",
+            "question_text": "طلب رد بشكل رسمي:",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "صيغة رسمية لطلب الرد.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "swf_q6_a1",
+                "answer_text": "Ich freue mich auf Ihre Rückmeldung.",
+                "is_correct": true
+              },
+              {
+                "id": "swf_q6_a2",
+                "answer_text": "Schreib mir zurück.",
+                "is_correct": false
+              },
+              {
+                "id": "swf_q6_a3",
+                "answer_text": "Antworte schnell.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swf_q7",
+            "question_text": "الإشارة إلى مكالمة سابقة رسميًا:",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "صيغة رسمية للإشارة إلى مكالمة سابقة.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "swf_q7_a1",
+                "answer_text": "Bezugnehmend auf unser Telefongespräch...",
+                "is_correct": true
+              },
+              {
+                "id": "swf_q7_a2",
+                "answer_text": "Wegen dem Anruf...",
+                "is_correct": false
+              },
+              {
+                "id": "swf_q7_a3",
+                "answer_text": "Also, das Telefonat...",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_writing_clauses": {
+    "sections": [
+      {
+        "key": "writing1",
+        "name": "الجمل الفرعية",
+        "type": "language",
+        "official_duration_minutes": null,
+        "instructions": "اختر الأداة الصحيحة لربط الجملتين في جملة واحدة سليمة.",
+        "items": [
+          {
+            "id": "swc_q1",
+            "question_text": "Ich bleibe zu Hause, ___ es regnet.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"weil\" يعطي السبب.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "swc_q1_a1",
+                "answer_text": "weil",
+                "is_correct": true
+              },
+              {
+                "id": "swc_q1_a2",
+                "answer_text": "obwohl",
+                "is_correct": false
+              },
+              {
+                "id": "swc_q1_a3",
+                "answer_text": "damit",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swc_q2",
+            "question_text": "___ ich Zeit habe, rufe ich dich an.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"Wenn\" يفيد الشرط الزمني.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "swc_q2_a1",
+                "answer_text": "Wenn",
+                "is_correct": true
+              },
+              {
+                "id": "swc_q2_a2",
+                "answer_text": "Obwohl",
+                "is_correct": false
+              },
+              {
+                "id": "swc_q2_a3",
+                "answer_text": "Damit",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swc_q3",
+            "question_text": "Sie lernt jeden Tag, ___ die Prüfung zu bestehen.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"um ... zu\" يعبّر عن الهدف.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "swc_q3_a1",
+                "answer_text": "um",
+                "is_correct": true
+              },
+              {
+                "id": "swc_q3_a2",
+                "answer_text": "weil",
+                "is_correct": false
+              },
+              {
+                "id": "swc_q3_a3",
+                "answer_text": "obwohl",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swc_q4",
+            "question_text": "Er ist müde, ___ er hat gut geschlafen.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"obwohl\" يفيد التضاد المنطقي.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "swc_q4_a1",
+                "answer_text": "obwohl",
+                "is_correct": true
+              },
+              {
+                "id": "swc_q4_a2",
+                "answer_text": "weil",
+                "is_correct": false
+              },
+              {
+                "id": "swc_q4_a3",
+                "answer_text": "wenn",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swc_q5",
+            "question_text": "Ich weiß nicht, ___ er heute kommt.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"ob\" تُستخدم للسؤال غير المباشر.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "swc_q5_a1",
+                "answer_text": "ob",
+                "is_correct": true
+              },
+              {
+                "id": "swc_q5_a2",
+                "answer_text": "dass",
+                "is_correct": false
+              },
+              {
+                "id": "swc_q5_a3",
+                "answer_text": "weil",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swc_q6",
+            "question_text": "Sie hat mir gesagt, ___ sie später kommt.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"dass\" تُستخدم لنقل جملة خبرية.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "swc_q6_a1",
+                "answer_text": "dass",
+                "is_correct": true
+              },
+              {
+                "id": "swc_q6_a2",
+                "answer_text": "ob",
+                "is_correct": false
+              },
+              {
+                "id": "swc_q6_a3",
+                "answer_text": "wenn",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swc_q7",
+            "question_text": "___ das Wetter schlecht war, sind wir spazieren gegangen.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"Obwohl\" يفيد التضاد.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "swc_q7_a1",
+                "answer_text": "Obwohl",
+                "is_correct": true
+              },
+              {
+                "id": "swc_q7_a2",
+                "answer_text": "Weil",
+                "is_correct": false
+              },
+              {
+                "id": "swc_q7_a3",
+                "answer_text": "Damit",
                 "is_correct": false
               }
             ]

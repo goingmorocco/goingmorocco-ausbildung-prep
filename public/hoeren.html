@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lesen - تدريبات القراءة - إعداد اختبار Ausbildungsaufnahme</title>
-    <meta name="description" content="مكتبة متجددة من تدريبات القراءة القصيرة">
+    <title>Hören - تدريبات الاستماع - إعداد اختبار Ausbildungsaufnahme</title>
+    <meta name="description" content="مكتبة متجددة من تدريبات الاستماع القصيرة">
     <meta name="robots" content="noindex, nofollow">
 
     <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -46,7 +46,7 @@
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>[x-cloak]{display:none !important;}</style>
 </head>
-<body class="font-arabic de-paper-bg text-flag-ink antialiased min-h-screen" x-data="lesenApp()" x-init="init()">
+<body class="font-arabic de-paper-bg text-flag-ink antialiased min-h-screen" x-data="hoerenApp()" x-init="init()">
 
     <!-- ============ LOADING ============ -->
     <div x-show="!authChecked" class="min-h-screen flex items-center justify-center de-dark-bg text-white">
@@ -78,8 +78,8 @@
                     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="flex justify-between h-16 items-center">
                             <a href="dashboard.html" class="flex items-center gap-3">
-                                <span class="de-stamp de-stamp-onlight h-10 w-10 text-xs"><i class="fas fa-book-open"></i></span>
-                                <span class="font-display font-semibold">Lesen</span>
+                                <span class="de-stamp de-stamp-onlight h-10 w-10 text-xs"><i class="fas fa-headphones"></i></span>
+                                <span class="font-display font-semibold">Hören</span>
                             </a>
                             <a href="dashboard.html" class="text-sm text-flag-ink/60 hover:text-flag-red transition-colors">
                                 <i class="fas fa-arrow-right"></i> <span class="hidden sm:inline">لوحة التحكم</span>
@@ -94,11 +94,11 @@
                     <div class="de-corner-mark top-4 end-4 rounded-tr-xl border-b-0 border-s-0 hidden sm:block"></div>
                     <div class="flex items-center gap-4">
                         <div class="h-12 w-12 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
-                            <i class="fas fa-book-open text-flag-gold text-xl"></i>
+                            <i class="fas fa-headphones text-flag-gold text-xl"></i>
                         </div>
                         <div>
-                            <h2 class="font-display text-xl font-bold mb-1">تدريبات القراءة</h2>
-                            <p class="text-sm text-white/70">نصوص قصيرة ومتنوعة — تدريبات جديدة تُضاف باستمرار</p>
+                            <h2 class="font-display text-xl font-bold mb-1">تدريبات الاستماع</h2>
+                            <p class="text-sm text-white/70">حوارات قصيرة ومتنوعة — تدريبات جديدة تُضاف باستمرار</p>
                         </div>
                     </div>
                 </div>
@@ -109,7 +109,7 @@
                         <button @click="startPractice(t)" class="de-card rounded-2xl p-5 text-start w-full">
                             <div class="flex items-start justify-between gap-3 mb-3">
                                 <div class="h-11 w-11 rounded-xl bg-flag-red/10 flex items-center justify-center flex-shrink-0">
-                                    <i class="fas fa-book-open text-flag-red"></i>
+                                    <i class="fas fa-headphones text-flag-red"></i>
                                 </div>
                                 <span x-show="lastScores[t.id] !== undefined" x-cloak class="de-badge de-badge-gold flex-shrink-0" x-text="lastScores[t.id] + '%'"></span>
                             </div>
@@ -164,7 +164,21 @@
                             </div>
                         </div>
 
-                        <div class="de-card rounded-xl p-4 mb-4 bg-flag-cream" x-show="currentQuestion.sectionPassage">
+                        <template x-if="currentQuestion.sectionAudioUrl && !audioFailed">
+                            <div class="de-card rounded-xl p-4 mb-4 bg-flag-cream">
+                                <audio :src="currentQuestion.sectionAudioUrl" controls preload="none"
+                                       @error="audioFailed = true; showTranscript = true" class="w-full mb-3"></audio>
+                                <button @click="showTranscript = !showTranscript" class="text-xs text-flag-red hover:text-flag-reddeep">
+                                    <i class="fas fa-file-lines"></i> <span x-text="showTranscript ? 'إخفاء النص المكتوب' : 'إظهار النص المكتوب'"></span>
+                                </button>
+                                <p class="text-sm text-flag-ink/80 whitespace-pre-line mt-3" x-show="showTranscript" x-text="currentQuestion.sectionPassage"></p>
+                            </div>
+                        </template>
+                        <div class="de-card rounded-xl p-4 mb-4 bg-flag-cream"
+                             x-show="currentQuestion.sectionPassage && !(currentQuestion.sectionAudioUrl && !audioFailed)">
+                            <p class="text-xs text-flag-ink/40 mb-2">
+                                <i class="fas fa-circle-info"></i> الاستماع الصوتي غير متاح بعد لهذا التدريب — نص بديل للقراءة
+                            </p>
                             <p class="text-sm text-flag-ink/80 whitespace-pre-line" x-text="currentQuestion.sectionPassage"></p>
                         </div>
 
@@ -333,7 +347,7 @@
     </div>
 
     <script>
-        function lesenApp() {
+        function hoerenApp() {
             return {
                 user: null,
                 authChecked: false,
@@ -358,6 +372,8 @@
                 testStartedAt: null,
                 hintsShown: {},
                 hintLoading: false,
+                showTranscript: false,
+                audioFailed: false,
 
                 viewingPdf: null,
                 viewingVideo: null,
@@ -394,7 +410,7 @@
                     this.testsLoading = true;
                     try {
                         const { data: tests } = await sb.from('tests').select('*')
-                            .eq('skill', 'reading').eq('is_skill_practice', true).eq('is_active', true)
+                            .eq('skill', 'listening').eq('is_skill_practice', true).eq('is_active', true)
                             .order('created_at', { ascending: false }); // newest first, older tests move down
                         this.tests = tests || [];
 
@@ -413,7 +429,7 @@
 
                         const { data: allResources } = await sb.from('resources').select('*').order('created_at', { ascending: false });
                         if (allResources) {
-                            const matched = allResources.filter(r => r.skill === 'reading');
+                            const matched = allResources.filter(r => r.skill === 'listening');
                             this.resources = matched.length ? matched : allResources.filter(r => !r.skill).slice(0, 4);
                         }
                     } catch (e) {
@@ -439,7 +455,7 @@
                         const flattened = [];
                         sections.forEach(section => {
                             section.items.forEach(item => {
-                                flattened.push({ ...item, sectionPassage: section.passage });
+                                flattened.push({ ...item, sectionPassage: section.passage, sectionAudioUrl: section.audio_url || null });
                             });
                         });
                         if (!flattened.length) {
@@ -451,6 +467,8 @@
                         this.currentQuestionIndex = 0;
                         this.selectedAnswers = {};
                         this.testResults = null;
+                        this.showTranscript = false;
+                        this.audioFailed = false;
                         this.showTestModal = true;
                         this.hintsShown = {};
                         this.testStartedAt = Date.now();
