@@ -868,53 +868,74 @@
 
                 renderResultChart() {
                     if (!this.testResults?.section_breakdown) return;
-                    if (this.resultChart) { this.resultChart.destroy(); this.resultChart = null; }
-                    const canvas = this.$refs.resultChartCanvas;
-                    if (canvas) this.resultChart = this.buildSkillChart(canvas, this.testResults.section_breakdown);
+                    try {
+                        const canvas = this.$refs.resultChartCanvas;
+                        if (!canvas) return;
+                        const existing = Chart.getChart(canvas);
+                        if (existing) existing.destroy();
+                        this.resultChart = this.buildSkillChart(canvas, this.testResults.section_breakdown);
+                    } catch (e) {
+                        console.error('renderResultChart error:', e);
+                    }
                 },
 
                 renderDetailChart() {
                     if (!this.selectedAttemptDetail?.section_breakdown) return;
-                    if (this.detailChart) { this.detailChart.destroy(); this.detailChart = null; }
-                    const canvas = this.$refs.detailChartCanvas;
-                    if (canvas) this.detailChart = this.buildSkillChart(canvas, this.selectedAttemptDetail.section_breakdown);
+                    try {
+                        const canvas = this.$refs.detailChartCanvas;
+                        if (!canvas) return;
+                        const existing = Chart.getChart(canvas);
+                        if (existing) existing.destroy();
+                        this.detailChart = this.buildSkillChart(canvas, this.selectedAttemptDetail.section_breakdown);
+                    } catch (e) {
+                        console.error('renderDetailChart error:', e);
+                    }
                 },
 
                 renderPerformanceCharts() {
                     if (!this.performanceReport) return;
-                    if (this.performanceChart) { this.performanceChart.destroy(); this.performanceChart = null; }
-                    if (this.trendChart) { this.trendChart.destroy(); this.trendChart = null; }
-
-                    const skillCanvas = this.$refs.performanceSkillCanvas;
-                    if (skillCanvas && this.performanceReport.section_breakdown) {
-                        this.performanceChart = this.buildSkillChart(skillCanvas, this.performanceReport.section_breakdown);
-                    }
-
-                    const trendCanvas = this.$refs.performanceTrendCanvas;
-                    if (trendCanvas && this.performanceReport.trend && this.performanceReport.trend.length) {
-                        this.trendChart = new Chart(trendCanvas, {
-                            type: 'line',
-                            data: {
-                                labels: this.performanceReport.trend.map(t => this.formatDate(t.completed_at)),
-                                datasets: [{
-                                    data: this.performanceReport.trend.map(t => t.score_percentage),
-                                    borderColor: '#FF7A45',
-                                    backgroundColor: 'rgba(255,122,69,0.12)',
-                                    tension: 0.3,
-                                    fill: true,
-                                    pointBackgroundColor: '#FF7A45'
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                    legend: { display: false },
-                                    tooltip: { callbacks: { label: (ctx) => ctx.parsed.y + '%' } }
-                                },
-                                scales: { y: { min: 0, max: 100, ticks: { callback: (v) => v + '%' } } }
+                    try {
+                        const skillCanvas = this.$refs.performanceSkillCanvas;
+                        if (skillCanvas) {
+                            const existing = Chart.getChart(skillCanvas);
+                            if (existing) existing.destroy();
+                            if (this.performanceReport.section_breakdown) {
+                                this.performanceChart = this.buildSkillChart(skillCanvas, this.performanceReport.section_breakdown);
                             }
-                        });
+                        }
+
+                        const trendCanvas = this.$refs.performanceTrendCanvas;
+                        if (trendCanvas) {
+                            const existingTrend = Chart.getChart(trendCanvas);
+                            if (existingTrend) existingTrend.destroy();
+                            if (this.performanceReport.trend && this.performanceReport.trend.length) {
+                                this.trendChart = new Chart(trendCanvas, {
+                                    type: 'line',
+                                    data: {
+                                        labels: this.performanceReport.trend.map(t => this.formatDate(t.completed_at)),
+                                        datasets: [{
+                                            data: this.performanceReport.trend.map(t => t.score_percentage),
+                                            borderColor: '#FF7A45',
+                                            backgroundColor: 'rgba(255,122,69,0.12)',
+                                            tension: 0.3,
+                                            fill: true,
+                                            pointBackgroundColor: '#FF7A45'
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        maintainAspectRatio: false,
+                                        plugins: {
+                                            legend: { display: false },
+                                            tooltip: { callbacks: { label: (ctx) => ctx.parsed.y + '%' } }
+                                        },
+                                        scales: { y: { min: 0, max: 100, ticks: { callback: (v) => v + '%' } } }
+                                    }
+                                });
+                            }
+                        }
+                    } catch (e) {
+                        console.error('renderPerformanceCharts error:', e);
                     }
                 },
 
@@ -1032,9 +1053,13 @@
                 },
 
                 retakeAttempt(testId) {
-                    const test = this.availableTests.find(t => t.id === testId);
+                    // Don't look this up in availableTests -- that list is
+                    // filtered to long exams only, so it silently fails to
+                    // find anything for skill-practice attempts (which
+                    // "recent activity" also shows). startTest() only
+                    // actually needs the id to kick off the flow.
                     this.closeAttemptDetail();
-                    if (test) this.startTest(test);
+                    this.startTest({ id: testId });
                 },
 
                 closeAttemptDetail() {
