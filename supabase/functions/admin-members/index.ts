@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
 
       const start = new Date();
       const end = new Date();
-      end.setMonth(end.getMonth() + 3);
+      end.setMonth(end.getMonth() + 1);
 
       const { data: existing } = await admin.from('subscriptions').select('id').eq('user_id', member_id).maybeSingle();
       if (existing) {
