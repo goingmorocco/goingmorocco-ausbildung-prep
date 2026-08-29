@@ -532,7 +532,7 @@
                             </div>
                         </div>
 
-                        <div class="de-card rounded-xl p-4 max-w-sm mx-auto mb-6" x-show="testResults.section_breakdown" x-init="$nextTick(() => renderResultChart())">
+                        <div class="de-card rounded-xl p-4 max-w-sm mx-auto mb-6" x-show="testResults.section_breakdown">
                             <h4 class="font-display font-semibold text-flag-ink text-sm mb-3">أداؤك حسب المهارة</h4>
                             <div style="height:200px;"><canvas x-ref="resultChartCanvas"></canvas></div>
                         </div>
@@ -647,7 +647,7 @@
                             </div>
                         </div>
 
-                        <div class="de-card rounded-xl p-4 max-w-sm mx-auto mb-6" x-show="selectedAttemptDetail.section_breakdown" x-init="$nextTick(() => renderDetailChart())">
+                        <div class="de-card rounded-xl p-4 max-w-sm mx-auto mb-6" x-show="selectedAttemptDetail.section_breakdown">
                             <h4 class="font-display font-semibold text-flag-ink text-sm mb-3">أداؤك حسب المهارة</h4>
                             <div style="height:200px;"><canvas x-ref="detailChartCanvas"></canvas></div>
                         </div>
@@ -1014,6 +1014,7 @@
                         });
                         if (data.success) {
                             this.testResults = data.result;
+                            this.$nextTick(() => this.renderResultChart());
                             this.loadDashboardData();
                         } else {
                             this.showToast(data.message || 'حدث خطأ أثناء إرسال الاختبار');
@@ -1108,6 +1109,7 @@
                         if (data.success) {
                             this.selectedAttemptDetail = data.attempt;
                             this.showAttemptDetailModal = true;
+                            this.$nextTick(() => this.renderDetailChart());
                         }
                     } catch (e) {
                         console.error(e);
