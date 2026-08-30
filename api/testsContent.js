@@ -16,11 +16,25 @@
 // many exist -- each individual drill still has its own unique test_type
 // (e.g. 'skill_reading_market') so upserting by test_type stays safe.
 //
-// The "writing" skill drills are deliberately grammar/connectors/
-// word-choice/register quizzes, not free-composition writing -- free
-// text can't be auto-graded reliably, so they focus on the gradable
-// mechanics instead. Real essay practice stays in the ungraded Schreiben
-// prompts on the full exams.
+// `content_kind` distinguishes a multiple-choice quiz ('quiz', the
+// default) from a real AI-graded essay prompt ('essay') -- an essay-type
+// test has NO sections/questions/answers at all; its content lives
+// entirely in its test_writing_prompts row. The grammar/connectors/
+// word-choice 'quiz' writing drills exist because free-composition
+// writing can't be auto-graded reliably by rules -- but 'essay' tests
+// now ARE real free-composition prompts, graded live by the grade-writing
+// Edge Function (Groq). Both kinds coexist in the same schreiben.html
+// library, distinguished by content_kind.
+//
+// NOTE: content can now also be created/edited live from the admin
+// dashboard's test builder (public/admin.html, "الاختبارات" tab), backed
+// by the admin-tests Edge Function -- though as of this note, that
+// builder only supports creating/editing 'quiz'-kind tests, not 'essay'-
+// kind ones (which still need to go through this file + the seed
+// script). Tests added via the admin UI live only in the database, not
+// in this file. Running the seed script again is safe either way (it
+// upserts by test_type) but will NOT remove or overwrite tests created
+// purely through the admin UI.
 
 const mockTests = [
   {
@@ -230,6 +244,230 @@ const mockTests = [
     "is_active": true,
     "is_skill_practice": true,
     "skill": "writing"
+  },
+  {
+    "id": "test_skill_reading_dentist",
+    "title": "تدريب القراءة: عند طبيب الأسنان",
+    "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_reading_dentist",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "reading"
+  },
+  {
+    "id": "test_skill_reading_birthday",
+    "title": "تدريب القراءة: حفلة عيد ميلاد",
+    "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_reading_birthday",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "reading"
+  },
+  {
+    "id": "test_skill_reading_library",
+    "title": "تدريب القراءة: المكتبة العامة",
+    "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_reading_library",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "reading"
+  },
+  {
+    "id": "test_skill_reading_phone",
+    "title": "تدريب القراءة: شراء هاتف جديد",
+    "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_reading_phone",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "reading"
+  },
+  {
+    "id": "test_skill_reading_firstday",
+    "title": "تدريب القراءة: أول يوم عمل",
+    "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_reading_firstday",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "reading"
+  },
+  {
+    "id": "test_skill_reading_train",
+    "title": "تدريب القراءة: السفر بالقطار",
+    "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_reading_train",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "reading"
+  },
+  {
+    "id": "test_skill_reading_moving",
+    "title": "تدريب القراءة: الانتقال إلى شقة جديدة",
+    "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_reading_moving",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "reading"
+  },
+  {
+    "id": "test_skill_listening_bank",
+    "title": "تدريب الاستماع: مكالمة مع البنك",
+    "description": "حوار قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_listening_bank",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "listening"
+  },
+  {
+    "id": "test_skill_listening_station",
+    "title": "تدريب الاستماع: إعلان في محطة القطار",
+    "description": "إعلان قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_listening_station",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "listening"
+  },
+  {
+    "id": "test_skill_listening_interview",
+    "title": "تدريب الاستماع: مقابلة عمل",
+    "description": "حوار قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_listening_interview",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "listening"
+  },
+  {
+    "id": "test_skill_listening_hairdresser",
+    "title": "تدريب الاستماع: حجز موعد عند الحلاق",
+    "description": "حوار قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_listening_hairdresser",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "listening"
+  },
+  {
+    "id": "test_skill_listening_return",
+    "title": "تدريب الاستماع: إرجاع منتج",
+    "description": "حوار قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_listening_return",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "listening"
+  },
+  {
+    "id": "test_skill_listening_landlord",
+    "title": "تدريب الاستماع: مكالمة مع مالك الشقة",
+    "description": "حوار قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_listening_landlord",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "listening"
+  },
+  {
+    "id": "test_skill_listening_weather",
+    "title": "تدريب الاستماع: نشرة الطقس",
+    "description": "إعلان قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_listening_weather",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "listening"
+  },
+  {
+    "id": "test_skill_writing_leave_email",
+    "title": "نشاط كتابة: طلب إجازة",
+    "description": "بريد إلكتروني رسمي لصاحب العمل — تقييم فوري بالذكاء الاصطناعي",
+    "test_type": "skill_writing_leave_email",
+    "level": "B1",
+    "duration_minutes": 15,
+    "total_questions": 0,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "writing",
+    "content_kind": "essay"
+  },
+  {
+    "id": "test_skill_writing_daily_life",
+    "title": "نشاط كتابة: يوم في حياتي",
+    "description": "نص وصفي حر عن يوم عادي — تقييم فوري بالذكاء الاصطناعي",
+    "test_type": "skill_writing_daily_life",
+    "level": "B1",
+    "duration_minutes": 15,
+    "total_questions": 0,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "writing",
+    "content_kind": "essay"
+  },
+  {
+    "id": "test_skill_writing_invite_friend",
+    "title": "نشاط كتابة: دعوة صديق",
+    "description": "رسالة غير رسمية لصديق — تقييم فوري بالذكاء الاصطناعي",
+    "test_type": "skill_writing_invite_friend",
+    "level": "B1",
+    "duration_minutes": 15,
+    "total_questions": 0,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "writing",
+    "content_kind": "essay"
   }
 ];
 
@@ -13868,6 +14106,2233 @@ const mockContent = {
       }
     ],
     "writing": null
+  },
+  "test_skill_reading_dentist": {
+    "sections": [
+      {
+        "key": "reading1",
+        "name": "قراءة سريعة",
+        "type": "reading",
+        "official_duration_minutes": null,
+        "instructions": "اقرأ النص التالي ثم أجب عن الأسئلة.",
+        "passage": "Beim Zahnarzt\n\nOmar hatte seit zwei Tagen starke Zahnschmerzen und hat deshalb sofort einen Termin bei seiner Zahnärztin vereinbart. Im Wartezimmer musste er nur zehn Minuten warten, bevor er aufgerufen wurde. Die Zahnärztin hat den Zahn genau untersucht und festgestellt, dass er behandelt werden muss. Die Behandlung hat ungefähr eine halbe Stunde gedauert und war weniger schmerzhaft, als Omar erwartet hatte. Am Ende hat ihm die Assistentin erklärt, wie er den Zahn in den nächsten Tagen pflegen soll. Omar war froh, dass er nicht länger gewartet hatte.",
+        "items": [
+          {
+            "id": "srd_q1",
+            "question_text": "Omar hatte zwei Tage lang Zahnschmerzen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt genau das.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "srd_q1_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "srd_q1_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srd_q2",
+            "question_text": "Wie lange musste er im Wartezimmer warten?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt zehn Minuten.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "srd_q2_a1",
+                "answer_text": "Zehn Minuten",
+                "is_correct": true
+              },
+              {
+                "id": "srd_q2_a2",
+                "answer_text": "Eine Stunde",
+                "is_correct": false
+              },
+              {
+                "id": "srd_q2_a3",
+                "answer_text": "Fünf Minuten",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srd_q3",
+            "question_text": "Der Zahn musste nicht behandelt werden.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Zahnärztin stellte fest, dass er behandelt werden muss.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "srd_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "srd_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "srd_q4",
+            "question_text": "Wie lange hat die Behandlung gedauert?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt eine halbe Stunde.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "srd_q4_a1",
+                "answer_text": "Ungefähr eine halbe Stunde",
+                "is_correct": true
+              },
+              {
+                "id": "srd_q4_a2",
+                "answer_text": "Fünf Minuten",
+                "is_correct": false
+              },
+              {
+                "id": "srd_q4_a3",
+                "answer_text": "Zwei Stunden",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srd_q5",
+            "question_text": "Wie war die Behandlung im Vergleich zu Omars Erwartung?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text sagt, sie war weniger schmerzhaft.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "srd_q5_a1",
+                "answer_text": "Weniger schmerzhaft als erwartet",
+                "is_correct": true
+              },
+              {
+                "id": "srd_q5_a2",
+                "answer_text": "Schmerzhafter als erwartet",
+                "is_correct": false
+              },
+              {
+                "id": "srd_q5_a3",
+                "answer_text": "Genau wie erwartet",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srd_q6",
+            "question_text": "Wer hat Omar erklärt, wie er den Zahn pflegen soll?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt die Assistentin.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "srd_q6_a1",
+                "answer_text": "Die Assistentin",
+                "is_correct": true
+              },
+              {
+                "id": "srd_q6_a2",
+                "answer_text": "Die Zahnärztin",
+                "is_correct": false
+              },
+              {
+                "id": "srd_q6_a3",
+                "answer_text": "Ein anderer Patient",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_reading_birthday": {
+    "sections": [
+      {
+        "key": "reading1",
+        "name": "قراءة سريعة",
+        "type": "reading",
+        "official_duration_minutes": null,
+        "instructions": "اقرأ النص التالي ثم أجب عن الأسئلة.",
+        "passage": "Ein Geburtstagsfest\n\nNächsten Samstag wird Leila dreißig Jahre alt, und ihre beste Freundin Sara organisiert heimlich eine Überraschungsparty. Sie hat schon zwölf Freunde eingeladen und einen kleinen Saal in der Nähe des Parks gemietet. Damit Leila nichts merkt, hat Sara ihr erzählt, sie würden nur zu zweit essen gehen. Am Samstagabend soll Leila zuerst zu Saras Wohnung kommen, und von dort gehen beide gemeinsam zum Saal. Alle Gäste warten schon drinnen und werden \"Herzlichen Glückwunsch\" rufen, sobald Leila die Tür öffnet. Sara hofft, dass ihre Freundin sich wirklich freut.",
+        "items": [
+          {
+            "id": "sbd_q1",
+            "question_text": "Wie alt wird Leila?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt dreißig Jahre.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "sbd_q1_a1",
+                "answer_text": "Dreißig Jahre",
+                "is_correct": true
+              },
+              {
+                "id": "sbd_q1_a2",
+                "answer_text": "Fünfundzwanzig Jahre",
+                "is_correct": false
+              },
+              {
+                "id": "sbd_q1_a3",
+                "answer_text": "Vierzig Jahre",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbd_q2",
+            "question_text": "Wer organisiert die Party?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt Sara als Organisatorin.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "sbd_q2_a1",
+                "answer_text": "Sara, ihre beste Freundin",
+                "is_correct": true
+              },
+              {
+                "id": "sbd_q2_a2",
+                "answer_text": "Leilas Mutter",
+                "is_correct": false
+              },
+              {
+                "id": "sbd_q2_a3",
+                "answer_text": "Ein Kollege",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbd_q3",
+            "question_text": "Sara hat Leila von der Party erzählt.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Es ist eine Überraschungsparty, Leila weiß nichts davon.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "sbd_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "sbd_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "sbd_q4",
+            "question_text": "Wie viele Freunde hat Sara eingeladen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt zwölf Freunde.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "sbd_q4_a1",
+                "answer_text": "Zwölf",
+                "is_correct": true
+              },
+              {
+                "id": "sbd_q4_a2",
+                "answer_text": "Fünf",
+                "is_correct": false
+              },
+              {
+                "id": "sbd_q4_a3",
+                "answer_text": "Zwanzig",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbd_q5",
+            "question_text": "Was hat Sara Leila erzählt, um sie nicht misstrauisch zu machen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt genau diese Ausrede.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "sbd_q5_a1",
+                "answer_text": "Dass sie nur zu zweit essen gehen",
+                "is_correct": true
+              },
+              {
+                "id": "sbd_q5_a2",
+                "answer_text": "Dass sie zu Hause bleiben",
+                "is_correct": false
+              },
+              {
+                "id": "sbd_q5_a3",
+                "answer_text": "Dass die Party abgesagt wurde",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbd_q6",
+            "question_text": "Die Gäste warten schon im Saal.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt, alle Gäste warten schon drinnen.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "sbd_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "sbd_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_reading_library": {
+    "sections": [
+      {
+        "key": "reading1",
+        "name": "قراءة سريعة",
+        "type": "reading",
+        "official_duration_minutes": null,
+        "instructions": "اقرأ النص التالي ثم أجب عن الأسئلة.",
+        "passage": "Die öffentliche Bibliothek\n\nAls Karim in seine neue Stadt gezogen ist, wollte er sich sofort einen Bibliotheksausweis besorgen, weil er gerne liest. An der Anmeldung musste er seinen Personalausweis und einen Nachweis seiner neuen Adresse vorlegen. Die Mitarbeiterin hat ihm erklärt, dass die Anmeldung für das erste Jahr kostenlos ist. Danach kostet sie zehn Euro pro Jahr. Karim darf jetzt bis zu fünf Bücher gleichzeitig ausleihen, für eine Dauer von vier Wochen. Wenn er ein Buch später zurückbringt, muss er eine kleine Gebühr bezahlen. Karim war sehr zufrieden und hat sich direkt drei Bücher ausgeliehen.",
+        "items": [
+          {
+            "id": "sbl_q1",
+            "question_text": "Karim wollte einen Bibliotheksausweis, weil er gerne liest.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text nennt genau diesen Grund.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "sbl_q1_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "sbl_q1_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbl_q2",
+            "question_text": "Was musste Karim bei der Anmeldung vorlegen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt beide Dokumente.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "sbl_q2_a1",
+                "answer_text": "Personalausweis und Adressnachweis",
+                "is_correct": true
+              },
+              {
+                "id": "sbl_q2_a2",
+                "answer_text": "Nur seinen Reisepass",
+                "is_correct": false
+              },
+              {
+                "id": "sbl_q2_a3",
+                "answer_text": "Eine Bankkarte",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbl_q3",
+            "question_text": "Wie viel kostet die Anmeldung im ersten Jahr?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Das erste Jahr ist kostenlos laut Text.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "sbl_q3_a1",
+                "answer_text": "Nichts, sie ist kostenlos",
+                "is_correct": true
+              },
+              {
+                "id": "sbl_q3_a2",
+                "answer_text": "Zehn Euro",
+                "is_correct": false
+              },
+              {
+                "id": "sbl_q3_a3",
+                "answer_text": "Zwanzig Euro",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbl_q4",
+            "question_text": "Wie viele Bücher darf Karim gleichzeitig ausleihen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt bis zu fünf Bücher.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "sbl_q4_a1",
+                "answer_text": "Bis zu fünf",
+                "is_correct": true
+              },
+              {
+                "id": "sbl_q4_a2",
+                "answer_text": "Nur zwei",
+                "is_correct": false
+              },
+              {
+                "id": "sbl_q4_a3",
+                "answer_text": "Zehn",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbl_q5",
+            "question_text": "Karim muss keine Gebühr zahlen, wenn er ein Buch zu spät zurückbringt.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er muss eine kleine Gebühr bezahlen.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "sbl_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "sbl_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "sbl_q6",
+            "question_text": "Wie viele Bücher hat sich Karim direkt ausgeliehen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt drei Bücher.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "sbl_q6_a1",
+                "answer_text": "Drei",
+                "is_correct": true
+              },
+              {
+                "id": "sbl_q6_a2",
+                "answer_text": "Fünf",
+                "is_correct": false
+              },
+              {
+                "id": "sbl_q6_a3",
+                "answer_text": "Eins",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_reading_phone": {
+    "sections": [
+      {
+        "key": "reading1",
+        "name": "قراءة سريعة",
+        "type": "reading",
+        "official_duration_minutes": null,
+        "instructions": "اقرأ النص التالي ثم أجب عن الأسئلة.",
+        "passage": "Ein neues Handy kaufen\n\nNadias altes Handy funktioniert seit einigen Wochen nicht mehr richtig, deshalb hat sie beschlossen, ein neues zu kaufen. Sie ist in ein großes Elektronikgeschäft gegangen und hat sich von einem Verkäufer beraten lassen. Zuerst wollte sie ein sehr teures Modell kaufen, aber der Verkäufer hat ihr ein günstigeres Handy mit ähnlichen Funktionen empfohlen. Nadia hat sich für dieses Modell entschieden, weil es einen großen Speicher und eine gute Kamera hat. Sie hat auch eine Schutzhülle und eine Versicherung dazugekauft. Insgesamt hat sie etwas weniger bezahlt, als sie geplant hatte.",
+        "items": [
+          {
+            "id": "sbp_q1",
+            "question_text": "Warum wollte Nadia ein neues Handy kaufen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt genau diesen Grund.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "sbp_q1_a1",
+                "answer_text": "Ihr altes funktioniert nicht mehr richtig",
+                "is_correct": true
+              },
+              {
+                "id": "sbp_q1_a2",
+                "answer_text": "Sie wollte ein Geschenk kaufen",
+                "is_correct": false
+              },
+              {
+                "id": "sbp_q1_a3",
+                "answer_text": "Ihr Handy wurde gestohlen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbp_q2",
+            "question_text": "Nadia hat sich von einem Verkäufer beraten lassen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt genau das.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "sbp_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "sbp_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbp_q3",
+            "question_text": "Welches Modell hat der Verkäufer empfohlen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt genau diese Empfehlung.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "sbp_q3_a1",
+                "answer_text": "Ein günstigeres Modell mit ähnlichen Funktionen",
+                "is_correct": true
+              },
+              {
+                "id": "sbp_q3_a2",
+                "answer_text": "Das teuerste Modell im Geschäft",
+                "is_correct": false
+              },
+              {
+                "id": "sbp_q3_a3",
+                "answer_text": "Ein gebrauchtes Handy",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbp_q4",
+            "question_text": "Warum hat sich Nadia für dieses Modell entschieden?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt Speicher und Kamera als Gründe.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "sbp_q4_a1",
+                "answer_text": "Wegen des Speichers und der Kamera",
+                "is_correct": true
+              },
+              {
+                "id": "sbp_q4_a2",
+                "answer_text": "Wegen der Farbe",
+                "is_correct": false
+              },
+              {
+                "id": "sbp_q4_a3",
+                "answer_text": "Weil es das billigste war",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbp_q5",
+            "question_text": "Nadia hat nur das Handy gekauft, sonst nichts.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie hat auch eine Hülle und eine Versicherung gekauft.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "sbp_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "sbp_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "sbp_q6",
+            "question_text": "Wie viel hat Nadia am Ende bezahlt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt etwas weniger als geplant.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "sbp_q6_a1",
+                "answer_text": "Etwas weniger, als sie geplant hatte",
+                "is_correct": true
+              },
+              {
+                "id": "sbp_q6_a2",
+                "answer_text": "Genau wie geplant",
+                "is_correct": false
+              },
+              {
+                "id": "sbp_q6_a3",
+                "answer_text": "Deutlich mehr als geplant",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_reading_firstday": {
+    "sections": [
+      {
+        "key": "reading1",
+        "name": "قراءة سريعة",
+        "type": "reading",
+        "official_duration_minutes": null,
+        "instructions": "اقرأ النص التالي ثم أجب عن الأسئلة.",
+        "passage": "Der erste Arbeitstag\n\nHeute war Yassins erster Tag in seiner neuen Ausbildungsstelle, und er war sehr aufgeregt. Er ist eine halbe Stunde früher angekommen, um pünktlich zu sein. Sein Ausbilder hat ihn freundlich begrüßt und ihm zuerst die Kollegen vorgestellt. Danach hat er ihm die wichtigsten Räume gezeigt, zum Beispiel die Werkstatt und die Kantine. Am Vormittag durfte Yassin einem erfahrenen Kollegen bei einer einfachen Aufgabe zusehen. Am Nachmittag hat er selbst zum ersten Mal mitgearbeitet. Am Ende des Tages war er müde, aber auch stolz auf seinen ersten Arbeitstag.",
+        "items": [
+          {
+            "id": "sbf_q1",
+            "question_text": "Yassin ist eine halbe Stunde früher angekommen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt genau das.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "sbf_q1_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "sbf_q1_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbf_q2",
+            "question_text": "Wer hat Yassin am Anfang begrüßt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt den Ausbilder.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "sbf_q2_a1",
+                "answer_text": "Sein Ausbilder",
+                "is_correct": true
+              },
+              {
+                "id": "sbf_q2_a2",
+                "answer_text": "Ein anderer Auszubildender",
+                "is_correct": false
+              },
+              {
+                "id": "sbf_q2_a3",
+                "answer_text": "Der Firmenchef",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbf_q3",
+            "question_text": "Was hat der Ausbilder Yassin zuerst gezeigt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt zuerst die Kollegen.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "sbf_q3_a1",
+                "answer_text": "Die Kollegen",
+                "is_correct": true
+              },
+              {
+                "id": "sbf_q3_a2",
+                "answer_text": "Die Gehaltsabrechnung",
+                "is_correct": false
+              },
+              {
+                "id": "sbf_q3_a3",
+                "answer_text": "Den Parkplatz",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbf_q4",
+            "question_text": "Welche Räume hat er Yassin gezeigt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt Werkstatt und Kantine.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "sbf_q4_a1",
+                "answer_text": "Die Werkstatt und die Kantine",
+                "is_correct": true
+              },
+              {
+                "id": "sbf_q4_a2",
+                "answer_text": "Nur sein eigenes Büro",
+                "is_correct": false
+              },
+              {
+                "id": "sbf_q4_a3",
+                "answer_text": "Das Lager und die Garage",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbf_q5",
+            "question_text": "Yassin hat am Vormittag selbst gearbeitet.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Am Vormittag hat er nur zugesehen, am Nachmittag mitgearbeitet.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "sbf_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "sbf_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "sbf_q6",
+            "question_text": "Wie hat sich Yassin am Ende des Tages gefühlt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt müde und stolz.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "sbf_q6_a1",
+                "answer_text": "Müde, aber stolz",
+                "is_correct": true
+              },
+              {
+                "id": "sbf_q6_a2",
+                "answer_text": "Enttäuscht",
+                "is_correct": false
+              },
+              {
+                "id": "sbf_q6_a3",
+                "answer_text": "Gelangweilt",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_reading_train": {
+    "sections": [
+      {
+        "key": "reading1",
+        "name": "قراءة سريعة",
+        "type": "reading",
+        "official_duration_minutes": null,
+        "instructions": "اقرأ النص التالي ثم أجب عن الأسئلة.",
+        "passage": "Mit dem Zug verreisen\n\nHiba wollte am Wochenende ihre Schwester besuchen, die in einer anderen Stadt wohnt. Sie hat ihr Zugticket schon eine Woche vorher online gekauft, weil es dann günstiger war. Am Bahnhof hat sie zuerst auf der Anzeigetafel nachgeschaut, von welchem Gleis ihr Zug abfährt. Der Zug hatte leider zehn Minuten Verspätung, aber das war für Hiba kein Problem, weil sie genug Zeit eingeplant hatte. Während der Fahrt hat sie ein Buch gelesen und aus dem Fenster geschaut. Nach zwei Stunden ist sie sicher angekommen, und ihre Schwester hat sie am Bahnhof abgeholt.",
+        "items": [
+          {
+            "id": "sbt_q1",
+            "question_text": "Wen wollte Hiba besuchen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt ihre Schwester.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "sbt_q1_a1",
+                "answer_text": "Ihre Schwester",
+                "is_correct": true
+              },
+              {
+                "id": "sbt_q1_a2",
+                "answer_text": "Ihre Eltern",
+                "is_correct": false
+              },
+              {
+                "id": "sbt_q1_a3",
+                "answer_text": "Eine Freundin",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbt_q2",
+            "question_text": "Wann hat Hiba ihr Ticket gekauft?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt eine Woche vorher, online.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "sbt_q2_a1",
+                "answer_text": "Eine Woche vorher, online",
+                "is_correct": true
+              },
+              {
+                "id": "sbt_q2_a2",
+                "answer_text": "Erst am Bahnhof",
+                "is_correct": false
+              },
+              {
+                "id": "sbt_q2_a3",
+                "answer_text": "Einen Monat vorher",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbt_q3",
+            "question_text": "Hiba hat ihr Ticket gekauft, weil es online günstiger war.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text nennt genau diesen Grund.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "sbt_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "sbt_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbt_q4",
+            "question_text": "Wie viel Verspätung hatte der Zug?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt zehn Minuten Verspätung.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "sbt_q4_a1",
+                "answer_text": "Zehn Minuten",
+                "is_correct": true
+              },
+              {
+                "id": "sbt_q4_a2",
+                "answer_text": "Eine Stunde",
+                "is_correct": false
+              },
+              {
+                "id": "sbt_q4_a3",
+                "answer_text": "Keine Verspätung",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbt_q5",
+            "question_text": "Die Verspätung war für Hiba ein großes Problem.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie hatte genug Zeit eingeplant, also kein Problem.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "sbt_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "sbt_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "sbt_q6",
+            "question_text": "Wie lange hat die Zugfahrt gedauert?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt zwei Stunden.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "sbt_q6_a1",
+                "answer_text": "Zwei Stunden",
+                "is_correct": true
+              },
+              {
+                "id": "sbt_q6_a2",
+                "answer_text": "Eine halbe Stunde",
+                "is_correct": false
+              },
+              {
+                "id": "sbt_q6_a3",
+                "answer_text": "Fünf Stunden",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_reading_moving": {
+    "sections": [
+      {
+        "key": "reading1",
+        "name": "قراءة سريعة",
+        "type": "reading",
+        "official_duration_minutes": null,
+        "instructions": "اقرأ النص التالي ثم أجب عن الأسئلة.",
+        "passage": "Ein Wohnungsumzug\n\nNächste Woche zieht Ahmed in seine erste eigene Wohnung um, und im Moment packt er jeden Abend ein paar Kartons. Seine Freunde haben versprochen, ihm am Umzugstag mit dem schweren Möbeln zu helfen. Ahmed hat außerdem einen kleinen Transporter für einen Tag gemietet, weil er einen Kühlschrank und ein Sofa transportieren muss. Er hat schon bei der alten Wohnung gekündigt und der neuen Vermieterin seine neue Telefonnummer gegeben. Am meisten Sorgen macht er sich um seine Bücher, weil er sehr viele besitzt und die Kartons sehr schwer werden. Trotzdem freut er sich sehr auf die neue Wohnung.",
+        "items": [
+          {
+            "id": "sbm_q1",
+            "question_text": "Ahmed zieht in seine erste eigene Wohnung um.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt genau das.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "sbm_q1_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "sbm_q1_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbm_q2",
+            "question_text": "Wer hilft Ahmed am Umzugstag mit den Möbeln?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt seine Freunde.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "sbm_q2_a1",
+                "answer_text": "Seine Freunde",
+                "is_correct": true
+              },
+              {
+                "id": "sbm_q2_a2",
+                "answer_text": "Ein Umzugsunternehmen",
+                "is_correct": false
+              },
+              {
+                "id": "sbm_q2_a3",
+                "answer_text": "Seine Familie",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbm_q3",
+            "question_text": "Warum hat Ahmed einen Transporter gemietet?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt genau diesen Grund.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "sbm_q3_a1",
+                "answer_text": "Um Kühlschrank und Sofa zu transportieren",
+                "is_correct": true
+              },
+              {
+                "id": "sbm_q3_a2",
+                "answer_text": "Um Kartons zu kaufen",
+                "is_correct": false
+              },
+              {
+                "id": "sbm_q3_a3",
+                "answer_text": "Um zur Arbeit zu fahren",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbm_q4",
+            "question_text": "Ahmed hat der neuen Vermieterin seine neue Telefonnummer gegeben.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt genau das.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "sbm_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "sbm_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbm_q5",
+            "question_text": "Worüber macht sich Ahmed am meisten Sorgen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt die Bücher.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "sbm_q5_a1",
+                "answer_text": "Seine Bücher",
+                "is_correct": true
+              },
+              {
+                "id": "sbm_q5_a2",
+                "answer_text": "Seine Möbel",
+                "is_correct": false
+              },
+              {
+                "id": "sbm_q5_a3",
+                "answer_text": "Sein Auto",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sbm_q6",
+            "question_text": "Wie fühlt sich Ahmed trotz der Sorgen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text sagt, er freut sich sehr.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "sbm_q6_a1",
+                "answer_text": "Er freut sich auf die neue Wohnung",
+                "is_correct": true
+              },
+              {
+                "id": "sbm_q6_a2",
+                "answer_text": "Er ist traurig",
+                "is_correct": false
+              },
+              {
+                "id": "sbm_q6_a3",
+                "answer_text": "Er ist wütend",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_listening_bank": {
+    "sections": [
+      {
+        "key": "listening1",
+        "name": "استماع سريع",
+        "type": "listening",
+        "official_duration_minutes": null,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص المكالمة كما لو كنت تسمعها، ثم أجب عن الأسئلة.",
+        "passage": "Anruf bei der Bank:\n\"Sparkasse, guten Tag, was kann ich für Sie tun?\nGuten Tag, meine Karte funktioniert seit gestern nicht mehr am Automaten.\nDas tut mir leid. Haben Sie die Karte vielleicht beschädigt oder ist sie schon älter?\nSie ist ungefähr drei Jahre alt, aber sie sah eigentlich noch gut aus.\nDann schicke ich Ihnen eine neue Karte zu. Das dauert normalerweise fünf bis sieben Werktage.\nUnd was mache ich bis dahin, wenn ich Geld brauche?\nSie können weiterhin am Schalter Geld abheben, einfach mit Ihrem Personalausweis.\nAlles klar, vielen Dank für die Hilfe.\nGerne, einen schönen Tag noch!\"",
+        "audio_url": "/audio/test_skill_listening_bank__listening1.mp3",
+        "items": [
+          {
+            "id": "slba_q1",
+            "question_text": "Worüber beschwert sich der Anrufer?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Anrufer sagt, die Karte funktioniert nicht mehr.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "slba_q1_a1",
+                "answer_text": "Seine Karte funktioniert nicht mehr",
+                "is_correct": true
+              },
+              {
+                "id": "slba_q1_a2",
+                "answer_text": "Er hat sein Konto verloren",
+                "is_correct": false
+              },
+              {
+                "id": "slba_q1_a3",
+                "answer_text": "Er hat eine falsche Rechnung erhalten",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slba_q2",
+            "question_text": "Wie alt ist die Karte?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Anrufer nennt drei Jahre.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "slba_q2_a1",
+                "answer_text": "Ungefähr drei Jahre",
+                "is_correct": true
+              },
+              {
+                "id": "slba_q2_a2",
+                "answer_text": "Ein Jahr",
+                "is_correct": false
+              },
+              {
+                "id": "slba_q2_a3",
+                "answer_text": "Zehn Jahre",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slba_q3",
+            "question_text": "Was macht die Bank für den Kunden?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Mitarbeiterin sagt, sie schickt eine neue Karte.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "slba_q3_a1",
+                "answer_text": "Sie schickt ihm eine neue Karte",
+                "is_correct": true
+              },
+              {
+                "id": "slba_q3_a2",
+                "answer_text": "Sie schließt sein Konto",
+                "is_correct": false
+              },
+              {
+                "id": "slba_q3_a3",
+                "answer_text": "Sie sendet ihm eine Rechnung",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slba_q4",
+            "question_text": "Wie lange dauert es, bis die neue Karte ankommt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Mitarbeiterin nennt fünf bis sieben Werktage.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "slba_q4_a1",
+                "answer_text": "Fünf bis sieben Werktage",
+                "is_correct": true
+              },
+              {
+                "id": "slba_q4_a2",
+                "answer_text": "Ein bis zwei Tage",
+                "is_correct": false
+              },
+              {
+                "id": "slba_q4_a3",
+                "answer_text": "Einen Monat",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slba_q5",
+            "question_text": "Der Kunde kann bis dahin kein Geld abheben.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er kann weiterhin am Schalter mit Ausweis Geld abheben.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "slba_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "slba_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "slba_q6",
+            "question_text": "Was braucht der Kunde, um am Schalter Geld abzuheben?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Mitarbeiterin nennt den Personalausweis.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "slba_q6_a1",
+                "answer_text": "Seinen Personalausweis",
+                "is_correct": true
+              },
+              {
+                "id": "slba_q6_a2",
+                "answer_text": "Seine alte Karte",
+                "is_correct": false
+              },
+              {
+                "id": "slba_q6_a3",
+                "answer_text": "Eine Vollmacht",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_listening_station": {
+    "sections": [
+      {
+        "key": "listening1",
+        "name": "استماع سريع",
+        "type": "listening",
+        "official_duration_minutes": null,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص الإعلان كما لو كنت تسمعه، ثم أجب عن الأسئلة.",
+        "passage": "Meine Damen und Herren, eine wichtige Durchsage. Der Regionalzug nach Frankfurt, der um 14:15 Uhr auf Gleis 3 abfahren sollte, hat heute leider zwanzig Minuten Verspätung. Der Zug fährt stattdessen von Gleis 5 ab. Wir entschuldigen uns für die Unannehmlichkeiten. Reisende mit Anschluss nach Mainz erreichen ihren Anschlusszug trotzdem, da dieser ebenfalls Verspätung hat. Für weitere Informationen wenden Sie sich bitte an das Servicepersonal am Gleis oder an den Informationsschalter in der Bahnhofshalle. Wir danken für Ihr Verständnis und wünschen eine angenehme Reise.",
+        "audio_url": "/audio/test_skill_listening_station__listening1.mp3",
+        "items": [
+          {
+            "id": "sls_q1",
+            "question_text": "Wohin fährt der Zug in der Durchsage?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Durchsage nennt Frankfurt als Ziel.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "sls_q1_a1",
+                "answer_text": "Nach Frankfurt",
+                "is_correct": true
+              },
+              {
+                "id": "sls_q1_a2",
+                "answer_text": "Nach Mainz",
+                "is_correct": false
+              },
+              {
+                "id": "sls_q1_a3",
+                "answer_text": "Nach München",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sls_q2",
+            "question_text": "Wie viel Verspätung hat der Zug?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Durchsage nennt zwanzig Minuten.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "sls_q2_a1",
+                "answer_text": "Zwanzig Minuten",
+                "is_correct": true
+              },
+              {
+                "id": "sls_q2_a2",
+                "answer_text": "Zehn Minuten",
+                "is_correct": false
+              },
+              {
+                "id": "sls_q2_a3",
+                "answer_text": "Eine Stunde",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sls_q3",
+            "question_text": "Von welchem Gleis fährt der Zug jetzt ab?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Durchsage nennt Gleis 5 statt Gleis 3.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "sls_q3_a1",
+                "answer_text": "Gleis 5",
+                "is_correct": true
+              },
+              {
+                "id": "sls_q3_a2",
+                "answer_text": "Gleis 3",
+                "is_correct": false
+              },
+              {
+                "id": "sls_q3_a3",
+                "answer_text": "Gleis 7",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sls_q4",
+            "question_text": "Reisende nach Mainz verpassen ihren Anschlusszug.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Anschlusszug hat ebenfalls Verspätung, sie erreichen ihn trotzdem.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "sls_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "sls_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "sls_q5",
+            "question_text": "Wo bekommen Reisende weitere Informationen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Durchsage nennt beide Anlaufstellen.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "sls_q5_a1",
+                "answer_text": "Beim Servicepersonal oder am Informationsschalter",
+                "is_correct": true
+              },
+              {
+                "id": "sls_q5_a2",
+                "answer_text": "Nur online",
+                "is_correct": false
+              },
+              {
+                "id": "sls_q5_a3",
+                "answer_text": "Beim Zugführer",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sls_q6",
+            "question_text": "Um wie viel Uhr sollte der Zug ursprünglich abfahren?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Durchsage nennt 14:15 Uhr als ursprüngliche Zeit.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "sls_q6_a1",
+                "answer_text": "14:15 Uhr",
+                "is_correct": true
+              },
+              {
+                "id": "sls_q6_a2",
+                "answer_text": "14:30 Uhr",
+                "is_correct": false
+              },
+              {
+                "id": "sls_q6_a3",
+                "answer_text": "15:00 Uhr",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_listening_interview": {
+    "sections": [
+      {
+        "key": "listening1",
+        "name": "استماع سريع",
+        "type": "listening",
+        "official_duration_minutes": null,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص المقابلة كما لو كنت تسمعها، ثم أجب عن الأسئلة.",
+        "passage": "Vorstellungsgespräch:\n\"Erzählen Sie uns bitte kurz etwas über sich.\nGerne. Ich habe vor zwei Jahren meine Ausbildung als Bürokauffrau abgeschlossen und seitdem in einem kleinen Unternehmen gearbeitet.\nWarum möchten Sie bei uns arbeiten?\nIhr Unternehmen ist deutlich größer, und ich möchte gerne mehr Verantwortung übernehmen und neue Aufgaben lernen.\nWas sind Ihre Stärken?\nIch bin sehr organisiert und arbeite gerne im Team, aber ich kann auch gut selbstständig arbeiten.\nHaben Sie noch Fragen an uns?\nJa, wie sieht ein typischer Arbeitstag in dieser Position aus?\nDas beantworte ich Ihnen gerne im Detail.\"",
+        "audio_url": "/audio/test_skill_listening_interview__listening1.mp3",
+        "items": [
+          {
+            "id": "sli_q1",
+            "question_text": "Was hat die Bewerberin vor zwei Jahren abgeschlossen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie nennt die Ausbildung als Bürokauffrau.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "sli_q1_a1",
+                "answer_text": "Ihre Ausbildung als Bürokauffrau",
+                "is_correct": true
+              },
+              {
+                "id": "sli_q1_a2",
+                "answer_text": "Ein Studium",
+                "is_correct": false
+              },
+              {
+                "id": "sli_q1_a3",
+                "answer_text": "Einen Sprachkurs",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sli_q2",
+            "question_text": "Sie arbeitet seit der Ausbildung in einem großen Unternehmen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie arbeitet in einem kleinen Unternehmen.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "sli_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "sli_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "sli_q3",
+            "question_text": "Warum möchte sie wechseln?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie nennt mehr Verantwortung als Grund.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "sli_q3_a1",
+                "answer_text": "Um mehr Verantwortung zu übernehmen",
+                "is_correct": true
+              },
+              {
+                "id": "sli_q3_a2",
+                "answer_text": "Wegen eines Streits mit dem Chef",
+                "is_correct": false
+              },
+              {
+                "id": "sli_q3_a3",
+                "answer_text": "Weil sie umzieht",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sli_q4",
+            "question_text": "Was nennt sie als ihre Stärken?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie nennt organisiert und teamfähig.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "sli_q4_a1",
+                "answer_text": "Organisiert und teamfähig",
+                "is_correct": true
+              },
+              {
+                "id": "sli_q4_a2",
+                "answer_text": "Kreativ und schnell",
+                "is_correct": false
+              },
+              {
+                "id": "sli_q4_a3",
+                "answer_text": "Geduldig und ruhig",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sli_q5",
+            "question_text": "Sie kann auch gut selbstständig arbeiten.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie sagt das genau so.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "sli_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "sli_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sli_q6",
+            "question_text": "Welche Frage stellt sie am Ende?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie fragt nach einem typischen Arbeitstag.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "sli_q6_a1",
+                "answer_text": "Wie ein typischer Arbeitstag aussieht",
+                "is_correct": true
+              },
+              {
+                "id": "sli_q6_a2",
+                "answer_text": "Wie hoch das Gehalt ist",
+                "is_correct": false
+              },
+              {
+                "id": "sli_q6_a3",
+                "answer_text": "Wann sie anfangen kann",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_listening_hairdresser": {
+    "sections": [
+      {
+        "key": "listening1",
+        "name": "استماع سريع",
+        "type": "listening",
+        "official_duration_minutes": null,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص المكالمة كما لو كنت تسمعها، ثم أجب عن الأسئلة.",
+        "passage": "Anruf beim Friseur:\n\"Friseursalon Beauty, guten Tag.\nGuten Tag, ich hätte gerne einen Termin zum Haareschneiden.\nGerne, für heute oder für einen anderen Tag?\nAm liebsten für morgen, wenn möglich.\nMorgen habe ich um 11 Uhr oder um 16 Uhr noch frei.\nDann nehme ich lieber den Nachmittag, also 16 Uhr.\nSehr gerne. Möchten Sie nur die Haare schneiden lassen, oder auch färben?\nNur schneiden, danke.\nAlles klar, dann trage ich Sie für morgen um 16 Uhr ein. Auf welchen Namen, bitte?\nAuf den Namen Layla Benani.\nPerfekt, bis morgen!\"",
+        "audio_url": "/audio/test_skill_listening_hairdresser__listening1.mp3",
+        "items": [
+          {
+            "id": "slh_q1",
+            "question_text": "Worum bittet die Anruferin?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie bittet um einen Termin zum Haareschneiden.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "slh_q1_a1",
+                "answer_text": "Um einen Termin zum Haareschneiden",
+                "is_correct": true
+              },
+              {
+                "id": "slh_q1_a2",
+                "answer_text": "Um eine Preisliste",
+                "is_correct": false
+              },
+              {
+                "id": "slh_q1_a3",
+                "answer_text": "Um eine Stornierung",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slh_q2",
+            "question_text": "Für welchen Tag möchte sie den Termin?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie möchte den Termin für morgen.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "slh_q2_a1",
+                "answer_text": "Für morgen",
+                "is_correct": true
+              },
+              {
+                "id": "slh_q2_a2",
+                "answer_text": "Für heute",
+                "is_correct": false
+              },
+              {
+                "id": "slh_q2_a3",
+                "answer_text": "Für nächste Woche",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slh_q3",
+            "question_text": "Welche zwei Uhrzeiten sind morgen frei?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Friseur nennt 11 Uhr und 16 Uhr.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "slh_q3_a1",
+                "answer_text": "11 Uhr und 16 Uhr",
+                "is_correct": true
+              },
+              {
+                "id": "slh_q3_a2",
+                "answer_text": "9 Uhr und 12 Uhr",
+                "is_correct": false
+              },
+              {
+                "id": "slh_q3_a3",
+                "answer_text": "14 Uhr und 18 Uhr",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slh_q4",
+            "question_text": "Sie entscheidet sich für den Vormittagstermin.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie entscheidet sich für 16 Uhr, den Nachmittag.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "slh_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "slh_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "slh_q5",
+            "question_text": "Möchte sie auch ihre Haare färben lassen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie sagt, nur schneiden.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "slh_q5_a1",
+                "answer_text": "Nein, nur schneiden",
+                "is_correct": true
+              },
+              {
+                "id": "slh_q5_a2",
+                "answer_text": "Ja, färben und schneiden",
+                "is_correct": false
+              },
+              {
+                "id": "slh_q5_a3",
+                "answer_text": "Nur färben",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slh_q6",
+            "question_text": "Auf welchen Namen wird der Termin eingetragen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie nennt den Namen Layla Benani.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "slh_q6_a1",
+                "answer_text": "Layla Benani",
+                "is_correct": true
+              },
+              {
+                "id": "slh_q6_a2",
+                "answer_text": "Layla Idrissi",
+                "is_correct": false
+              },
+              {
+                "id": "slh_q6_a3",
+                "answer_text": "Sara Benani",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_listening_return": {
+    "sections": [
+      {
+        "key": "listening1",
+        "name": "استماع سريع",
+        "type": "listening",
+        "official_duration_minutes": null,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص الحوار كما لو كنت تسمعه، ثم أجب عن الأسئلة.",
+        "passage": "Im Geschäft:\n\"Guten Tag, ich möchte diesen Pullover zurückgeben.\nKein Problem, haben Sie den Kassenbon noch?\nJa, hier bitte.\nGibt es einen Grund für die Rückgabe, oder war es nur nicht die richtige Größe?\nDie Größe passt leider nicht, er ist zu klein.\nMöchten Sie eine größere Größe, oder lieber Ihr Geld zurück?\nHaben Sie ihn auch in Größe L?\nJa, wir haben noch zwei Stück in Größe L.\nDann tausche ich ihn lieber um, das wäre super.\nGerne, ich hole Ihnen sofort die richtige Größe.\"",
+        "audio_url": "/audio/test_skill_listening_return__listening1.mp3",
+        "items": [
+          {
+            "id": "slre_q1",
+            "question_text": "Was möchte der Kunde zurückgeben?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Kunde nennt einen Pullover.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "slre_q1_a1",
+                "answer_text": "Einen Pullover",
+                "is_correct": true
+              },
+              {
+                "id": "slre_q1_a2",
+                "answer_text": "Ein Hemd",
+                "is_correct": false
+              },
+              {
+                "id": "slre_q1_a3",
+                "answer_text": "Eine Hose",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slre_q2",
+            "question_text": "Der Kunde hat keinen Kassenbon.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er hat den Kassenbon dabei.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "slre_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "slre_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "slre_q3",
+            "question_text": "Warum möchte der Kunde den Pullover zurückgeben?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Kunde sagt, die Größe passt nicht, er ist zu klein.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "slre_q3_a1",
+                "answer_text": "Er ist zu klein",
+                "is_correct": true
+              },
+              {
+                "id": "slre_q3_a2",
+                "answer_text": "Er ist beschädigt",
+                "is_correct": false
+              },
+              {
+                "id": "slre_q3_a3",
+                "answer_text": "Die Farbe gefällt ihm nicht",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slre_q4",
+            "question_text": "Welche Größe fragt der Kunde nach?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Kunde fragt nach Größe L.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "slre_q4_a1",
+                "answer_text": "Größe L",
+                "is_correct": true
+              },
+              {
+                "id": "slre_q4_a2",
+                "answer_text": "Größe M",
+                "is_correct": false
+              },
+              {
+                "id": "slre_q4_a3",
+                "answer_text": "Größe XL",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slre_q5",
+            "question_text": "Das Geschäft hat keine Größe L mehr.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Es gibt noch zwei Stück in Größe L.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "slre_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "slre_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "slre_q6",
+            "question_text": "Wofür entscheidet sich der Kunde am Ende?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Er entscheidet sich, den Pullover umzutauschen.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "slre_q6_a1",
+                "answer_text": "Für einen Umtausch",
+                "is_correct": true
+              },
+              {
+                "id": "slre_q6_a2",
+                "answer_text": "Für eine Geldrückgabe",
+                "is_correct": false
+              },
+              {
+                "id": "slre_q6_a3",
+                "answer_text": "Für einen Gutschein",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_listening_landlord": {
+    "sections": [
+      {
+        "key": "listening1",
+        "name": "استماع سريع",
+        "type": "listening",
+        "official_duration_minutes": null,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص المكالمة كما لو كنت تسمعها، ثم أجب عن الأسئلة.",
+        "passage": "Anruf beim Vermieter:\n\"Hallo Herr Krause, hier ist Fatima Zahra aus der Wohnung im dritten Stock.\nHallo Frau Zahra, was kann ich für Sie tun?\nDie Heizung funktioniert seit gestern Abend nicht mehr richtig, es ist ziemlich kalt in der Wohnung.\nDas tut mir leid zu hören. Ich schicke Ihnen morgen früh einen Techniker vorbei.\nUm wie viel Uhr ungefähr?\nZwischen 9 und 11 Uhr, ist das für Sie möglich?\nJa, das passt gut, ich bin morgen zu Hause.\nGut, ich gebe Ihnen noch Bescheid, sobald der Techniker unterwegs ist.\nVielen Dank, das ist sehr freundlich.\"",
+        "audio_url": "/audio/test_skill_listening_landlord__listening1.mp3",
+        "items": [
+          {
+            "id": "sll_q1",
+            "question_text": "Wer ruft den Vermieter an?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie stellt sich als Mieterin vor.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "sll_q1_a1",
+                "answer_text": "Fatima Zahra, eine Mieterin",
+                "is_correct": true
+              },
+              {
+                "id": "sll_q1_a2",
+                "answer_text": "Ein Techniker",
+                "is_correct": false
+              },
+              {
+                "id": "sll_q1_a3",
+                "answer_text": "Eine Nachbarin",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sll_q2",
+            "question_text": "In welchem Stock wohnt sie?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie nennt den dritten Stock.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "sll_q2_a1",
+                "answer_text": "Im dritten Stock",
+                "is_correct": true
+              },
+              {
+                "id": "sll_q2_a2",
+                "answer_text": "Im ersten Stock",
+                "is_correct": false
+              },
+              {
+                "id": "sll_q2_a3",
+                "answer_text": "Im Erdgeschoss",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sll_q3",
+            "question_text": "Was ist das Problem?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie nennt die Heizung als Problem.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "sll_q3_a1",
+                "answer_text": "Die Heizung funktioniert nicht richtig",
+                "is_correct": true
+              },
+              {
+                "id": "sll_q3_a2",
+                "answer_text": "Die Dusche ist kaputt",
+                "is_correct": false
+              },
+              {
+                "id": "sll_q3_a3",
+                "answer_text": "Der Fahrstuhl funktioniert nicht",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sll_q4",
+            "question_text": "Der Vermieter schickt sofort jemanden vorbei.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er schickt morgen früh einen Techniker.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "sll_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "sll_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "sll_q5",
+            "question_text": "Zwischen welchen Uhrzeiten kommt der Techniker?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Vermieter nennt zwischen 9 und 11 Uhr.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "sll_q5_a1",
+                "answer_text": "Zwischen 9 und 11 Uhr",
+                "is_correct": true
+              },
+              {
+                "id": "sll_q5_a2",
+                "answer_text": "Zwischen 14 und 16 Uhr",
+                "is_correct": false
+              },
+              {
+                "id": "sll_q5_a3",
+                "answer_text": "Am Abend",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sll_q6",
+            "question_text": "Fatima ist morgen nicht zu Hause.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie sagt, das passt gut, sie ist morgen zu Hause.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "sll_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "sll_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_listening_weather": {
+    "sections": [
+      {
+        "key": "listening1",
+        "name": "استماع سريع",
+        "type": "listening",
+        "official_duration_minutes": null,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص النشرة كما لو كنت تسمعها، ثم أجب عن الأسئلة.",
+        "passage": "Und nun der Wetterbericht für morgen. Am Vormittag bleibt es meistens bewölkt, mit Temperaturen um 14 Grad. Ab dem Mittag lockern die Wolken langsam auf, und wir erwarten sonnige Abschnitte mit Höchsttemperaturen von 19 Grad. Am Nachmittag kann es im Süden vereinzelt zu kurzen Schauern kommen, im Norden bleibt es dagegen meist trocken. Der Wind weht schwach aus westlicher Richtung. Am Abend kühlt es wieder auf etwa 11 Grad ab. Für das Wochenende erwarten wir stabileres und wärmeres Wetter mit Temperaturen bis zu 22 Grad.",
+        "audio_url": "/audio/test_skill_listening_weather__listening1.mp3",
+        "items": [
+          {
+            "id": "slw_q1",
+            "question_text": "Wie ist das Wetter am Vormittag?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Nachricht nennt meistens bewölkt.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "slw_q1_a1",
+                "answer_text": "Meistens bewölkt",
+                "is_correct": true
+              },
+              {
+                "id": "slw_q1_a2",
+                "answer_text": "Sonnig",
+                "is_correct": false
+              },
+              {
+                "id": "slw_q1_a3",
+                "answer_text": "Regnerisch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slw_q2",
+            "question_text": "Wie hoch ist die Höchsttemperatur am Mittag?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Nachricht nennt 19 Grad als Höchsttemperatur.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "slw_q2_a1",
+                "answer_text": "19 Grad",
+                "is_correct": true
+              },
+              {
+                "id": "slw_q2_a2",
+                "answer_text": "14 Grad",
+                "is_correct": false
+              },
+              {
+                "id": "slw_q2_a3",
+                "answer_text": "25 Grad",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slw_q3",
+            "question_text": "Wo kann es am Nachmittag Schauer geben?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Nachricht nennt den Süden.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "slw_q3_a1",
+                "answer_text": "Im Süden",
+                "is_correct": true
+              },
+              {
+                "id": "slw_q3_a2",
+                "answer_text": "Im Norden",
+                "is_correct": false
+              },
+              {
+                "id": "slw_q3_a3",
+                "answer_text": "Überall",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slw_q4",
+            "question_text": "Im Norden bleibt es am Nachmittag meist trocken.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Nachricht sagt das genau so.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "slw_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "slw_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slw_q5",
+            "question_text": "Aus welcher Richtung weht der Wind?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Nachricht nennt westliche Richtung.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "slw_q5_a1",
+                "answer_text": "Aus westlicher Richtung",
+                "is_correct": true
+              },
+              {
+                "id": "slw_q5_a2",
+                "answer_text": "Aus östlicher Richtung",
+                "is_correct": false
+              },
+              {
+                "id": "slw_q5_a3",
+                "answer_text": "Aus dem Norden",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slw_q6",
+            "question_text": "Wie wird das Wetter am Wochenende?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Nachricht nennt stabileres und wärmeres Wetter.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "slw_q6_a1",
+                "answer_text": "Stabiler und wärmer",
+                "is_correct": true
+              },
+              {
+                "id": "slw_q6_a2",
+                "answer_text": "Kälter und regnerisch",
+                "is_correct": false
+              },
+              {
+                "id": "slw_q6_a3",
+                "answer_text": "Windig und wechselhaft",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_writing_leave_email": {
+    "sections": [],
+    "writing": {
+      "name": "بريد إلكتروني رسمي",
+      "official_duration_minutes": 15,
+      "instructions": "اكتب بريدًا إلكترونيًا رسميًا من 80 إلى 100 كلمة تقريبًا.",
+      "prompt": "اكتب بريدًا إلكترونيًا لصاحب العمل تطلب فيه إجازة لمدة أسبوع. اذكر السبب، والتواريخ التي تريد أخذ الإجازة فيها، وكيف ستنظّم عملك أثناء غيابك.",
+      "sample_answer": "Sehr geehrte Damen und Herren,\n\nich möchte Sie bitten, mir für die Woche vom 12. bis zum 18. Juni Urlaub zu genehmigen. Ich habe familiäre Verpflichtungen, die meine Anwesenheit erfordern.\n\nWährend meiner Abwesenheit wird mein Kollege Herr Amrani meine wichtigsten Aufgaben übernehmen. Ich werde alle laufenden Projekte vor meinem Urlaub abschließen oder ordentlich übergeben.\n\nIch bitte um eine kurze Rückmeldung, ob der Termin möglich ist.\n\nMit freundlichen Grüßen,\nYasmin Idrissi"
+    }
+  },
+  "test_skill_writing_daily_life": {
+    "sections": [],
+    "writing": {
+      "name": "نص وصفي",
+      "official_duration_minutes": 15,
+      "instructions": "اكتب نصًا من 80 إلى 100 كلمة تقريبًا.",
+      "prompt": "صف يومًا عاديًا في حياتك، من الصباح حتى المساء. اذكر ماذا تفعل عادة، ومن تقابل، وكيف تشعر في نهاية اليوم.",
+      "sample_answer": "Mein Tag beginnt normalerweise um sieben Uhr morgens. Ich frühstücke schnell und fahre dann zur Arbeit, wo ich um acht Uhr ankomme. Vormittags arbeite ich meistens am Computer und treffe mich manchmal mit Kollegen für kurze Besprechungen. Mittags esse ich zusammen mit meiner Kollegin in der Kantine. Nachmittags setze ich meine Arbeit fort, bis ich um siebzehn Uhr nach Hause fahre. Abends koche ich gerne oder treffe Freunde. Am Ende des Tages bin ich meistens müde, aber zufrieden mit dem, was ich geschafft habe."
+    }
+  },
+  "test_skill_writing_invite_friend": {
+    "sections": [],
+    "writing": {
+      "name": "رسالة غير رسمية",
+      "official_duration_minutes": 15,
+      "instructions": "اكتب رسالة غير رسمية من 80 إلى 100 كلمة تقريبًا.",
+      "prompt": "اكتب رسالة إلى صديق تدعوه فيها لحضور حفلة عيد ميلادك. اذكر التاريخ والمكان، ولماذا تريد منه أن يحضر، واسأله إن كان يستطيع القدوم.",
+      "sample_answer": "Liebe Sara,\n\nich feiere am 20. Mai meinen Geburtstag und würde mich sehr freuen, wenn du kommen könntest! Die Feier findet bei mir zu Hause statt, ab 18 Uhr.\n\nEs werden auch ein paar andere Freunde da sein, und ich habe schon angefangen, das Essen zu planen. Es wäre einfach nicht dasselbe ohne dich.\n\nHast du an diesem Tag schon etwas vor? Lass es mich bitte bald wissen.\n\nGanz liebe Grüße,\nNadia"
+    }
   }
 };
 

@@ -1,14 +1,20 @@
-// Gives a student a hint for a specific question, using Groq (Llama 3.3
-// 70B) -- explains the underlying grammar/reading concept being tested
-// WITHOUT revealing which option is correct, so it helps understanding
-// rather than just handing over the answer.
+// Admin-only management of which LLM provider/model powers writing
+// grading and hints, plus setting the API key for each -- all from the
+// dashboard, no CLI or redeploy needed after the one-time LLM_VAULT_KEY
+// secret is set.
 //
-//   supabase.functions.invoke('get-hint', { body: { question_id } })
+//   supabase.functions.invoke('admin-llm-settings', { body: { action: 'list' } })
+//   supabase.functions.invoke('admin-llm-settings', {
+//     body: { action: 'save_config', purpose, provider, model, base_url }
+//   })
+//   supabase.functions.invoke('admin-llm-settings', {
+//     body: { action: 'set_key', purpose, api_key }
+//   })
 //
-// The question is looked up server-side by ID (never trust a
-// client-supplied question text), using the service role -- same
-// reasoning as test-detail: the answer key must never pass through a
-// path a student's own client could intercept or spoof.
+// The raw api_key never reaches the database in plaintext (set_key
+// encrypts it via the set_llm_api_key() Postgres function, which itself
+// checks admin status), and 'list' never returns key material at all --
+// only whether one is set (has_key).
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -36,69 +42,63 @@ Deno.serve(async (req) => {
     const { data: { user }, error: authError } = await authClient.auth.getUser();
     if (authError || !user) return json({ success: false, message: 'غير مصرح به' }, 401);
 
-    const { question_id } = await req.json();
-    if (!question_id) return json({ success: false, message: 'question_id مطلوب' }, 400);
-
-    const groqKey = Deno.env.get('GROQ_API_KEY');
-    if (!groqKey) return json({ success: false, message: 'ميزة التلميحات غير مُفعّلة حاليًا' }, 500);
-
     const admin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
-
-    const { data: question, error: qErr } = await admin
-      .from('test_questions')
-      .select('question_text, explanation, test_answers(answer_text, is_correct)')
-      .eq('id', question_id)
-      .single();
-    if (qErr || !question) return json({ success: false, message: 'السؤال غير موجود' }, 404);
-
-    const correct = (question.test_answers || []).find((a: any) => a.is_correct);
-    const optionsList = (question.test_answers || []).map((a: any) => a.answer_text).join(' / ');
-
-    const systemPrompt = `أنت مساعد تعليمي للغة الألمانية يساعد طلاب مستوى B1/B2 أثناء أداء تدريب.
-
-قاعدة صارمة: لا تذكر إطلاقًا أي إجابة محددة هي الصحيحة، ولا تُلمّح بشكل مباشر إليها (مثل ذكر نصها حرفيًا كإجابة، أو قول "الخيار الأول/الثاني صحيح"). مهمتك فقط شرح القاعدة النحوية أو استراتيجية الفهم المتعلقة بالسؤال، بحيث يستطيع الطالب التفكير والوصول للإجابة بنفسه.
-
-اكتب تلميحًا قصيرًا (جملتين إلى ثلاث جمل) بالعربية، واضحًا ومباشرًا، دون الكشف عن الإجابة.`;
-
-    const userPrompt = `السؤال: ${question.question_text}
-الخيارات المتاحة: ${optionsList}
-(معلومة داخلية لك فقط، لا تكشفها: الإجابة الصحيحة هي "${correct ? correct.answer_text : 'غير محددة'}"، وسبب ذلك: ${question.explanation || 'غير متوفر'})
-
-اكتب تلميحًا يشرح القاعدة أو المفهوم المتعلق بهذا السؤال دون ذكر أي إجابة محددة.`;
-
-    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${groqKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'openai/gpt-oss-120b', // Groq deprecated llama-3.3-70b-versatile (June 2026); this is Groq's recommended replacement
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        temperature: 0.4,
-        max_tokens: 200
-      })
-    });
-
-    if (!groqRes.ok) {
-      const errText = await groqRes.text();
-      console.error('Groq API error:', groqRes.status, errText);
-      return json({ success: false, message: 'تعذّر الحصول على تلميح' }, 502);
+    const { data: profile } = await admin.from('users').select('role').eq('id', user.id).single();
+    if (!profile || profile.role !== 'admin') {
+      return json({ success: false, message: 'هذا الإجراء متاح للمشرفين فقط' }, 403);
     }
 
-    const groqData = await groqRes.json();
-    const hint = groqData?.choices?.[0]?.message?.content?.trim();
-    if (!hint) return json({ success: false, message: 'لم يتم استلام تلميح' }, 502);
+    const body = await req.json();
 
-    return json({ success: true, hint });
+    if (body.action === 'list') {
+      const { data, error } = await admin
+        .from('llm_settings')
+        .select('purpose, provider, model, base_url, has_key, updated_at')
+        .order('purpose');
+      if (error) throw error;
+      return json({ success: true, settings: data });
+    }
+
+    if (body.action === 'save_config') {
+      const { purpose, provider, model, base_url } = body;
+      if (!purpose || !provider || !model || !base_url) {
+        return json({ success: false, message: 'جميع الحقول مطلوبة' }, 400);
+      }
+      const { error } = await admin
+        .from('llm_settings')
+        .update({ provider, model, base_url, updated_at: new Date().toISOString(), updated_by: user.id })
+        .eq('purpose', purpose);
+      if (error) throw error;
+      return json({ success: true });
+    }
+
+    if (body.action === 'set_key') {
+      const { purpose, api_key } = body;
+      if (!purpose || !api_key || !api_key.trim()) {
+        return json({ success: false, message: 'المفتاح مطلوب' }, 400);
+      }
+      const vaultKey = Deno.env.get('LLM_VAULT_KEY');
+      if (!vaultKey) {
+        return json({ success: false, message: 'إعداد التشفير غير مُفعّل بعد (LLM_VAULT_KEY)' }, 500);
+      }
+      // Called via authClient (not the service-role admin client) so
+      // auth.uid() resolves correctly inside set_llm_api_key()'s own
+      // admin check.
+      const { error } = await authClient.rpc('set_llm_api_key', {
+        p_purpose: purpose,
+        p_api_key: api_key.trim(),
+        p_vault_key: vaultKey
+      });
+      if (error) throw error;
+      return json({ success: true });
+    }
+
+    return json({ success: false, message: 'action غير معروف' }, 400);
   } catch (err) {
     console.error(err);
-    return json({ success: false, message: 'حدث خطأ أثناء طلب التلميح' }, 500);
+    return json({ success: false, message: 'حدث خطأ في الخادم' }, 500);
   }
 });

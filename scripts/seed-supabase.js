@@ -62,7 +62,8 @@ async function upsertTest(test) {
         passing_score: test.passing_score,
         is_active: test.is_active,
         is_skill_practice: !!test.is_skill_practice,
-        skill: test.skill || null
+        skill: test.skill || null,
+        content_kind: test.content_kind || 'quiz'
       },
       { onConflict: 'test_type' }
     )

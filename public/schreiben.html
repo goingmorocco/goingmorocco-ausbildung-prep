@@ -122,19 +122,21 @@
                 <!-- Test library -->
                 <div class="grid sm:grid-cols-2 gap-5 mb-10">
                     <template x-for="t in tests" :key="t.id">
-                        <button @click="startPractice(t)" class="de-card rounded-2xl p-5 text-start w-full">
+                        <button @click="t.content_kind === 'essay' ? openEssay(t) : startPractice(t)" class="de-card rounded-2xl p-5 text-start w-full">
                             <div class="flex items-start justify-between gap-3 mb-3">
                                 <div class="h-11 w-11 rounded-xl bg-flag-red/10 flex items-center justify-center flex-shrink-0">
-                                    <i class="fas fa-pen text-flag-red"></i>
+                                    <i class="fas text-flag-red" :class="t.content_kind === 'essay' ? 'fa-feather-pointed' : 'fa-pen'"></i>
                                 </div>
                                 <span x-show="lastScores[t.id] !== undefined" x-cloak class="de-badge de-badge-gold flex-shrink-0" x-text="lastScores[t.id] + '%'"></span>
                             </div>
+                            <span class="de-badge de-badge-red mb-2 inline-block" x-show="t.content_kind === 'essay'">نشاط كتابة حرة — تقييم بالذكاء الاصطناعي</span>
                             <h3 class="font-display font-semibold text-flag-ink mb-1" x-text="t.title"></h3>
                             <p class="text-sm text-flag-ink/60 mb-3" x-text="t.description"></p>
                             <div class="flex items-center gap-2 text-xs text-flag-ink/40">
                                 <i class="fas fa-clock"></i> <span x-text="t.duration_minutes"></span> دقائق
-                                <span class="mx-1">·</span>
-                                <i class="fas fa-list-check"></i> <span x-text="t.total_questions"></span> أسئلة
+                                <template x-if="t.content_kind !== 'essay'">
+                                    <span><span class="mx-1">·</span><i class="fas fa-list-check"></i> <span x-text="t.total_questions"></span> أسئلة</span>
+                                </template>
                             </div>
                         </button>
                     </template>
@@ -309,6 +311,118 @@
         </div>
     </div>
 
+    <!-- ============ Essay modal (expandable) ============ -->
+    <div x-show="showEssayModal" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
+        <div class="de-card w-full overflow-hidden flex flex-col transition-all duration-300"
+             :class="essayModalExpanded ? 'max-w-4xl h-[95vh]' : 'max-w-2xl max-h-[92vh]'">
+            <div class="de-flag-ribbon"></div>
+            <div class="flex items-center justify-between px-6 py-4 border-b border-black/10 flex-shrink-0">
+                <h3 class="font-display font-semibold text-flag-ink truncate" x-text="essayTest ? essayTest.title : ''"></h3>
+                <div class="flex items-center gap-3 flex-shrink-0">
+                    <button @click="essayModalExpanded = !essayModalExpanded" class="text-flag-ink/40 hover:text-flag-red" :title="essayModalExpanded ? 'تصغير' : 'تكبير'">
+                        <i class="fas" :class="essayModalExpanded ? 'fa-down-left-and-up-right-to-center' : 'fa-up-right-and-down-left-from-center'"></i>
+                    </button>
+                    <button @click="closeEssayModal()" class="text-flag-ink/40 hover:text-flag-red"><i class="fas fa-times"></i></button>
+                </div>
+            </div>
+
+            <div class="p-6 overflow-y-auto">
+                <template x-if="essayPrompt && !essayGradeResult">
+                    <div>
+                        <div class="de-card rounded-xl p-5 mb-4" style="border-color:rgba(37,99,235,0.4);">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="de-badge de-badge-gold" x-text="essayPrompt.name"></span>
+                                <span class="text-xs text-flag-ink/40" x-show="essayPrompt.official_duration_minutes">
+                                    <i class="fas fa-clock"></i> <span x-text="essayPrompt.official_duration_minutes"></span> دقيقة في الاختبار الرسمي
+                                </span>
+                            </div>
+                            <p class="text-xs text-flag-ink/50 mb-3" x-show="essayPrompt.instructions" x-text="essayPrompt.instructions"></p>
+                            <p class="text-sm font-medium text-flag-ink whitespace-pre-line" x-text="essayPrompt.prompt"></p>
+                        </div>
+                        <textarea x-model="essayDraft" rows="9" placeholder="اكتب إجابتك هنا..."
+                                  class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30 mb-4"></textarea>
+                        <button @click="gradeEssay()" :disabled="gradingEssay || essayDraft.trim().length < 10"
+                                class="de-btn de-btn-primary w-full text-sm py-3 disabled:opacity-50">
+                            <i class="fas" :class="gradingEssay ? 'fa-circle-notch fa-spin' : 'fa-robot'"></i>
+                            <span x-text="gradingEssay ? 'جاري التقييم...' : 'قيّم كتابتي بالذكاء الاصطناعي'"></span>
+                        </button>
+                    </div>
+                </template>
+
+                <template x-if="essayGradeResult">
+                    <div class="text-center">
+                        <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto mb-3">
+                            <div class="de-card rounded-xl p-4">
+                                <div class="text-xs text-flag-ink/50 mb-1">المحاولة السابقة</div>
+                                <div class="text-2xl font-display font-bold text-flag-ink" x-text="previousEssayScore !== null ? previousEssayScore + '%' : '—'"></div>
+                            </div>
+                            <div class="de-card rounded-xl p-4">
+                                <div class="text-xs text-flag-ink/50 mb-1">هذه المحاولة</div>
+                                <div class="text-2xl font-display font-bold text-flag-red" x-text="essayGradeResult.overall_score + '%'"></div>
+                            </div>
+                        </div>
+                        <div x-show="previousEssayScore !== null" x-cloak class="mb-6">
+                            <span class="de-badge" :class="essayScoreDelta() > 0 ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : (essayScoreDelta() < 0 ? 'bg-red-50 text-red-600 border border-red-200' : 'de-badge-gold')">
+                                <i class="fas" :class="essayScoreDelta() > 0 ? 'fa-arrow-up' : (essayScoreDelta() < 0 ? 'fa-arrow-down' : 'fa-minus')"></i>
+                                <span x-text="(essayScoreDelta() > 0 ? '+' : '') + essayScoreDelta() + '% مقارنة بالمرة السابقة'"></span>
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2 mb-4 text-center max-w-sm mx-auto">
+                            <div class="de-card rounded-lg p-2">
+                                <div class="text-[10px] text-flag-ink/50 mb-1">استيفاء الموضوع</div>
+                                <div class="font-display font-bold text-flag-ink" x-text="essayGradeResult.task_fulfillment_score + '%'"></div>
+                            </div>
+                            <div class="de-card rounded-lg p-2">
+                                <div class="text-[10px] text-flag-ink/50 mb-1">تنوع اللغة</div>
+                                <div class="font-display font-bold text-flag-ink" x-text="essayGradeResult.range_of_expression_score + '%'"></div>
+                            </div>
+                            <div class="de-card rounded-lg p-2">
+                                <div class="text-[10px] text-flag-ink/50 mb-1">القواعد</div>
+                                <div class="font-display font-bold text-flag-ink" x-text="essayGradeResult.grammar_score + '%'"></div>
+                            </div>
+                        </div>
+
+                        <div class="de-card rounded-xl p-4 text-start mb-6 max-w-xl mx-auto">
+                            <p class="text-xs font-medium text-flag-ink/50 mb-2"><i class="fas fa-comment-dots"></i> ملاحظات</p>
+                            <p class="text-sm text-flag-ink/80 whitespace-pre-line" x-text="essayGradeResult.feedback"></p>
+                        </div>
+                        <p class="text-[11px] text-flag-ink/40 mb-6">
+                            <i class="fas fa-circle-info"></i> هذا تقييم آلي بالذكاء الاصطناعي، وقد يختلف قليلاً في كل مرة — استخدمه كدليل إرشادي.
+                        </p>
+
+                        <div class="flex justify-center gap-3 mb-8">
+                            <button @click="closeEssayModal()" class="de-btn text-sm py-2.5 px-5" style="background:#EEEAE0;color:#1E293B;">إنهاء</button>
+                            <button @click="retakeEssay()" class="de-btn de-btn-primary text-sm py-2.5 px-5">
+                                <i class="fas fa-rotate-right"></i> أعد المحاولة
+                            </button>
+                        </div>
+
+                        <div x-show="resources.length > 0" class="text-start max-w-xl mx-auto">
+                            <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
+                                <i class="fas fa-book text-flag-red me-2"></i> للمزيد من التدريب
+                            </h2>
+                            <div class="grid sm:grid-cols-2 gap-4">
+                                <template x-for="r in resources" :key="r.id">
+                                    <button @click="r.type === 'pdf' ? openPdf(r) : openVideo(r)" class="de-card rounded-2xl p-4 flex items-center gap-3 text-start w-full">
+                                        <span class="h-11 w-11 rounded-xl flex items-center justify-center flex-shrink-0"
+                                              :class="r.type === 'pdf' ? 'bg-flag-red/10 text-flag-red' : 'bg-red-50 text-red-600'">
+                                            <i :class="r.type === 'pdf' ? 'fas fa-file-pdf' : 'fab fa-youtube'"></i>
+                                        </span>
+                                        <div class="min-w-0">
+                                            <h3 class="font-display font-semibold text-flag-ink text-sm truncate" x-text="r.title"></h3>
+                                            <p class="text-xs text-flag-ink/50" x-text="r.type === 'pdf' ? 'اضغط لفتح المستند' : 'اضغط لمشاهدة الفيديو'"></p>
+                                        </div>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+
     <!-- ============ PDF viewer modal ============ -->
     <div x-show="viewingPdf" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/70 backdrop-blur-sm p-4">
         <div class="de-card w-full max-w-4xl h-[90vh] overflow-hidden flex flex-col">
@@ -375,6 +489,10 @@
                 isFreeTier: false,
                 freeTestsUsed: 0,
                 showUpgradePrompt: false,
+
+                showEssayModal: false, essayModalExpanded: false, essayTest: null,
+                essayPrompt: null, essayDraft: '', gradingEssay: false, essayGradeResult: null,
+                previousEssayScore: null,
 
                 tests: [],
                 testsLoading: false,
@@ -576,6 +694,67 @@
                     }
                 },
                 closePdf() { this.viewingPdf = null; },
+
+                async openEssay(test) {
+                    this.essayTest = test;
+                    this.previousEssayScore = this.lastScores[test.id] !== undefined ? this.lastScores[test.id] : null;
+                    this.essayDraft = '';
+                    this.essayGradeResult = null;
+                    try {
+                        const data = await sbInvoke('test-detail', { test_id: test.id });
+                        if (!data.success || !data.test.writing) {
+                            this.showToast('تعذّر تحميل موضوع الكتابة');
+                            return;
+                        }
+                        this.essayPrompt = data.test.writing;
+                        this.essayModalExpanded = false;
+                        this.showEssayModal = true;
+                    } catch (e) {
+                        console.error(e);
+                        this.showToast('تعذّر تحميل موضوع الكتابة');
+                    }
+                },
+
+                async gradeEssay() {
+                    if (!this.essayTest || this.essayDraft.trim().length < 10) return;
+                    this.gradingEssay = true;
+                    try {
+                        const data = await sbInvoke('grade-writing', { test_id: this.essayTest.id, submission_text: this.essayDraft });
+                        if (data.success) {
+                            this.essayGradeResult = data.result;
+                            this.loadLibrary();
+                        } else if (data.code === 'upgrade_required') {
+                            this.showUpgradePrompt = true;
+                        } else {
+                            this.showToast(data.message || 'تعذّر تقييم النص');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        this.showToast('حدث خطأ أثناء التقييم');
+                    } finally {
+                        this.gradingEssay = false;
+                    }
+                },
+
+                essayScoreDelta() {
+                    if (!this.essayGradeResult || this.previousEssayScore === null) return 0;
+                    return this.essayGradeResult.overall_score - this.previousEssayScore;
+                },
+
+                retakeEssay() {
+                    this.previousEssayScore = this.essayGradeResult.overall_score;
+                    this.essayDraft = '';
+                    this.essayGradeResult = null;
+                },
+
+                closeEssayModal() {
+                    this.showEssayModal = false;
+                    this.essayModalExpanded = false;
+                    this.essayTest = null;
+                    this.essayPrompt = null;
+                    this.essayDraft = '';
+                    this.essayGradeResult = null;
+                },
 
                 async loadFreeQuota() {
                     try {

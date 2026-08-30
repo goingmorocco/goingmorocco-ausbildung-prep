@@ -1136,7 +1136,7 @@
                     this.writingGradeResult = null;
                     try {
                         const data = await sbInvoke('grade-writing', {
-                            writing_prompt_id: this.activeTest.writing.id,
+                            test_id: this.activeTest.id,
                             submission_text: this.writingDraft
                         });
                         if (data.success) {
