@@ -87,6 +87,11 @@
         email: '',
         password: '',
         rememberMe: false,
+        resetEmail: '',
+        resetEmailSent: false,
+        showLoginPassword: false,
+        showRegisterPassword: false,
+        showRegisterPasswordConfirm: false,
         userData: {
             full_name: '',
             email: '',
@@ -145,6 +150,25 @@
                 setTimeout(() => {
                     this.closeModal();
                 }, 2000);
+            } catch (error) {
+                this.showErrorModal('خطأ في الاتصال', 'حدث خطأ أثناء الاتصال بالخادم');
+            } finally {
+                this.isLoading = false;
+            }
+        },
+        async sendPasswordReset(email) {
+            if (!email) return;
+            this.isLoading = true;
+            try {
+                const path = window.location.pathname;
+                const dir = path.substring(0, path.lastIndexOf('/') + 1);
+                const redirectTo = window.location.origin + dir + 'reset-password.html';
+                const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+                if (error) {
+                    this.showErrorModal('تعذّر إرسال الرابط', 'تأكد من صحة البريد الإلكتروني وحاول مرة أخرى.');
+                    return;
+                }
+                this.resetEmailSent = true;
             } catch (error) {
                 this.showErrorModal('خطأ في الاتصال', 'حدث خطأ أثناء الاتصال بالخادم');
             } finally {
@@ -812,14 +836,19 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-flag-ink/70 mb-2">كلمة المرور</label>
-                    <input type="password" x-model="password" required
-                           class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
+                    <div class="relative">
+                        <input :type="showLoginPassword ? 'text' : 'password'" x-model="password" required
+                               class="w-full px-4 py-2.5 pe-11 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
+                        <button type="button" @click="showLoginPassword = !showLoginPassword" class="absolute top-1/2 -translate-y-1/2 end-3.5 text-flag-ink/40 hover:text-flag-red">
+                            <i class="fas" :class="showLoginPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="flex items-center justify-between text-sm">
                     <label class="flex items-center gap-2 text-flag-ink/60">
                         <input type="checkbox" x-model="rememberMe"> تذكرني
                     </label>
-                    <a href="#" class="text-flag-red hover:text-flag-reddeep">نسيت كلمة المرور؟</a>
+                    <a href="#" @click="resetEmailSent = false; resetEmail = ''; showModal = true; modalTitle = 'استعادة كلمة المرور'; modalContent = $refs['forgot-password-form'].innerHTML" class="text-flag-red hover:text-flag-reddeep">نسيت كلمة المرور؟</a>
                 </div>
                 <button type="submit" :disabled="isLoading" class="de-btn de-btn-primary w-full text-sm py-3 disabled:opacity-50"
                         x-text="isLoading ? 'جاري الدخول...' : 'تسجيل الدخول'"></button>
@@ -829,6 +858,27 @@
                        class="text-flag-red hover:text-flag-reddeep font-medium">أنشئ حسابًا مجانًا</a>
                 </p>
             </form>
+        </div>
+
+        <div x-ref="forgot-password-form">
+            <template x-if="!resetEmailSent">
+                <form @submit.prevent="sendPasswordReset(resetEmail)" class="space-y-4">
+                    <p class="text-sm text-flag-ink/60">أدخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة المرور.</p>
+                    <div>
+                        <label class="block text-sm font-medium text-flag-ink/70 mb-2">البريد الإلكتروني</label>
+                        <input type="email" x-model="resetEmail" required
+                               class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
+                    </div>
+                    <button type="submit" :disabled="isLoading" class="de-btn de-btn-primary w-full text-sm py-3 disabled:opacity-50"
+                            x-text="isLoading ? 'جاري الإرسال...' : 'إرسال رابط الاستعادة'"></button>
+                </form>
+            </template>
+            <template x-if="resetEmailSent">
+                <div class="text-center py-4">
+                    <i class="fas fa-envelope-circle-check text-emerald-600 text-3xl mb-3"></i>
+                    <p class="text-sm text-flag-ink/70">تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني. تحقق من صندوق الوارد (وملف الرسائل غير المرغوبة).</p>
+                </div>
+            </template>
         </div>
 
         <div x-ref="register-form">
@@ -852,13 +902,23 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-flag-ink/70 mb-2">كلمة المرور</label>
-                    <input type="password" x-model="userData.password" required
-                           class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
+                    <div class="relative">
+                        <input :type="showRegisterPassword ? 'text' : 'password'" x-model="userData.password" required
+                               class="w-full px-4 py-2.5 pe-11 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
+                        <button type="button" @click="showRegisterPassword = !showRegisterPassword" class="absolute top-1/2 -translate-y-1/2 end-3.5 text-flag-ink/40 hover:text-flag-red">
+                            <i class="fas" :class="showRegisterPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                        </button>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-flag-ink/70 mb-2">تأكيد كلمة المرور</label>
-                    <input type="password" x-model="userData.password_confirm" required
-                           class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
+                    <div class="relative">
+                        <input :type="showRegisterPasswordConfirm ? 'text' : 'password'" x-model="userData.password_confirm" required
+                               class="w-full px-4 py-2.5 pe-11 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
+                        <button type="button" @click="showRegisterPasswordConfirm = !showRegisterPasswordConfirm" class="absolute top-1/2 -translate-y-1/2 end-3.5 text-flag-ink/40 hover:text-flag-red">
+                            <i class="fas" :class="showRegisterPasswordConfirm ? 'fa-eye-slash' : 'fa-eye'"></i>
+                        </button>
+                    </div>
                 </div>
                 <div class="flex items-start gap-2">
                     <input type="checkbox" x-model="userData.terms_accepted" required class="mt-1">

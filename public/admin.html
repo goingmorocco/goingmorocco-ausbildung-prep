@@ -64,8 +64,13 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-flag-ink/70 mb-2">كلمة المرور</label>
-                            <input type="password" x-model="loginPassword" required
-                                   class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
+                            <div class="relative">
+                                <input :type="showLoginPassword ? 'text' : 'password'" x-model="loginPassword" required
+                                       class="w-full px-4 py-2.5 pe-11 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
+                                <button type="button" @click="showLoginPassword = !showLoginPassword" class="absolute top-1/2 -translate-y-1/2 end-3.5 text-flag-ink/40 hover:text-flag-red">
+                                    <i class="fas" :class="showLoginPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                </button>
+                            </div>
                         </div>
                         <p x-show="loginError" x-cloak class="text-sm text-flag-red" x-text="loginError"></p>
                         <button type="submit" :disabled="isLoggingIn" class="de-btn de-btn-primary w-full text-sm py-3 disabled:opacity-50">
@@ -798,7 +803,7 @@
                 admin: null,
                 authChecked: false,
 
-                loginEmail: '', loginPassword: '', loginError: '', isLoggingIn: false,
+                loginEmail: '', loginPassword: '', loginError: '', isLoggingIn: false, showLoginPassword: false,
 
                 activeTab: 'overview',
                 stats: { total: 0, pending: 0, active: 0, rejected: 0, activeSubscriptions: 0 },

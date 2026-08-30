@@ -5,8 +5,8 @@
 // safe to expose in client-side code by design (it only grants access
 // allowed by your Row Level Security policies); never put the service
 // role key here or anywhere in frontend code.
-const SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL';
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_URL = 'https://qonzvlatldtsalscffmm.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvbnp2bGF0bGR0c2Fsc2NmZm1tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1MjI1NjEsImV4cCI6MjEwMzA5ODU2MX0.bP5C_sRr1ZrhojxJPc_wm9i23H5_xvw_HPt30_kvtwk';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
