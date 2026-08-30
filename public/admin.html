@@ -134,6 +134,11 @@
                             :class="activeTab === 'resources' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'">
                         <i class="fas fa-chalkboard me-1"></i> الفصل الدراسي
                     </button>
+                    <button @click="activeTab = 'tests'; loadTests()"
+                            class="px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors"
+                            :class="activeTab === 'tests' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'">
+                        <i class="fas fa-file-circle-plus me-1"></i> الاختبارات
+                    </button>
                     <button @click="activeTab = 'support'; loadThreads()"
                             class="px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors relative"
                             :class="activeTab === 'support' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'">
@@ -467,6 +472,189 @@
                 </div>
             </div>
 
+            <!-- ===== Tests tab ===== -->
+            <div x-show="activeTab === 'tests'" x-cloak class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+
+                <!-- List view -->
+                <div x-show="!testBuilderOpen">
+                    <div class="flex items-center justify-between mb-5">
+                        <h2 class="font-display font-semibold text-flag-ink">إدارة الاختبارات</h2>
+                        <button @click="newTest()" class="de-btn de-btn-primary text-sm py-2.5 px-5">
+                            <i class="fas fa-plus"></i> اختبار جديد
+                        </button>
+                    </div>
+                    <div class="de-card rounded-2xl overflow-hidden divide-y divide-black/5">
+                        <template x-for="t in tests" :key="t.id">
+                            <div class="p-4 sm:p-5 flex items-center justify-between gap-4">
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="font-medium text-flag-ink truncate" x-text="t.title"></span>
+                                        <span class="de-badge de-badge-red" x-text="t.level"></span>
+                                        <span class="de-badge de-badge-gold" x-show="t.is_skill_practice">تدريب سريع</span>
+                                        <span class="text-xs px-2 py-0.5 rounded-full" :class="t.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-red-50 text-red-600'" x-text="t.is_active ? 'مفعّل' : 'غير مفعّل'"></span>
+                                    </div>
+                                    <p class="text-xs text-flag-ink/50 truncate" x-text="t.test_type + ' — ' + t.total_questions + ' سؤال'"></p>
+                                </div>
+                                <div class="flex items-center gap-2 flex-shrink-0">
+                                    <button @click="toggleTestActive(t)" class="h-8 w-8 rounded-lg bg-flag-black/5 text-flag-ink/60 hover:bg-flag-black/10 transition-colors" :title="t.is_active ? 'تعطيل' : 'تفعيل'">
+                                        <i class="fas" :class="t.is_active ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                    </button>
+                                    <button @click="editTest(t)" class="h-8 w-8 rounded-lg bg-flag-black/5 text-flag-ink/60 hover:bg-flag-black/10 transition-colors" title="تعديل">
+                                        <i class="fas fa-pen"></i>
+                                    </button>
+                                    <button @click="confirmDeleteTest(t)" class="h-8 w-8 rounded-lg bg-flag-black/5 text-flag-ink/40 hover:bg-red-50 hover:text-red-600 transition-colors" title="حذف">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                        <div x-show="!testsLoading && tests.length === 0" class="p-10 text-center text-sm text-flag-ink/40">لا توجد اختبارات بعد</div>
+                        <div x-show="testsLoading" x-cloak class="p-10 text-center text-sm text-flag-ink/40"><i class="fas fa-circle-notch fa-spin"></i> جاري التحميل...</div>
+                    </div>
+                </div>
+
+                <!-- Builder view -->
+                <div x-show="testBuilderOpen" x-cloak>
+                    <div class="flex items-center justify-between mb-5">
+                        <button @click="testBuilderOpen = false" class="text-sm text-flag-ink/60 hover:text-flag-red">
+                            <i class="fas fa-arrow-right"></i> رجوع للقائمة
+                        </button>
+                        <button @click="saveTest()" :disabled="savingTest" class="de-btn de-btn-primary text-sm py-2.5 px-5 disabled:opacity-50">
+                            <span x-text="savingTest ? 'جاري الحفظ...' : 'حفظ الاختبار'"></span>
+                        </button>
+                    </div>
+                    <p x-show="testBuilderError" x-cloak class="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3 mb-5" x-text="testBuilderError"></p>
+
+                    <!-- Test metadata -->
+                    <div class="de-card rounded-2xl p-6 mb-5">
+                        <h3 class="font-display font-semibold text-flag-ink mb-4">بيانات الاختبار</h3>
+                        <div class="grid sm:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">العنوان</label>
+                                <input type="text" x-model="testBuilder.title" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">رمز النوع (فريد، بالإنجليزية، بدون مسافات)</label>
+                                <input type="text" x-model="testBuilder.test_type" placeholder="مثال: skill_reading_hotel" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">الوصف</label>
+                            <textarea x-model="testBuilder.description" rows="2" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30"></textarea>
+                        </div>
+                        <div class="grid sm:grid-cols-3 gap-4 mb-4">
+                            <div>
+                                <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">المستوى</label>
+                                <select x-model="testBuilder.level" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                                    <option value="A1">A1</option><option value="A2">A2</option><option value="B1">B1</option><option value="B2">B2</option><option value="C1">C1</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">المدة (دقائق)</label>
+                                <input type="number" x-model.number="testBuilder.duration_minutes" min="1" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">نسبة النجاح (%)</label>
+                                <input type="number" x-model.number="testBuilder.passing_score" min="1" max="100" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-6 flex-wrap">
+                            <label class="flex items-center gap-2 text-sm text-flag-ink/70">
+                                <input type="checkbox" x-model="testBuilder.is_active" class="rounded"> مفعّل ومرئي للطلاب
+                            </label>
+                            <label class="flex items-center gap-2 text-sm text-flag-ink/70">
+                                <input type="checkbox" x-model="testBuilder.is_skill_practice" class="rounded"> تدريب سريع (وليس اختبارًا كاملاً)
+                            </label>
+                            <div x-show="testBuilder.is_skill_practice" x-cloak>
+                                <select x-model="testBuilder.skill" class="px-3 py-1.5 border border-black/15 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                                    <option value="">اختر المهارة</option>
+                                    <option value="reading">القراءة</option>
+                                    <option value="listening">الاستماع</option>
+                                    <option value="writing">الكتابة</option>
+                                    <option value="speaking">المحادثة</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sections -->
+                    <template x-for="(section, sIndex) in testBuilder.sections" :key="section._key">
+                        <div class="de-card rounded-2xl p-6 mb-5">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="font-display font-semibold text-flag-ink">القسم <span x-text="sIndex + 1"></span></h3>
+                                <button @click="removeSection(sIndex)" class="text-xs text-red-600 hover:text-red-700"><i class="fas fa-trash"></i> حذف القسم</button>
+                            </div>
+                            <div class="grid sm:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">اسم القسم</label>
+                                    <input type="text" x-model="section.name" placeholder="مثال: Lesen — Teil 1" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">النوع</label>
+                                    <select x-model="section.type" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                                        <option value="reading">قراءة</option>
+                                        <option value="language">قواعد ومفردات</option>
+                                        <option value="listening">استماع</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">التعليمات</label>
+                                <input type="text" x-model="section.instructions" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                            </div>
+                            <div class="mb-4" x-show="section.type !== 'language' || section.passage">
+                                <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">النص / الحوار (اختياري للقواعد)</label>
+                                <textarea x-model="section.passage" rows="4" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30"></textarea>
+                            </div>
+                            <div class="mb-5" x-show="section.type === 'listening'" x-cloak>
+                                <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">ملف الصوت</label>
+                                <input type="file" accept="audio/*" @change="uploadSectionAudio(sIndex, $event.target.files[0])" class="w-full text-sm text-flag-ink/70 file:me-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-flag-black/5 file:text-flag-ink file:text-sm">
+                                <p x-show="section.audio_url" x-cloak class="text-xs text-emerald-700 mt-1.5"><i class="fas fa-circle-check"></i> تم رفع الملف</p>
+                                <p x-show="section.audioUploading" x-cloak class="text-xs text-flag-ink/50 mt-1.5"><i class="fas fa-circle-notch fa-spin"></i> جاري الرفع...</p>
+                            </div>
+
+                            <!-- Questions -->
+                            <template x-for="(q, qIndex) in section.questions" :key="q._key">
+                                <div class="de-card rounded-xl p-4 mb-3" style="border-color:rgba(37,99,235,0.25);">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <span class="text-xs font-medium text-flag-ink/50">سؤال <span x-text="qIndex + 1"></span></span>
+                                        <button @click="removeQuestion(sIndex, qIndex)" class="text-xs text-red-600 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                    <input type="text" x-model="q.question_text" placeholder="نص السؤال" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                                    <input type="text" x-model="q.explanation" placeholder="الشرح (يظهر بعد الإجابة)" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm mb-3 focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                                    <template x-for="(a, aIndex) in q.answers" :key="a._key">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <input type="radio" :name="'correct-' + q._key" :checked="a.is_correct" @change="setCorrectAnswer(sIndex, qIndex, aIndex)" class="flex-shrink-0">
+                                            <input type="text" x-model="a.answer_text" placeholder="نص الإجابة" class="flex-1 px-3 py-1.5 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                                            <button @click="removeAnswer(sIndex, qIndex, aIndex)" class="text-flag-ink/30 hover:text-red-600 flex-shrink-0"><i class="fas fa-times"></i></button>
+                                        </div>
+                                    </template>
+                                    <button @click="addAnswer(sIndex, qIndex)" class="text-xs text-flag-red hover:text-flag-reddeep"><i class="fas fa-plus"></i> إضافة إجابة</button>
+                                </div>
+                            </template>
+                            <button @click="addQuestion(sIndex)" class="de-btn text-xs py-2 px-4" style="background:#EEEAE0;color:#1E293B;">
+                                <i class="fas fa-plus"></i> إضافة سؤال
+                            </button>
+                        </div>
+                    </template>
+                    <button @click="addSection()" class="de-btn w-full text-sm py-3 mb-5" style="background:#EEEAE0;color:#1E293B;">
+                        <i class="fas fa-plus"></i> إضافة قسم
+                    </button>
+
+                    <!-- Writing prompt (optional) -->
+                    <div class="de-card rounded-2xl p-6 mb-8">
+                        <label class="flex items-center gap-2 text-sm font-medium text-flag-ink mb-4">
+                            <input type="checkbox" x-model="testBuilder.writing.enabled" class="rounded"> إضافة نشاط كتابة (غير مُقيَّم آليًا)
+                        </label>
+                        <div x-show="testBuilder.writing.enabled" x-cloak class="space-y-3">
+                            <input type="text" x-model="testBuilder.writing.name" placeholder="اسم النشاط" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                            <textarea x-model="testBuilder.writing.prompt" rows="2" placeholder="موضوع الكتابة" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30"></textarea>
+                            <textarea x-model="testBuilder.writing.sample_answer" rows="3" placeholder="نموذج إجابة" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- ===== Support tab ===== -->
             <div x-show="activeTab === 'support'" x-cloak class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
                 <div class="de-card rounded-2xl overflow-hidden grid md:grid-cols-5" style="height: 640px;">
@@ -574,6 +762,27 @@
         </div>
     </div>
 
+    <!-- ============ Test delete confirmation modal ============ -->
+    <div x-show="deleteTestTarget" x-cloak x-transition
+         class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
+        <div class="de-card w-full max-w-sm overflow-hidden" @click.outside="deleteTestTarget = null">
+            <div class="de-flag-ribbon"></div>
+            <div class="p-6 text-center">
+                <div class="h-12 w-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-trash"></i>
+                </div>
+                <h3 class="font-display font-semibold text-flag-ink mb-2">حذف الاختبار؟</h3>
+                <p class="text-sm text-flag-ink/60 mb-6">
+                    سيتم حذف <span class="font-medium" x-text="deleteTestTarget && deleteTestTarget.title"></span> نهائيًا مع كل أسئلته ومحاولات الطلاب المرتبطة به. لا يمكن التراجع عن هذا الإجراء.
+                </p>
+                <div class="flex gap-3">
+                    <button @click="deleteTestTarget = null" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#1E293B;">إلغاء</button>
+                    <button @click="deleteTest()" class="de-btn de-btn-primary flex-1 text-sm py-2.5">حذف</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ============ Toast ============ -->
     <div x-show="toast" x-cloak x-transition
          class="fixed bottom-6 inset-x-0 flex justify-center z-50 px-4">
@@ -598,6 +807,10 @@
                 notifications: [], notifyTitle: '', notifyMessage: '', notifyAudience: 'all', sending: false,
 
                 resources: [], resourcesLoading: false, deleteResourceTarget: null,
+
+                tests: [], testsLoading: false, testBuilderOpen: false, savingTest: false,
+                testBuilderError: '', deleteTestTarget: null, testKeyCounter: 0,
+                testBuilder: { id: null, title: '', description: '', test_type: '', level: 'B1', duration_minutes: 30, passing_score: 60, is_active: true, is_skill_practice: false, skill: '', sections: [], writing: { enabled: false, name: '', prompt: '', sample_answer: '' } },
 
                 threads: [], threadsLoading: false, activeThread: null, threadMessages: [],
                 adminNewMessage: '', adminSending: false, totalUnread: 0, supportChannel: null,
@@ -898,6 +1111,186 @@
 
                 formatTime(iso) {
                     return new Date(iso).toLocaleTimeString('ar-MA', { hour: '2-digit', minute: '2-digit' });
+                },
+
+                async loadTests() {
+                    this.testsLoading = true;
+                    try {
+                        const data = await sbInvoke('admin-tests', { action: 'list' });
+                        if (data.success) this.tests = data.tests;
+                    } catch (e) { console.error(e); }
+                    finally { this.testsLoading = false; }
+                },
+
+                blankQuestion() {
+                    this.testKeyCounter++;
+                    return {
+                        _key: 'q' + this.testKeyCounter, question_text: '', explanation: '', points: 1,
+                        answers: [
+                            { _key: 'a' + (++this.testKeyCounter), answer_text: '', is_correct: true },
+                            { _key: 'a' + (++this.testKeyCounter), answer_text: '', is_correct: false }
+                        ]
+                    };
+                },
+
+                blankSection() {
+                    this.testKeyCounter++;
+                    return {
+                        _key: 's' + this.testKeyCounter, key: '', name: '', type: 'reading',
+                        official_duration_minutes: null, instructions: '', passage: '', audio_url: null,
+                        audioUploading: false, questions: [this.blankQuestion()]
+                    };
+                },
+
+                newTest() {
+                    this.testBuilder = {
+                        id: null, title: '', description: '', test_type: '', level: 'B1',
+                        duration_minutes: 30, passing_score: 60, is_active: true,
+                        is_skill_practice: false, skill: '',
+                        sections: [this.blankSection()],
+                        writing: { enabled: false, name: '', prompt: '', sample_answer: '' }
+                    };
+                    this.testBuilderError = '';
+                    this.testBuilderOpen = true;
+                },
+
+                async editTest(test) {
+                    try {
+                        const data = await sbInvoke('admin-tests', { action: 'get', test_id: test.id });
+                        if (!data.success) { this.showToast(data.message || 'تعذّر تحميل الاختبار'); return; }
+
+                        this.testBuilder = {
+                            id: data.test.id, title: data.test.title, description: data.test.description || '',
+                            test_type: data.test.test_type, level: data.test.level,
+                            duration_minutes: data.test.duration_minutes, passing_score: data.test.passing_score,
+                            is_active: data.test.is_active, is_skill_practice: data.test.is_skill_practice,
+                            skill: data.test.skill || '',
+                            sections: data.sections.map(s => {
+                                this.testKeyCounter++;
+                                return {
+                                    _key: 's' + this.testKeyCounter, key: s.key, name: s.name, type: s.type,
+                                    official_duration_minutes: s.official_duration_minutes, instructions: s.instructions || '',
+                                    passage: s.passage || '', audio_url: s.audio_url, audioUploading: false,
+                                    questions: (s.test_questions || []).map(q => {
+                                        this.testKeyCounter++;
+                                        return {
+                                            _key: 'q' + this.testKeyCounter, question_text: q.question_text,
+                                            explanation: q.explanation || '', points: q.points || 1,
+                                            answers: (q.test_answers || []).map(a => {
+                                                this.testKeyCounter++;
+                                                return { _key: 'a' + this.testKeyCounter, answer_text: a.answer_text, is_correct: a.is_correct };
+                                            })
+                                        };
+                                    })
+                                };
+                            }),
+                            writing: data.writing
+                                ? { enabled: true, name: data.writing.name, prompt: data.writing.prompt, sample_answer: data.writing.sample_answer }
+                                : { enabled: false, name: '', prompt: '', sample_answer: '' }
+                        };
+                        this.testBuilderError = '';
+                        this.testBuilderOpen = true;
+                    } catch (e) {
+                        console.error(e);
+                        this.showToast('تعذّر تحميل الاختبار');
+                    }
+                },
+
+                addSection() { this.testBuilder.sections.push(this.blankSection()); },
+                removeSection(i) { this.testBuilder.sections.splice(i, 1); },
+                addQuestion(sIndex) { this.testBuilder.sections[sIndex].questions.push(this.blankQuestion()); },
+                removeQuestion(sIndex, qIndex) { this.testBuilder.sections[sIndex].questions.splice(qIndex, 1); },
+
+                addAnswer(sIndex, qIndex) {
+                    this.testKeyCounter++;
+                    this.testBuilder.sections[sIndex].questions[qIndex].answers.push({ _key: 'a' + this.testKeyCounter, answer_text: '', is_correct: false });
+                },
+                removeAnswer(sIndex, qIndex, aIndex) {
+                    this.testBuilder.sections[sIndex].questions[qIndex].answers.splice(aIndex, 1);
+                },
+                setCorrectAnswer(sIndex, qIndex, aIndex) {
+                    this.testBuilder.sections[sIndex].questions[qIndex].answers.forEach((a, i) => { a.is_correct = i === aIndex; });
+                },
+
+                async uploadSectionAudio(sIndex, file) {
+                    if (!file) return;
+                    const section = this.testBuilder.sections[sIndex];
+                    section.audioUploading = true;
+                    try {
+                        const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+                        const path = `${crypto.randomUUID()}-${safeName}`;
+                        const { error } = await sb.storage.from('test-audio').upload(path, file);
+                        if (error) { this.showToast('تعذّر رفع الملف الصوتي'); return; }
+                        section.audio_url = path;
+                    } catch (e) {
+                        console.error(e);
+                        this.showToast('تعذّر رفع الملف الصوتي');
+                    } finally {
+                        section.audioUploading = false;
+                    }
+                },
+
+                async saveTest() {
+                    this.testBuilderError = '';
+                    if (!this.testBuilder.title.trim() || !this.testBuilder.test_type.trim()) {
+                        this.testBuilderError = 'العنوان ورمز نوع الاختبار مطلوبان';
+                        return;
+                    }
+                    this.savingTest = true;
+                    try {
+                        const payload = {
+                            id: this.testBuilder.id, title: this.testBuilder.title.trim(),
+                            description: this.testBuilder.description, test_type: this.testBuilder.test_type.trim(),
+                            level: this.testBuilder.level, duration_minutes: this.testBuilder.duration_minutes,
+                            passing_score: this.testBuilder.passing_score, is_active: this.testBuilder.is_active,
+                            is_skill_practice: this.testBuilder.is_skill_practice, skill: this.testBuilder.skill || null,
+                            sections: this.testBuilder.sections.map((s, i) => ({
+                                key: s.key || ('section' + (i + 1)), name: s.name, type: s.type,
+                                official_duration_minutes: s.official_duration_minutes, instructions: s.instructions,
+                                passage: s.passage, audio_url: s.audio_url,
+                                questions: s.questions.map(q => ({
+                                    question_text: q.question_text, explanation: q.explanation, points: q.points,
+                                    answers: q.answers.map(a => ({ answer_text: a.answer_text, is_correct: a.is_correct }))
+                                }))
+                            })),
+                            writing: this.testBuilder.writing
+                        };
+
+                        const data = await sbInvoke('admin-tests', { action: 'save', test: payload });
+                        if (data.success) {
+                            this.showToast('تم حفظ الاختبار');
+                            this.testBuilderOpen = false;
+                            this.loadTests();
+                        } else {
+                            this.testBuilderError = data.message || 'تعذّر حفظ الاختبار';
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        this.testBuilderError = 'حدث خطأ أثناء الحفظ';
+                    } finally {
+                        this.savingTest = false;
+                    }
+                },
+
+                async toggleTestActive(test) {
+                    try {
+                        const data = await sbInvoke('admin-tests', { action: 'toggle_active', test_id: test.id, is_active: !test.is_active });
+                        if (data.success) { test.is_active = !test.is_active; }
+                    } catch (e) { console.error(e); }
+                },
+
+                confirmDeleteTest(test) { this.deleteTestTarget = test; },
+
+                async deleteTest() {
+                    if (!this.deleteTestTarget) return;
+                    try {
+                        const data = await sbInvoke('admin-tests', { action: 'delete', test_id: this.deleteTestTarget.id });
+                        if (data.success) {
+                            this.showToast('تم حذف الاختبار');
+                            this.deleteTestTarget = null;
+                            this.loadTests();
+                        }
+                    } catch (e) { console.error(e); }
                 },
 
                 showToast(msg) {
