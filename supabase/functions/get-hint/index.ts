@@ -1,7 +1,8 @@
-// Gives a student a hint for a specific question, using Groq (Llama 3.3
-// 70B) -- explains the underlying grammar/reading concept being tested
-// WITHOUT revealing which option is correct, so it helps understanding
-// rather than just handing over the answer.
+// Gives a student a hint for a specific question, using whichever LLM
+// provider is currently configured for 'hints' (public/admin.html, تبويب
+// "الذكاء الاصطناعي") -- explains the underlying grammar/reading concept
+// being tested WITHOUT revealing which option is correct, so it helps
+// understanding rather than just handing over the answer.
 //
 //   supabase.functions.invoke('get-hint', { body: { question_id } })
 //
@@ -39,13 +40,22 @@ Deno.serve(async (req) => {
     const { question_id } = await req.json();
     if (!question_id) return json({ success: false, message: 'question_id مطلوب' }, 400);
 
-    const groqKey = Deno.env.get('GROQ_API_KEY');
-    if (!groqKey) return json({ success: false, message: 'ميزة التلميحات غير مُفعّلة حاليًا' }, 500);
-
     const admin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
+
+    const vaultKey = Deno.env.get('LLM_VAULT_KEY');
+    if (!vaultKey) return json({ success: false, message: 'ميزة التلميحات غير مُفعّلة حاليًا' }, 500);
+    const { data: configRows, error: configErr } = await admin.rpc('get_llm_config', {
+      p_purpose: 'hints',
+      p_vault_key: vaultKey
+    });
+    if (configErr) throw configErr;
+    const llmConfig = configRows?.[0];
+    if (!llmConfig || !llmConfig.api_key) {
+      return json({ success: false, message: 'لم يتم إعداد مزوّد الذكاء الاصطناعي لهذه الميزة بعد' }, 500);
+    }
 
     const { data: question, error: qErr } = await admin
       .from('test_questions')
@@ -69,14 +79,14 @@ Deno.serve(async (req) => {
 
 اكتب تلميحًا يشرح القاعدة أو المفهوم المتعلق بهذا السؤال دون ذكر أي إجابة محددة.`;
 
-    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const llmRes = await fetch(`${llmConfig.base_url.replace(/\/$/, '')}/chat/completions`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${groqKey}`,
+        'Authorization': `Bearer ${llmConfig.api_key}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
+        model: llmConfig.model,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt }
@@ -86,14 +96,14 @@ Deno.serve(async (req) => {
       })
     });
 
-    if (!groqRes.ok) {
-      const errText = await groqRes.text();
-      console.error('Groq API error:', groqRes.status, errText);
+    if (!llmRes.ok) {
+      const errText = await llmRes.text();
+      console.error('LLM API error:', llmRes.status, errText);
       return json({ success: false, message: 'تعذّر الحصول على تلميح' }, 502);
     }
 
-    const groqData = await groqRes.json();
-    const hint = groqData?.choices?.[0]?.message?.content?.trim();
+    const llmData = await llmRes.json();
+    const hint = llmData?.choices?.[0]?.message?.content?.trim();
     if (!hint) return json({ success: false, message: 'لم يتم استلام تلميح' }, 502);
 
     return json({ success: true, hint });

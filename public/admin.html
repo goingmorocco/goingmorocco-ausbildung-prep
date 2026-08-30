@@ -144,6 +144,11 @@
                             :class="activeTab === 'tests' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'">
                         <i class="fas fa-file-circle-plus me-1"></i> الاختبارات
                     </button>
+                    <button @click="activeTab = 'ai'; loadLlmSettings()"
+                            class="px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors"
+                            :class="activeTab === 'ai' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'">
+                        <i class="fas fa-robot me-1"></i> الذكاء الاصطناعي
+                    </button>
                     <button @click="activeTab = 'support'; loadThreads()"
                             class="px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors relative"
                             :class="activeTab === 'support' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'">
@@ -660,6 +665,66 @@
                 </div>
             </div>
 
+            <!-- ===== AI settings tab ===== -->
+            <div x-show="activeTab === 'ai'" x-cloak class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+                <div class="de-card rounded-2xl p-5 mb-6" style="border-color:rgba(56,189,248,0.4);">
+                    <p class="text-sm text-flag-ink/70">
+                        <i class="fas fa-circle-info text-flag-red"></i>
+                        يدعم النظام أي مزوّد ذكاء اصطناعي متوافق مع واجهة OpenAI (مثل Groq وGemini وOpenAI نفسها). تُخزَّن المفاتيح مشفّرة، ولا تظهر مرة أخرى بعد حفظها — فقط أدخل مفتاحًا جديدًا لتحديثه.
+                    </p>
+                </div>
+
+                <template x-for="cfg in llmSettings" :key="cfg.purpose">
+                    <div class="de-card rounded-2xl p-6 mb-5">
+                        <h3 class="font-display font-semibold text-flag-ink mb-1" x-text="cfg.purpose === 'grading' ? 'تقييم الكتابة' : 'التلميحات'"></h3>
+                        <p class="text-xs text-flag-ink/50 mb-4" x-text="cfg.purpose === 'grading' ? 'يُستخدم عند تقييم نصوص الطلاب في نشاطات الكتابة الحرة' : 'يُستخدم عند طلب الطالب تلميحًا أثناء تدريب'"></p>
+
+                        <div class="grid sm:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">المزوّد</label>
+                                <select x-model="cfg.provider" @change="applyProviderPreset(cfg)" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                                    <option value="groq">Groq</option>
+                                    <option value="gemini">Google Gemini</option>
+                                    <option value="openai">OpenAI</option>
+                                    <option value="custom">مخصّص</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">اسم النموذج (model)</label>
+                                <input type="text" x-model="cfg.model" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">عنوان الواجهة (base URL)</label>
+                            <input type="text" x-model="cfg.base_url" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                        </div>
+                        <button @click="saveLlmConfig(cfg)" :disabled="savingLlmConfig === cfg.purpose" class="de-btn text-xs py-2 px-4 mb-5" style="background:#EEEAE0;color:#1E293B;">
+                            <span x-text="savingLlmConfig === cfg.purpose ? 'جاري الحفظ...' : 'حفظ الإعدادات'"></span>
+                        </button>
+
+                        <div class="pt-4 border-t border-black/10">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-xs font-medium text-flag-ink/60">مفتاح API:</span>
+                                <span class="text-xs" :class="cfg.has_key ? 'text-emerald-700' : 'text-flag-ink/40'">
+                                    <i class="fas" :class="cfg.has_key ? 'fa-circle-check' : 'fa-circle-xmark'"></i>
+                                    <span x-text="cfg.has_key ? 'مُعيَّن' : 'غير مُعيَّن'"></span>
+                                </span>
+                            </div>
+                            <div class="flex gap-2">
+                                <input type="password" x-model="cfg._newKey" placeholder="أدخل مفتاحًا جديدًا لتحديثه"
+                                       class="flex-1 px-3 py-2 border border-black/15 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                                <button @click="setLlmKey(cfg)" :disabled="!cfg._newKey || settingLlmKey === cfg.purpose" class="de-btn de-btn-primary text-xs py-2 px-4 disabled:opacity-50">
+                                    <span x-text="settingLlmKey === cfg.purpose ? '...' : 'تحديث المفتاح'"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+                <div x-show="llmSettingsLoading" x-cloak class="text-center text-sm text-flag-ink/40 py-8">
+                    <i class="fas fa-circle-notch fa-spin"></i> جاري التحميل...
+                </div>
+            </div>
+
             <!-- ===== Support tab ===== -->
             <div x-show="activeTab === 'support'" x-cloak class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
                 <div class="de-card rounded-2xl overflow-hidden grid md:grid-cols-5" style="height: 640px;">
@@ -815,6 +880,7 @@
 
                 tests: [], testsLoading: false, testBuilderOpen: false, savingTest: false,
                 testBuilderError: '', deleteTestTarget: null, testKeyCounter: 0,
+                llmSettings: [], llmSettingsLoading: false, savingLlmConfig: null, settingLlmKey: null,
                 testBuilder: { id: null, title: '', description: '', test_type: '', level: 'B1', duration_minutes: 30, passing_score: 60, is_active: true, is_skill_practice: false, skill: '', sections: [], writing: { enabled: false, name: '', prompt: '', sample_answer: '' } },
 
                 threads: [], threadsLoading: false, activeThread: null, threadMessages: [],
@@ -1116,6 +1182,66 @@
 
                 formatTime(iso) {
                     return new Date(iso).toLocaleTimeString('ar-MA', { hour: '2-digit', minute: '2-digit' });
+                },
+
+                async loadLlmSettings() {
+                    this.llmSettingsLoading = true;
+                    try {
+                        const data = await sbInvoke('admin-llm-settings', { action: 'list' });
+                        if (data.success) {
+                            this.llmSettings = data.settings.map(s => ({ ...s, _newKey: '' }));
+                        }
+                    } catch (e) { console.error(e); }
+                    finally { this.llmSettingsLoading = false; }
+                },
+
+                applyProviderPreset(cfg) {
+                    const presets = {
+                        groq: { base_url: 'https://api.groq.com/openai/v1', model: 'openai/gpt-oss-120b' },
+                        gemini: { base_url: 'https://generativelanguage.googleapis.com/v1beta/openai', model: 'gemini-2.0-flash' },
+                        openai: { base_url: 'https://api.openai.com/v1', model: 'gpt-4o-mini' }
+                    };
+                    const preset = presets[cfg.provider];
+                    if (preset) { cfg.base_url = preset.base_url; cfg.model = preset.model; }
+                },
+
+                async saveLlmConfig(cfg) {
+                    this.savingLlmConfig = cfg.purpose;
+                    try {
+                        const data = await sbInvoke('admin-llm-settings', {
+                            action: 'save_config', purpose: cfg.purpose,
+                            provider: cfg.provider, model: cfg.model, base_url: cfg.base_url
+                        });
+                        if (data.success) this.showToast('تم حفظ الإعدادات');
+                        else this.showToast(data.message || 'تعذّر الحفظ');
+                    } catch (e) {
+                        console.error(e);
+                        this.showToast('حدث خطأ أثناء الحفظ');
+                    } finally {
+                        this.savingLlmConfig = null;
+                    }
+                },
+
+                async setLlmKey(cfg) {
+                    if (!cfg._newKey) return;
+                    this.settingLlmKey = cfg.purpose;
+                    try {
+                        const data = await sbInvoke('admin-llm-settings', {
+                            action: 'set_key', purpose: cfg.purpose, api_key: cfg._newKey
+                        });
+                        if (data.success) {
+                            cfg.has_key = true;
+                            cfg._newKey = '';
+                            this.showToast('تم تحديث المفتاح');
+                        } else {
+                            this.showToast(data.message || 'تعذّر تحديث المفتاح');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        this.showToast('حدث خطأ أثناء تحديث المفتاح');
+                    } finally {
+                        this.settingLlmKey = null;
+                    }
                 },
 
                 async loadTests() {
