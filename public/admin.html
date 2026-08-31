@@ -1759,10 +1759,11 @@
                     const container = document.getElementById('quill-editor-container');
                     if (!container || typeof Quill === 'undefined') return;
                     container.innerHTML = '';
+                    try {
 
                     if (!window.__lineHeightRegistered) {
                         const Parchment = Quill.import('parchment');
-                        const LineHeightStyle = new Parchment.Attributor.Style('lineheight', 'line-height', {
+                        const LineHeightStyle = new Parchment.StyleAttributor('lineheight', 'line-height', {
                             scope: Parchment.Scope.BLOCK,
                             whitelist: ['1.5', '2', '2.5']
                         });
@@ -1788,6 +1789,10 @@
                     });
                     this.quillInstance.getModule('toolbar').addHandler('image', () => this.uploadEditorImage());
                     if (initialHtml) this.quillInstance.clipboard.dangerouslyPasteHTML(initialHtml);
+                    } catch (e) {
+                        console.error('Quill init failed:', e);
+                        this.showToast('تعذّر تحميل محرر النص — افتح console للتفاصيل');
+                    }
                 },
 
                 uploadEditorImage() {
