@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الفعاليات - LisanTest.com</title>
+    <meta name="description" content="فعاليات ولقاءات للطلاب">
+    <meta name="robots" content="noindex, nofollow">
+
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              flag: {
+                black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
+                red: '#2563EB', redbright: '#3B82F6', reddeep: '#1D4ED8',
+                gold: '#38BDF8', goldsoft: '#7DD3FC',
+                accent: '#FF7A45', accentbright: '#FF9466', accentdeep: '#E85A2A',
+                cream: '#F5F8FC', paper: '#FFFFFF', ink: '#1E293B'
+              }
+            },
+            fontFamily: {
+              display: ['"Space Grotesk"', 'sans-serif'],
+              arabic: ['Cairo', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'monospace']
+            }
+          }
+        }
+      }
+    </script>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>[x-cloak]{display:none !important;}</style>
+</head>
+<body class="font-arabic de-paper-bg text-flag-ink antialiased min-h-screen" x-data="eventsApp()" x-init="init()">
+
+    <!-- ============ LOADING ============ -->
+    <div x-show="!authChecked" class="min-h-screen flex items-center justify-center de-dark-bg text-white">
+        <i class="fas fa-circle-notch fa-spin text-2xl"></i>
+    </div>
+
+    <!-- ============ MEMBERSHIP GATE (rejected only) ============ -->
+    <template x-if="authChecked && user && gateStatus === 'rejected'">
+        <div class="min-h-screen de-dark-bg flex items-center justify-center p-4">
+            <div class="de-card w-full max-w-md overflow-hidden text-center">
+                <div class="de-flag-ribbon"></div>
+                <div class="p-8">
+                    <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5" style="border-color:#DC2626;color:#DC2626;"><i class="fas fa-circle-xmark"></i></span>
+                    <h1 class="font-display text-xl font-bold text-flag-ink mb-3">تعذّر تفعيل حسابك</h1>
+                    <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">لم تتم الموافقة على عضويتك. تواصل معنا على <a href="mailto:info@ausbildung-test-prep.com" class="text-flag-red">info@ausbildung-test-prep.com</a> لمزيد من المعلومات.</p>
+                    <a href="dashboard.html" class="de-btn w-full text-sm py-3" style="background:#EEEAE0;color:#1E293B;">
+                        <i class="fas fa-arrow-right"></i> العودة إلى لوحة التحكم
+                    </a>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============ NOT LOGGED IN ============ -->
+    <template x-if="authChecked && !user">
+        <div class="min-h-screen de-dark-bg flex items-center justify-center p-4">
+            <div class="de-card w-full max-w-md overflow-hidden text-center">
+                <div class="de-flag-ribbon"></div>
+                <div class="p-8">
+                    <span class="de-stamp de-stamp-onlight h-16 w-16 text-xs mx-auto mb-5"><i class="fas fa-calendar-star"></i></span>
+                    <h1 class="font-display text-xl font-bold text-flag-ink mb-3">أنشئ حسابًا مجانيًا لتصفح الفعاليات</h1>
+                    <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">تصفح الفعاليات ومتابعتها متاح للأعضاء فقط — إنشاء الحساب مجاني ولا يتطلب اشتراكًا.</p>
+                    <a href="index.html" class="de-btn de-btn-primary w-full text-sm py-3">
+                        <i class="fas fa-user-plus"></i> سجّل مجانًا
+                    </a>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============ EVENTS ============ -->
+    <template x-if="authChecked && user && gateStatus === 'ok'">
+        <div>
+            <header class="sticky top-0 z-30">
+                <div class="de-light-bg text-flag-ink shadow-sm border-b border-black/5">
+                    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div class="flex justify-between h-16 items-center">
+                            <a href="dashboard.html" class="flex items-center gap-3">
+                                <span class="de-stamp de-stamp-onlight h-10 w-10 text-xs"><i class="fas fa-calendar-star"></i></span>
+                                <span class="font-display font-semibold">الفعاليات</span>
+                            </a>
+                            <a href="dashboard.html" class="text-sm text-flag-ink/60 hover:text-flag-red transition-colors">
+                                <i class="fas fa-arrow-right"></i> <span class="hidden sm:inline">لوحة التحكم</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div class="de-card-dark text-white rounded-2xl p-6 mb-8 relative overflow-hidden">
+                    <div class="de-corner-mark top-4 end-4 rounded-tr-xl border-b-0 border-s-0 hidden sm:block"></div>
+                    <div class="flex items-center gap-4">
+                        <div class="h-12 w-12 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-calendar-star text-flag-gold text-xl"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-display text-xl font-bold mb-1">الفعاليات القادمة</h2>
+                            <p class="text-sm text-white/70">لقاءات وورشات وفرص تواصل مع أساتذة ومشغّلين محتملين</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <template x-for="ev in events" :key="ev.id">
+                        <div class="de-card rounded-2xl overflow-hidden flex flex-col">
+                            <button @click="openEvent(ev)" class="text-start">
+                                <div class="aspect-video bg-flag-cream overflow-hidden">
+                                    <img :src="imageUrl(ev.image_path)" :alt="ev.title" class="w-full h-full object-cover" x-show="ev.image_path">
+                                    <div class="w-full h-full flex items-center justify-center text-flag-ink/20" x-show="!ev.image_path">
+                                        <i class="fas fa-calendar-star text-3xl"></i>
+                                    </div>
+                                </div>
+                                <div class="p-4">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="de-badge" :class="ev.is_paid ? 'de-badge-gold' : 'bg-emerald-100 text-emerald-800'" x-text="ev.is_paid ? (ev.price + ' درهم') : 'مجاني'"></span>
+                                        <span class="text-xs text-flag-ink/40"><i class="fas fa-calendar"></i> <span x-text="formatDate(ev.event_date)"></span></span>
+                                    </div>
+                                    <h3 class="font-display font-semibold text-flag-ink mb-1" x-text="ev.title"></h3>
+                                    <p class="text-sm text-flag-ink/60 line-clamp-2" x-text="ev.description"></p>
+                                </div>
+                            </button>
+                            <div class="px-4 pb-4 mt-auto flex items-center gap-3 pt-2">
+                                <button @click="toggleLike(ev)" class="flex items-center gap-1.5 text-sm transition-colors" :class="likedEventIds[ev.id] ? 'text-flag-red' : 'text-flag-ink/40 hover:text-flag-red'">
+                                    <i class="fas fa-heart"></i> <span x-text="likeCounts[ev.id] || 0"></span>
+                                </button>
+                                <button @click="shareEvent(ev)" class="flex items-center gap-1.5 text-sm text-flag-ink/40 hover:text-flag-red transition-colors">
+                                    <i class="fas fa-share-nodes"></i> مشاركة
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+                <div x-show="!eventsLoading && events.length === 0" class="de-card rounded-2xl p-10 text-center text-sm text-flag-ink/40">
+                    لا توجد فعاليات حاليًا — تابعونا لمعرفة الجديد
+                </div>
+                <div x-show="eventsLoading" x-cloak class="text-center text-sm text-flag-ink/40 py-10">
+                    <i class="fas fa-circle-notch fa-spin"></i> جاري التحميل...
+                </div>
+            </main>
+
+            <!-- ============ Support chat widget ============ -->
+            <div x-data="supportChat()" x-init="initChat(user.id)" x-on:open-support-chat.window="open = true; $nextTick(() => scrollToBottom()); markRead()">
+                <button @click="toggleOpen()" class="fixed bottom-6 end-6 z-40 h-14 w-14 rounded-full de-btn-primary shadow-xl flex items-center justify-center text-lg">
+                    <i class="fas" :class="open ? 'fa-times' : 'fa-comment-dots'"></i>
+                    <span x-show="!open && unreadCount > 0" x-cloak
+                          class="absolute -top-1 -end-1 h-5 min-w-[1.25rem] px-1 rounded-full bg-red-600 text-white text-[10px] font-bold font-mono flex items-center justify-center"
+                          x-text="unreadCount"></span>
+                </button>
+
+                <div x-show="open" x-cloak x-transition class="fixed bottom-24 end-6 z-40 w-[calc(100vw-3rem)] max-w-sm de-card rounded-2xl overflow-hidden flex flex-col" style="height: min(520px, 70vh);">
+                    <div class="de-flag-ribbon"></div>
+                    <div class="px-5 py-4 border-b border-black/10 flex items-center gap-3 flex-shrink-0">
+                        <span class="de-stamp de-stamp-onlight h-9 w-9 text-xs"><i class="fas fa-headset"></i></span>
+                        <div>
+                            <div class="font-display font-semibold text-flag-ink text-sm">الدعم الفني</div>
+                            <div class="text-xs text-flag-ink/50">عادة ما نرد خلال ساعات العمل</div>
+                        </div>
+                    </div>
+
+                    <div x-ref="chatScroll" class="flex-1 overflow-y-auto p-4 space-y-3 bg-flag-cream/40">
+                        <template x-for="m in messages" :key="m.id">
+                            <div class="flex" :class="m.sender_role === 'student' ? 'justify-end' : 'justify-start'">
+                                <div class="max-w-[80%] rounded-2xl px-4 py-2 text-sm"
+                                     :class="m.sender_role === 'student' ? 'de-btn-primary text-white' : 'bg-white border border-black/10 text-flag-ink'">
+                                    <p x-text="m.body" class="whitespace-pre-line"></p>
+                                    <p class="text-[10px] mt-1 opacity-70 font-mono" x-text="formatTime(m.created_at)"></p>
+                                </div>
+                            </div>
+                        </template>
+                        <div x-show="messages.length === 0" class="text-center text-sm text-flag-ink/40 py-8">
+                            مرحبًا! كيف يمكننا مساعدتك؟
+                        </div>
+                    </div>
+
+                    <form @submit.prevent="send()" class="p-3 border-t border-black/10 flex items-center gap-2 flex-shrink-0">
+                        <input type="text" x-model="newMessage" placeholder="اكتب رسالتك..."
+                               class="flex-1 px-3 py-2 border border-black/15 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                        <button type="submit" :disabled="sending || !newMessage.trim()" class="h-9 w-9 rounded-full de-btn-primary flex items-center justify-center flex-shrink-0 disabled:opacity-50">
+                            <i class="fas fa-paper-plane text-xs"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- ============ Event details lightbox ============ -->
+    <div x-show="selectedEvent" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/70 backdrop-blur-sm p-4">
+        <div class="de-card w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div class="de-flag-ribbon"></div>
+            <div class="flex items-center justify-between px-6 py-4 border-b border-black/10 flex-shrink-0">
+                <h3 class="font-display font-semibold text-flag-ink truncate" x-text="selectedEvent && selectedEvent.title"></h3>
+                <button @click="closeEvent()" class="text-flag-ink/40 hover:text-flag-red flex-shrink-0 ms-4"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="overflow-y-auto">
+                <template x-if="selectedEvent">
+                    <div>
+                        <div class="aspect-video bg-flag-cream" x-show="selectedEvent.image_path">
+                            <img :src="imageUrl(selectedEvent.image_path)" :alt="selectedEvent.title" class="w-full h-full object-cover">
+                        </div>
+                        <div class="p-6">
+                            <div class="flex flex-wrap items-center gap-2 mb-4">
+                                <span class="de-badge" :class="selectedEvent.is_paid ? 'de-badge-gold' : 'bg-emerald-100 text-emerald-800'" x-text="selectedEvent.is_paid ? (selectedEvent.price + ' درهم') : 'مجاني'"></span>
+                                <span class="text-sm text-flag-ink/50"><i class="fas fa-calendar"></i> <span x-text="formatDate(selectedEvent.event_date)"></span></span>
+                                <span class="text-sm text-flag-ink/50" x-show="selectedEvent.location"><i class="fas fa-location-dot"></i> <span x-text="selectedEvent.location"></span></span>
+                            </div>
+                            <p class="text-sm text-flag-ink/80 whitespace-pre-line mb-6" x-text="selectedEvent.description"></p>
+
+                            <div x-show="selectedEvent.is_paid" x-cloak class="de-card rounded-xl p-4 mb-6" style="border-color:rgba(56,189,248,0.4);">
+                                <p class="text-sm text-flag-ink/70 mb-3"><i class="fas fa-circle-info text-flag-red"></i> هذه فعالية مدفوعة. للتسجيل والدفع، تواصل معنا عبر الدعم الفني.</p>
+                                <button @click="window.dispatchEvent(new CustomEvent('open-support-chat'))" class="de-btn de-btn-primary w-full text-sm py-2.5">
+                                    <i class="fas fa-headset"></i> تواصل للتسجيل
+                                </button>
+                            </div>
+
+                            <div class="flex items-center gap-4">
+                                <button @click="toggleLike(selectedEvent)" class="flex items-center gap-2 text-sm transition-colors" :class="likedEventIds[selectedEvent.id] ? 'text-flag-red' : 'text-flag-ink/40 hover:text-flag-red'">
+                                    <i class="fas fa-heart"></i> <span x-text="(likeCounts[selectedEvent.id] || 0) + ' إعجاب'"></span>
+                                </button>
+                                <button @click="shareEvent(selectedEvent)" class="flex items-center gap-2 text-sm text-flag-ink/40 hover:text-flag-red transition-colors">
+                                    <i class="fas fa-share-nodes"></i> مشاركة
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ Toast ============ -->
+    <div x-show="toast" x-cloak x-transition class="fixed bottom-6 inset-x-0 flex justify-center z-50 px-4">
+        <div class="de-card px-5 py-3 rounded-xl flex items-center gap-2 text-sm shadow-xl">
+            <i class="fas fa-circle-check text-emerald-600"></i>
+            <span x-text="toast"></span>
+        </div>
+    </div>
+
+    <script>
+        function eventsApp() {
+            return {
+                user: null,
+                authChecked: false,
+                gateStatus: 'loading',
+
+                events: [],
+                eventsLoading: false,
+                likeCounts: {},
+                likedEventIds: {},
+                selectedEvent: null,
+                toast: '',
+
+                async init() {
+                    const { data: { session } } = await sb.auth.getSession();
+                    if (!session) {
+                        this.authChecked = true; // shows the "not logged in" prompt, doesn't force-redirect
+                        return;
+                    }
+                    try {
+                        const profile = await sbGetProfile(session.user.id);
+                        if (profile.role === 'admin') {
+                            window.location.href = 'admin.html';
+                            return;
+                        }
+                        this.user = profile;
+                        this.gateStatus = profile.membership_status === 'rejected' ? 'rejected' : 'ok';
+                        this.authChecked = true;
+
+                        if (this.gateStatus === 'ok') {
+                            await this.loadEvents();
+                            const params = new URLSearchParams(window.location.search);
+                            const eventId = params.get('event');
+                            if (eventId) {
+                                const found = this.events.find(e => e.id === eventId);
+                                if (found) this.openEvent(found);
+                            }
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        this.authChecked = true;
+                    }
+                },
+
+                async loadEvents() {
+                    this.eventsLoading = true;
+                    try {
+                        const { data } = await sb.from('events').select('*').eq('is_active', true).order('event_date', { ascending: true });
+                        this.events = data || [];
+                        if (this.events.length) await this.loadLikes();
+                    } catch (e) {
+                        console.error(e);
+                    } finally {
+                        this.eventsLoading = false;
+                    }
+                },
+
+                async loadLikes() {
+                    try {
+                        const eventIds = this.events.map(e => e.id);
+                        const { data } = await sb.from('event_likes').select('event_id, user_id').in('event_id', eventIds);
+                        const counts = {};
+                        const mine = {};
+                        (data || []).forEach(l => {
+                            counts[l.event_id] = (counts[l.event_id] || 0) + 1;
+                            if (l.user_id === this.user.id) mine[l.event_id] = true;
+                        });
+                        this.likeCounts = counts;
+                        this.likedEventIds = mine;
+                    } catch (e) { console.error(e); }
+                },
+
+                async toggleLike(ev) {
+                    const isLiked = !!this.likedEventIds[ev.id];
+                    if (isLiked) {
+                        delete this.likedEventIds[ev.id];
+                        this.likeCounts[ev.id] = Math.max(0, (this.likeCounts[ev.id] || 1) - 1);
+                        this.likedEventIds = { ...this.likedEventIds };
+                        try { await sb.from('event_likes').delete().eq('event_id', ev.id).eq('user_id', this.user.id); }
+                        catch (e) { console.error(e); }
+                    } else {
+                        this.likedEventIds = { ...this.likedEventIds, [ev.id]: true };
+                        this.likeCounts[ev.id] = (this.likeCounts[ev.id] || 0) + 1;
+                        try { await sb.from('event_likes').insert({ event_id: ev.id, user_id: this.user.id }); }
+                        catch (e) { console.error(e); }
+                    }
+                },
+
+                shareEvent(ev) {
+                    const path = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+                    const url = window.location.origin + path + 'events.html?event=' + ev.id;
+                    if (navigator.share) {
+                        navigator.share({ title: ev.title, text: ev.description.slice(0, 100), url }).catch(() => {});
+                    } else {
+                        navigator.clipboard.writeText(url).then(() => this.showToast('تم نسخ رابط الفعالية'));
+                    }
+                },
+
+                openEvent(ev) { this.selectedEvent = ev; },
+                closeEvent() { this.selectedEvent = null; },
+
+                imageUrl(path) {
+                    if (!path) return '';
+                    return sb.storage.from('event-images').getPublicUrl(path).data.publicUrl;
+                },
+
+                showToast(msg) {
+                    this.toast = msg;
+                    setTimeout(() => { this.toast = ''; }, 2600);
+                },
+
+                formatDate(iso) {
+                    return new Date(iso).toLocaleDateString('ar-MA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                }
+            };
+        }
+    </script>
+</body>
+</html>

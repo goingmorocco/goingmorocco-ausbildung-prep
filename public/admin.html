@@ -145,6 +145,11 @@
                             :class="activeTab === 'ai' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'">
                         <i class="fas fa-robot me-1"></i> الذكاء الاصطناعي
                     </button>
+                    <button @click="activeTab = 'events'; loadEvents()"
+                            class="px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors"
+                            :class="activeTab === 'events' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'">
+                        <i class="fas fa-calendar-star me-1"></i> الفعاليات
+                    </button>
                     <button @click="activeTab = 'support'; loadThreads()"
                             class="px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors relative"
                             :class="activeTab === 'support' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'">
@@ -721,6 +726,98 @@
                 </div>
             </div>
 
+            <!-- ===== Events tab ===== -->
+            <div x-show="activeTab === 'events'" x-cloak class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+                <div class="grid lg:grid-cols-5 gap-6">
+                    <!-- Create/edit form -->
+                    <div class="lg:col-span-2 de-card rounded-2xl p-6 h-fit">
+                        <h2 class="font-display font-semibold text-flag-ink mb-5">
+                            <i class="fas" :class="eventForm.id ? 'fa-pen' : 'fa-plus'"></i>
+                            <span x-text="eventForm.id ? 'تعديل فعالية' : 'إضافة فعالية جديدة'"></span>
+                        </h2>
+                        <form @submit.prevent="saveEvent()" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-flag-ink/70 mb-2">العنوان</label>
+                                <input type="text" x-model="eventForm.title" required class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-flag-ink/70 mb-2">الوصف</label>
+                                <textarea x-model="eventForm.description" rows="4" required class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/30"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-flag-ink/70 mb-2">صورة الفعالية</label>
+                                <input type="file" accept="image/*" @change="eventImageFile = $event.target.files[0]"
+                                       class="w-full text-sm text-flag-ink/70 file:me-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-flag-black/5 file:text-flag-ink file:text-sm">
+                                <p class="text-xs text-flag-ink/40 mt-1" x-show="eventForm.image_path && !eventImageFile">يوجد صورة محفوظة — اختر ملفًا جديدًا لاستبدالها</p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-sm font-medium text-flag-ink/70 mb-2">تاريخ ووقت الفعالية</label>
+                                    <input type="datetime-local" x-model="eventForm.event_date_local" required class="w-full px-4 py-2.5 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-flag-ink/70 mb-2">المكان</label>
+                                    <input type="text" x-model="eventForm.location" placeholder="عبر الإنترنت / الرباط..." class="w-full px-4 py-2.5 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="flex items-center gap-2 text-sm text-flag-ink/70 mb-3">
+                                    <input type="checkbox" x-model="eventForm.is_paid" class="rounded"> فعالية مدفوعة
+                                </label>
+                                <div x-show="eventForm.is_paid" x-cloak>
+                                    <label class="block text-sm font-medium text-flag-ink/70 mb-2">السعر (درهم)</label>
+                                    <input type="number" x-model.number="eventForm.price" min="0" step="0.01" class="w-full px-4 py-2.5 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                                </div>
+                            </div>
+                            <label class="flex items-center gap-2 text-sm text-flag-ink/70">
+                                <input type="checkbox" x-model="eventForm.is_active" class="rounded"> مفعّلة ومرئية للطلاب
+                            </label>
+                            <p x-show="eventFormError" x-cloak class="text-sm text-red-600" x-text="eventFormError"></p>
+                            <div class="flex gap-2">
+                                <button type="submit" :disabled="savingEvent" class="de-btn de-btn-primary flex-1 text-sm py-3 disabled:opacity-50">
+                                    <span x-text="savingEvent ? 'جاري الحفظ...' : (eventForm.id ? 'حفظ التعديلات' : 'إضافة الفعالية')"></span>
+                                </button>
+                                <button type="button" x-show="eventForm.id" @click="resetEventForm()" class="de-btn text-sm py-3 px-4" style="background:#EEEAE0;color:#1E293B;">إلغاء</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Events list -->
+                    <div class="lg:col-span-3 de-card rounded-2xl overflow-hidden">
+                        <div class="p-6 border-b border-black/5 flex items-center justify-between">
+                            <h2 class="font-display font-semibold text-flag-ink">الفعاليات الحالية</h2>
+                            <span class="text-xs text-flag-ink/40 font-mono" x-text="events.length + ' فعالية'"></span>
+                        </div>
+                        <div class="divide-y divide-black/5 max-h-[720px] overflow-y-auto">
+                            <template x-for="ev in events" :key="ev.id">
+                                <div class="p-4 sm:p-5 flex items-center justify-between gap-4">
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <span class="font-medium text-flag-ink truncate" x-text="ev.title"></span>
+                                            <span class="de-badge" :class="ev.is_paid ? 'de-badge-gold' : 'bg-emerald-100 text-emerald-800'" x-text="ev.is_paid ? (ev.price + ' درهم') : 'مجاني'"></span>
+                                            <span class="text-xs px-2 py-0.5 rounded-full" :class="ev.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-red-50 text-red-600'" x-text="ev.is_active ? 'مفعّلة' : 'غير مفعّلة'"></span>
+                                        </div>
+                                        <p class="text-xs text-flag-ink/50 truncate">
+                                            <i class="fas fa-calendar"></i> <span x-text="formatEventDate(ev.event_date)"></span>
+                                        </p>
+                                    </div>
+                                    <div class="flex items-center gap-2 flex-shrink-0">
+                                        <button @click="editEvent(ev)" class="h-8 w-8 rounded-lg bg-flag-black/5 text-flag-ink/60 hover:bg-flag-black/10 transition-colors" title="تعديل">
+                                            <i class="fas fa-pen"></i>
+                                        </button>
+                                        <button @click="confirmDeleteEvent(ev)" class="h-8 w-8 rounded-lg bg-flag-black/5 text-flag-ink/40 hover:bg-red-50 hover:text-red-600 transition-colors" title="حذف">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                            <div x-show="!eventsLoading && events.length === 0" class="p-10 text-center text-sm text-flag-ink/40">لا توجد فعاليات بعد</div>
+                            <div x-show="eventsLoading" x-cloak class="p-10 text-center text-sm text-flag-ink/40"><i class="fas fa-circle-notch fa-spin"></i> جاري التحميل...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- ===== Support tab ===== -->
             <div x-show="activeTab === 'support'" x-cloak class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
                 <div class="de-card rounded-2xl overflow-hidden grid md:grid-cols-5" style="height: 640px;">
@@ -849,6 +946,27 @@
         </div>
     </div>
 
+    <!-- ============ Event delete confirmation modal ============ -->
+    <div x-show="deleteEventTarget" x-cloak x-transition
+         class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
+        <div class="de-card w-full max-w-sm overflow-hidden" @click.outside="deleteEventTarget = null">
+            <div class="de-flag-ribbon"></div>
+            <div class="p-6 text-center">
+                <div class="h-12 w-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-trash"></i>
+                </div>
+                <h3 class="font-display font-semibold text-flag-ink mb-2">حذف الفعالية؟</h3>
+                <p class="text-sm text-flag-ink/60 mb-6">
+                    سيتم حذف <span class="font-medium" x-text="deleteEventTarget && deleteEventTarget.title"></span> نهائيًا. لا يمكن التراجع عن هذا الإجراء.
+                </p>
+                <div class="flex gap-3">
+                    <button @click="deleteEventTarget = null" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#1E293B;">إلغاء</button>
+                    <button @click="deleteEvent()" class="de-btn de-btn-primary flex-1 text-sm py-2.5">حذف</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ============ Toast ============ -->
     <div x-show="toast" x-cloak x-transition
          class="fixed bottom-6 inset-x-0 flex justify-center z-50 px-4">
@@ -877,6 +995,10 @@
                 tests: [], testsLoading: false, testBuilderOpen: false, savingTest: false,
                 testBuilderError: '', deleteTestTarget: null, testKeyCounter: 0,
                 llmSettings: [], llmSettingsLoading: false, savingLlmConfig: null, settingLlmKey: null,
+
+                events: [], eventsLoading: false, eventImageFile: null, savingEvent: false,
+                eventFormError: '', deleteEventTarget: null,
+                eventForm: { id: null, title: '', description: '', image_path: null, event_date_local: '', location: '', is_paid: false, price: null, is_active: true },
                 testBuilder: { id: null, title: '', description: '', test_type: '', level: 'B1', duration_minutes: 30, passing_score: 60, is_active: true, is_skill_practice: false, skill: '', sections: [], writing: { enabled: false, name: '', prompt: '', sample_answer: '' } },
 
                 threads: [], threadsLoading: false, activeThread: null, threadMessages: [],
@@ -1238,6 +1360,110 @@
                     } finally {
                         this.settingLlmKey = null;
                     }
+                },
+
+                async loadEvents() {
+                    this.eventsLoading = true;
+                    try {
+                        const { data, error } = await sb.from('events').select('*').order('event_date', { ascending: false });
+                        if (!error) this.events = data;
+                    } catch (e) { console.error(e); }
+                    finally { this.eventsLoading = false; }
+                },
+
+                toDatetimeLocal(iso) {
+                    if (!iso) return '';
+                    const d = new Date(iso);
+                    const pad = n => String(n).padStart(2, '0');
+                    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+                },
+
+                resetEventForm() {
+                    this.eventForm = { id: null, title: '', description: '', image_path: null, event_date_local: '', location: '', is_paid: false, price: null, is_active: true };
+                    this.eventImageFile = null;
+                    this.eventFormError = '';
+                },
+
+                editEvent(ev) {
+                    this.eventForm = {
+                        id: ev.id, title: ev.title, description: ev.description, image_path: ev.image_path,
+                        event_date_local: this.toDatetimeLocal(ev.event_date), location: ev.location || '',
+                        is_paid: ev.is_paid, price: ev.price, is_active: ev.is_active
+                    };
+                    this.eventImageFile = null;
+                    this.eventFormError = '';
+                },
+
+                async saveEvent() {
+                    this.eventFormError = '';
+                    if (!this.eventForm.title.trim() || !this.eventForm.description.trim() || !this.eventForm.event_date_local) {
+                        this.eventFormError = 'العنوان والوصف والتاريخ مطلوبة';
+                        return;
+                    }
+                    if (this.eventForm.is_paid && (!this.eventForm.price || this.eventForm.price <= 0)) {
+                        this.eventFormError = 'السعر مطلوب للفعاليات المدفوعة';
+                        return;
+                    }
+                    this.savingEvent = true;
+                    try {
+                        let imagePath = this.eventForm.image_path;
+                        if (this.eventImageFile) {
+                            const safeName = this.eventImageFile.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+                            const path = `${crypto.randomUUID()}-${safeName}`;
+                            const { error: upErr } = await sb.storage.from('event-images').upload(path, this.eventImageFile);
+                            if (upErr) throw upErr;
+                            imagePath = path;
+                        }
+
+                        const payload = {
+                            title: this.eventForm.title.trim(),
+                            description: this.eventForm.description.trim(),
+                            image_path: imagePath,
+                            event_date: new Date(this.eventForm.event_date_local).toISOString(),
+                            location: this.eventForm.location.trim() || null,
+                            is_paid: this.eventForm.is_paid,
+                            price: this.eventForm.is_paid ? this.eventForm.price : null,
+                            is_active: this.eventForm.is_active,
+                            updated_at: new Date().toISOString()
+                        };
+
+                        if (this.eventForm.id) {
+                            const { error } = await sb.from('events').update(payload).eq('id', this.eventForm.id);
+                            if (error) throw error;
+                        } else {
+                            payload.created_by = this.admin.id;
+                            const { error } = await sb.from('events').insert(payload);
+                            if (error) throw error;
+                        }
+
+                        this.showToast('تم حفظ الفعالية');
+                        this.resetEventForm();
+                        this.loadEvents();
+                    } catch (e) {
+                        console.error(e);
+                        this.eventFormError = 'تعذّر حفظ الفعالية';
+                    } finally {
+                        this.savingEvent = false;
+                    }
+                },
+
+                confirmDeleteEvent(ev) { this.deleteEventTarget = ev; },
+
+                async deleteEvent() {
+                    if (!this.deleteEventTarget) return;
+                    try {
+                        if (this.deleteEventTarget.image_path) {
+                            await sb.storage.from('event-images').remove([this.deleteEventTarget.image_path]);
+                        }
+                        await sb.from('events').delete().eq('id', this.deleteEventTarget.id);
+                        this.showToast('تم حذف الفعالية');
+                        this.deleteEventTarget = null;
+                        this.loadEvents();
+                    } catch (e) { console.error(e); }
+                },
+
+                formatEventDate(iso) {
+                    return new Date(iso).toLocaleDateString('ar-MA', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
                 },
 
                 async loadTests() {
