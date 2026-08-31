@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>المدونة - LisanTest.com</title>
+    <meta name="description" content="دروس مكتوبة ومقالات لتحضير اختبارات اللغة الألمانية Ausbildungsaufnahme">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://lisantest.com/blog.html">
+    <meta property="og:title" content="مدونة LisanTest.com">
+    <meta property="og:description" content="دروس مكتوبة ومقالات لتحضير اختبارات اللغة الألمانية">
+    <meta property="og:type" content="website">
+
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              flag: {
+                black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
+                red: '#2563EB', redbright: '#3B82F6', reddeep: '#1D4ED8',
+                gold: '#38BDF8', goldsoft: '#7DD3FC',
+                accent: '#FF7A45', accentbright: '#FF9466', accentdeep: '#E85A2A',
+                cream: '#F5F8FC', paper: '#FFFFFF', ink: '#1E293B'
+              }
+            },
+            fontFamily: {
+              display: ['"Space Grotesk"', 'sans-serif'],
+              arabic: ['Cairo', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'monospace']
+            }
+          }
+        }
+      }
+    </script>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>[x-cloak]{display:none !important;}</style>
+</head>
+<body class="font-arabic de-paper-bg text-flag-ink antialiased min-h-screen" x-data="blogListApp()" x-init="init()">
+
+    <header class="sticky top-0 z-30">
+        <div class="de-light-bg text-flag-ink shadow-sm border-b border-black/5">
+            <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16 items-center">
+                    <a href="index.html" class="flex items-center gap-3">
+                        <img src="images/lisantest-logo.png" alt="LisanTest" class="h-10 w-auto">
+                        <span class="font-display font-semibold hidden sm:block">LisanTest<span class="text-flag-red">.com</span></span>
+                    </a>
+                    <a :href="user ? 'dashboard.html' : 'index.html'" class="text-sm text-flag-ink/60 hover:text-flag-red transition-colors">
+                        <span x-text="user ? 'لوحة التحكم' : 'تسجيل الدخول'"></span> <i class="fas fa-arrow-left"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="de-card-dark text-white rounded-2xl p-6 mb-8 relative overflow-hidden">
+            <div class="de-corner-mark top-4 end-4 rounded-tr-xl border-b-0 border-s-0 hidden sm:block"></div>
+            <div class="flex items-center gap-4">
+                <div class="h-12 w-12 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-book-open-reader text-flag-gold text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-display text-xl font-bold mb-1">المدونة</h1>
+                    <p class="text-sm text-white/70">دروس مكتوبة ومقالات لتحضير اختباراتك بثقة</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2 mb-8">
+            <button @click="selectedCategory = null; loadPosts(true)" class="px-4 py-2 rounded-full text-sm font-medium transition-colors"
+                    :class="selectedCategory === null ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'">
+                الكل
+            </button>
+            <template x-for="cat in categories" :key="cat.id">
+                <button @click="selectedCategory = cat.id; loadPosts(true)" class="px-4 py-2 rounded-full text-sm font-medium transition-colors"
+                        :class="selectedCategory === cat.id ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'"
+                        x-text="cat.name"></button>
+            </template>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <template x-for="post in posts" :key="post.id">
+                <a :href="'blog-post.html?slug=' + post.slug" class="de-card rounded-2xl overflow-hidden block">
+                    <div class="aspect-video bg-flag-cream overflow-hidden">
+                        <img :src="imageUrl(post.cover_image_path)" :alt="post.title" class="w-full h-full object-cover" x-show="post.cover_image_path">
+                        <div class="w-full h-full flex items-center justify-center text-flag-ink/20" x-show="!post.cover_image_path">
+                            <i class="fas fa-book-open-reader text-3xl"></i>
+                        </div>
+                    </div>
+                    <div class="p-5">
+                        <div class="flex items-center gap-2 mb-2" x-show="post.blog_categories">
+                            <span class="de-badge de-badge-red" x-text="post.blog_categories && post.blog_categories.name"></span>
+                        </div>
+                        <h2 class="font-display font-semibold text-flag-ink mb-2 line-clamp-2" x-text="post.title"></h2>
+                        <p class="text-sm text-flag-ink/60 line-clamp-2 mb-3" x-text="post.excerpt"></p>
+                        <p class="text-xs text-flag-ink/40"><i class="fas fa-calendar"></i> <span x-text="formatDate(post.published_at)"></span></p>
+                    </div>
+                </a>
+            </template>
+        </div>
+
+        <div x-show="!postsLoading && posts.length === 0" class="de-card rounded-2xl p-10 text-center text-sm text-flag-ink/40">
+            لا توجد مقالات بعد — تابعونا لمعرفة الجديد
+        </div>
+        <div x-show="postsLoading" x-cloak class="text-center text-sm text-flag-ink/40 py-10">
+            <i class="fas fa-circle-notch fa-spin"></i> جاري التحميل...
+        </div>
+        <div class="text-center mt-8" x-show="hasMore && !postsLoading">
+            <button @click="loadPosts(false)" class="de-btn text-sm py-2.5 px-6" style="background:#EEEAE0;color:#1E293B;">
+                تحميل المزيد
+            </button>
+        </div>
+    </main>
+
+    <footer class="de-dark-bg text-white/60 text-sm text-center py-8 mt-8">
+        <span x-text="'© ' + new Date().getFullYear() + ' LisanTest.com. جميع الحقوق محفوظة.'"></span>
+    </footer>
+
+    <script>
+        function blogListApp() {
+            return {
+                user: null,
+                categories: [],
+                posts: [],
+                postsLoading: false,
+                selectedCategory: null,
+                page: 0,
+                pageSize: 12,
+                hasMore: true,
+
+                async init() {
+                    const { data: { session } } = await sb.auth.getSession();
+                    if (session) {
+                        try { this.user = await sbGetProfile(session.user.id); } catch (e) { console.error(e); }
+                    }
+                    const { data: cats } = await sb.from('blog_categories').select('*').order('name');
+                    this.categories = cats || [];
+                    await this.loadPosts(true);
+                },
+
+                async loadPosts(reset) {
+                    if (reset) { this.page = 0; this.posts = []; this.hasMore = true; }
+                    this.postsLoading = true;
+                    try {
+                        let query = sb.from('blog_posts')
+                            .select('id, title, slug, excerpt, cover_image_path, published_at, category_id, blog_categories(name)')
+                            .eq('is_published', true)
+                            .order('published_at', { ascending: false })
+                            .range(this.page * this.pageSize, this.page * this.pageSize + this.pageSize - 1);
+                        if (this.selectedCategory) query = query.eq('category_id', this.selectedCategory);
+
+                        const { data, error } = await query;
+                        if (!error && data) {
+                            this.posts = reset ? data : [...this.posts, ...data];
+                            this.hasMore = data.length === this.pageSize;
+                            this.page++;
+                        }
+                    } catch (e) { console.error(e); }
+                    finally { this.postsLoading = false; }
+                },
+
+                imageUrl(path) {
+                    if (!path) return '';
+                    return sb.storage.from('blog-images').getPublicUrl(path).data.publicUrl;
+                },
+
+                formatDate(iso) {
+                    if (!iso) return '';
+                    return new Date(iso).toLocaleDateString('ar-MA', { year: 'numeric', month: 'long', day: 'numeric' });
+                }
+            };
+        }
+    </script>
+</body>
+</html>

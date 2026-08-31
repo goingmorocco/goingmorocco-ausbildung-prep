@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">مقال - LisanTest.com</title>
+    <meta id="meta-description" name="description" content="دروس ومقالات لتحضير اختبارات اللغة الألمانية">
+    <meta name="robots" content="index, follow">
+    <meta id="og-title" property="og:title" content="LisanTest.com">
+    <meta id="og-description" property="og:description" content="">
+    <meta id="og-image" property="og:image" content="">
+    <meta property="og:type" content="article">
+
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              flag: {
+                black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
+                red: '#2563EB', redbright: '#3B82F6', reddeep: '#1D4ED8',
+                gold: '#38BDF8', goldsoft: '#7DD3FC',
+                accent: '#FF7A45', accentbright: '#FF9466', accentdeep: '#E85A2A',
+                cream: '#F5F8FC', paper: '#FFFFFF', ink: '#1E293B'
+              }
+            },
+            fontFamily: {
+              display: ['"Space Grotesk"', 'sans-serif'],
+              arabic: ['Cairo', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'monospace']
+            }
+          }
+        }
+      }
+    </script>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        [x-cloak]{display:none !important;}
+        .blog-content img { border-radius: 0.75rem; max-width: 100%; height: auto; margin: 1.25rem 0; }
+        .blog-content iframe { max-width: 100%; border-radius: 0.75rem; margin: 1.25rem 0; }
+        .blog-content h1, .blog-content h2, .blog-content h3 { font-family: 'Space Grotesk', sans-serif; font-weight: 700; margin: 1.5rem 0 0.75rem; color: #0E2A4C; }
+        .blog-content p { margin-bottom: 1rem; line-height: 1.9; }
+        .blog-content ul, .blog-content ol { margin: 0 1.5rem 1rem; }
+        .blog-content a { color: #2563EB; text-decoration: underline; }
+        .blog-content blockquote { border-inline-start: 4px solid #2563EB; padding-inline-start: 1rem; color: #1E293B99; margin: 1rem 0; }
+    </style>
+</head>
+<body class="font-arabic de-paper-bg text-flag-ink antialiased min-h-screen" x-data="blogPostApp()" x-init="init()">
+
+    <header class="sticky top-0 z-30">
+        <div class="de-light-bg text-flag-ink shadow-sm border-b border-black/5">
+            <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16 items-center">
+                    <a href="index.html" class="flex items-center gap-3">
+                        <img src="images/lisantest-logo.png" alt="LisanTest" class="h-10 w-auto">
+                        <span class="font-display font-semibold hidden sm:block">LisanTest<span class="text-flag-red">.com</span></span>
+                    </a>
+                    <a href="blog.html" class="text-sm text-flag-ink/60 hover:text-flag-red transition-colors">
+                        <i class="fas fa-arrow-right"></i> <span class="hidden sm:inline">المدونة</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div x-show="postLoading" class="text-center text-sm text-flag-ink/40 py-20">
+            <i class="fas fa-circle-notch fa-spin text-2xl"></i>
+        </div>
+
+        <div x-show="!postLoading && notFound" x-cloak class="de-card rounded-2xl p-10 text-center">
+            <i class="fas fa-face-frown text-3xl text-flag-ink/30 mb-4"></i>
+            <h1 class="font-display text-xl font-bold text-flag-ink mb-2">المقال غير موجود</h1>
+            <p class="text-sm text-flag-ink/60 mb-6">ربما تم حذفه أو أن الرابط غير صحيح.</p>
+            <a href="blog.html" class="de-btn de-btn-primary text-sm py-2.5 px-6">تصفّح المدونة</a>
+        </div>
+
+        <template x-if="!postLoading && post">
+            <article>
+                <div class="mb-6">
+                    <span class="de-badge de-badge-red mb-3 inline-block" x-show="post.blog_categories" x-text="post.blog_categories && post.blog_categories.name"></span>
+                    <h1 class="font-display text-3xl font-bold text-flag-ink mb-3" x-text="post.title"></h1>
+                    <p class="text-sm text-flag-ink/40"><i class="fas fa-calendar"></i> <span x-text="formatDate(post.published_at)"></span></p>
+                </div>
+
+                <div class="rounded-2xl overflow-hidden mb-8" x-show="post.cover_image_path">
+                    <img :src="imageUrl(post.cover_image_path)" :alt="post.title" class="w-full h-auto">
+                </div>
+
+                <div class="blog-content text-flag-ink/85" x-html="post.content"></div>
+
+                <div class="flex items-center gap-4 py-6 mt-4 border-t border-black/10">
+                    <button @click="toggleLike()" class="flex items-center gap-2 text-sm transition-colors" :class="liked ? 'text-flag-red' : 'text-flag-ink/40 hover:text-flag-red'">
+                        <i class="fas fa-heart"></i> <span x-text="likeCount + ' إعجاب'"></span>
+                    </button>
+                </div>
+
+                <!-- End-of-post banner -->
+                <div class="de-card-dark text-white rounded-2xl p-6 mb-10 relative overflow-hidden">
+                    <div class="de-corner-mark top-4 end-4 rounded-tr-xl border-b-0 border-s-0 hidden sm:block"></div>
+                    <div class="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-start">
+                        <div class="h-14 w-14 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
+                            <img src="images/lisantest-logo.png" alt="LisanTest" class="h-9 w-auto">
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="font-display text-lg font-bold mb-1">LisanTest.com</h3>
+                            <p class="text-sm text-white/70">منصة شاملة للتحضير لاختبارات اللغة الألمانية Ausbildungsaufnahme — تدريبات قراءة واستماع وكتابة، مع تقييم فوري بالذكاء الاصطناعي.</p>
+                        </div>
+                        <a href="index.html#pricing" class="de-btn de-btn-gold text-sm py-3 px-6 flex-shrink-0 whitespace-nowrap">
+                            <i class="fas fa-bolt"></i> جرّب تدريبًا مجانيًا
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Comments -->
+                <div class="mb-10">
+                    <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
+                        <i class="fas fa-comments text-flag-red me-2"></i> التعليقات (<span x-text="comments.length"></span>)
+                    </h2>
+
+                    <template x-if="user">
+                        <form @submit.prevent="postComment()" class="de-card rounded-xl p-4 mb-5">
+                            <textarea x-model="commentText" rows="3" placeholder="اكتب تعليقًا..." class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30 mb-3"></textarea>
+                            <button type="submit" :disabled="postingComment || !commentText.trim()" class="de-btn de-btn-primary text-sm py-2 px-5 disabled:opacity-50">
+                                <span x-text="postingComment ? 'جاري النشر...' : 'نشر التعليق'"></span>
+                            </button>
+                        </form>
+                    </template>
+                    <template x-if="!user">
+                        <div class="de-card rounded-xl p-4 mb-5 text-center">
+                            <p class="text-sm text-flag-ink/60 mb-3">سجّل حسابًا مجانيًا للمشاركة بالإعجاب والتعليق.</p>
+                            <a href="index.html" class="de-btn de-btn-primary text-sm py-2 px-5">
+                                <i class="fas fa-user-plus"></i> سجّل مجانًا
+                            </a>
+                        </div>
+                    </template>
+
+                    <div class="space-y-3">
+                        <template x-for="c in comments" :key="c.id">
+                            <div class="de-card rounded-xl p-4">
+                                <div class="flex items-center gap-2 mb-1.5">
+                                    <span class="de-avatar h-7 w-7 text-[10px]" x-text="initials(c.users && c.users.full_name)"></span>
+                                    <span class="text-sm font-medium text-flag-ink" x-text="c.users ? c.users.full_name : 'مستخدم'"></span>
+                                    <span class="text-xs text-flag-ink/40" x-text="formatDate(c.created_at)"></span>
+                                </div>
+                                <p class="text-sm text-flag-ink/75 whitespace-pre-line" x-text="c.body"></p>
+                            </div>
+                        </template>
+                        <div x-show="comments.length === 0" class="text-center text-sm text-flag-ink/40 py-6">كن أول من يعلّق</div>
+                    </div>
+                </div>
+            </article>
+        </template>
+    </main>
+
+    <footer class="de-dark-bg text-white/60 text-sm text-center py-8 mt-8">
+        <span x-text="'© ' + new Date().getFullYear() + ' LisanTest.com. جميع الحقوق محفوظة.'"></span>
+    </footer>
+
+    <div x-show="toast" x-cloak x-transition class="fixed bottom-6 inset-x-0 flex justify-center z-50 px-4">
+        <div class="de-card px-5 py-3 rounded-xl flex items-center gap-2 text-sm shadow-xl">
+            <i class="fas fa-circle-exclamation text-red-600"></i>
+            <span x-text="toast"></span>
+        </div>
+    </div>
+
+    <script>
+        function blogPostApp() {
+            return {
+                user: null,
+                post: null,
+                postLoading: true,
+                notFound: false,
+                liked: false,
+                likeCount: 0,
+                comments: [],
+                commentText: '',
+                postingComment: false,
+                toast: '',
+
+                async init() {
+                    const { data: { session } } = await sb.auth.getSession();
+                    if (session) {
+                        try { this.user = await sbGetProfile(session.user.id); } catch (e) { console.error(e); }
+                    }
+
+                    const slug = new URLSearchParams(window.location.search).get('slug');
+                    if (!slug) { this.notFound = true; this.postLoading = false; return; }
+
+                    try {
+                        const { data, error } = await sb.from('blog_posts')
+                            .select('*, blog_categories(name)')
+                            .eq('slug', slug).eq('is_published', true).single();
+                        if (error || !data) { this.notFound = true; return; }
+
+                        this.post = data;
+                        this.applySeoTags(data);
+                        await this.loadLikes();
+                        await this.loadComments();
+                    } catch (e) {
+                        console.error(e);
+                        this.notFound = true;
+                    } finally {
+                        this.postLoading = false;
+                    }
+                },
+
+                applySeoTags(post) {
+                    document.title = post.title + ' - LisanTest.com';
+                    const desc = post.excerpt || post.title;
+                    document.getElementById('meta-description').setAttribute('content', desc);
+                    document.getElementById('og-title').setAttribute('content', post.title);
+                    document.getElementById('og-description').setAttribute('content', desc);
+                    if (post.cover_image_path) {
+                        document.getElementById('og-image').setAttribute('content', this.imageUrl(post.cover_image_path));
+                    }
+                },
+
+                async loadLikes() {
+                    try {
+                        const { data } = await sb.from('blog_likes').select('user_id').eq('post_id', this.post.id);
+                        this.likeCount = (data || []).length;
+                        this.liked = this.user ? (data || []).some(l => l.user_id === this.user.id) : false;
+                    } catch (e) { console.error(e); }
+                },
+
+                async toggleLike() {
+                    if (!this.user) { this.showToast('سجّل حسابًا مجانيًا للإعجاب بالمقال'); return; }
+                    if (this.liked) {
+                        this.liked = false;
+                        this.likeCount = Math.max(0, this.likeCount - 1);
+                        try { await sb.from('blog_likes').delete().eq('post_id', this.post.id).eq('user_id', this.user.id); }
+                        catch (e) { console.error(e); }
+                    } else {
+                        this.liked = true;
+                        this.likeCount++;
+                        try { await sb.from('blog_likes').insert({ post_id: this.post.id, user_id: this.user.id }); }
+                        catch (e) { console.error(e); }
+                    }
+                },
+
+                async loadComments() {
+                    try {
+                        const { data } = await sb.from('blog_comments')
+                            .select('*, users(full_name)')
+                            .eq('post_id', this.post.id).eq('is_hidden', false)
+                            .order('created_at', { ascending: false });
+                        this.comments = data || [];
+                    } catch (e) { console.error(e); }
+                },
+
+                async postComment() {
+                    if (!this.user || !this.commentText.trim()) return;
+                    this.postingComment = true;
+                    try {
+                        const { error } = await sb.from('blog_comments').insert({
+                            post_id: this.post.id, user_id: this.user.id, body: this.commentText.trim()
+                        });
+                        if (!error) {
+                            this.commentText = '';
+                            await this.loadComments();
+                        } else {
+                            this.showToast('تعذّر نشر التعليق');
+                        }
+                    } catch (e) {
+                        console.error(e);
+                        this.showToast('تعذّر نشر التعليق');
+                    } finally {
+                        this.postingComment = false;
+                    }
+                },
+
+                imageUrl(path) {
+                    if (!path) return '';
+                    return sb.storage.from('blog-images').getPublicUrl(path).data.publicUrl;
+                },
+
+                initials(name) {
+                    if (!name) return '?';
+                    const parts = name.trim().split(/\s+/);
+                    return parts.length > 1 ? parts[0].charAt(0) + parts[1].charAt(0) : parts[0].charAt(0);
+                },
+
+                showToast(msg) {
+                    this.toast = msg;
+                    setTimeout(() => { this.toast = ''; }, 2800);
+                },
+
+                formatDate(iso) {
+                    if (!iso) return '';
+                    return new Date(iso).toLocaleDateString('ar-MA', { year: 'numeric', month: 'long', day: 'numeric' });
+                }
+            };
+        }
+    </script>
+</body>
+</html>

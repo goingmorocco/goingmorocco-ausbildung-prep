@@ -41,6 +41,11 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="assets/js/supabase-client.js"></script>
 
+    <!-- Quill: MIT-licensed, no API key, loaded via jsdelivr (not TinyMCE's -->
+    <!-- own cloud CDN, which now requires an account) -- for the blog editor -->
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>[x-cloak]{display:none !important;}</style>
 </head>
@@ -149,6 +154,11 @@
                             class="px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors"
                             :class="activeTab === 'events' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'">
                         <i class="fas fa-calendar-star me-1"></i> الفعاليات
+                    </button>
+                    <button @click="activeTab = 'blog'; blogSubTab = 'posts'; loadBlogPosts(); loadBlogCategories()"
+                            class="px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors"
+                            :class="activeTab === 'blog' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'">
+                        <i class="fas fa-book-open-reader me-1"></i> المدونة
                     </button>
                     <button @click="activeTab = 'support'; loadThreads()"
                             class="px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors relative"
@@ -818,6 +828,159 @@
                 </div>
             </div>
 
+            <!-- ===== Blog tab ===== -->
+            <div x-show="activeTab === 'blog'" x-cloak class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+                <div class="flex gap-2 mb-6">
+                    <button @click="blogSubTab = 'posts'; loadBlogPosts()" class="px-4 py-2 rounded-full text-sm font-medium transition-colors"
+                            :class="blogSubTab === 'posts' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10'">المقالات</button>
+                    <button @click="blogSubTab = 'categories'; loadBlogCategories()" class="px-4 py-2 rounded-full text-sm font-medium transition-colors"
+                            :class="blogSubTab === 'categories' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10'">التصنيفات</button>
+                    <button @click="blogSubTab = 'comments'; loadAllComments()" class="px-4 py-2 rounded-full text-sm font-medium transition-colors relative"
+                            :class="blogSubTab === 'comments' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10'">التعليقات</button>
+                </div>
+
+                <!-- Posts: list -->
+                <div x-show="blogSubTab === 'posts' && !postEditorOpen">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="font-display font-semibold text-flag-ink">المقالات</h2>
+                        <button @click="newPost()" class="de-btn de-btn-primary text-sm py-2.5 px-5">
+                            <i class="fas fa-plus"></i> مقال جديد
+                        </button>
+                    </div>
+                    <div class="de-card rounded-2xl overflow-hidden divide-y divide-black/5">
+                        <template x-for="p in blogPosts" :key="p.id">
+                            <div class="p-4 sm:p-5 flex items-center justify-between gap-4">
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="font-medium text-flag-ink truncate" x-text="p.title"></span>
+                                        <span class="de-badge de-badge-red" x-show="p.blog_categories" x-text="p.blog_categories && p.blog_categories.name"></span>
+                                        <span class="text-xs px-2 py-0.5 rounded-full" :class="p.is_published ? 'bg-emerald-100 text-emerald-800' : 'bg-flag-black/5 text-flag-ink/50'" x-text="p.is_published ? 'منشور' : 'مسودة'"></span>
+                                    </div>
+                                    <p class="text-xs text-flag-ink/50 truncate" x-text="'/blog-post.html?slug=' + p.slug"></p>
+                                </div>
+                                <div class="flex items-center gap-2 flex-shrink-0">
+                                    <button @click="editPost(p)" class="h-8 w-8 rounded-lg bg-flag-black/5 text-flag-ink/60 hover:bg-flag-black/10 transition-colors" title="تعديل"><i class="fas fa-pen"></i></button>
+                                    <button @click="confirmDeletePost(p)" class="h-8 w-8 rounded-lg bg-flag-black/5 text-flag-ink/40 hover:bg-red-50 hover:text-red-600 transition-colors" title="حذف"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </template>
+                        <div x-show="!blogPostsLoading && blogPosts.length === 0" class="p-10 text-center text-sm text-flag-ink/40">لا توجد مقالات بعد</div>
+                        <div x-show="blogPostsLoading" x-cloak class="p-10 text-center text-sm text-flag-ink/40"><i class="fas fa-circle-notch fa-spin"></i> جاري التحميل...</div>
+                    </div>
+                </div>
+
+                <!-- Posts: editor -->
+                <div x-show="blogSubTab === 'posts' && postEditorOpen" x-cloak>
+                    <div class="flex items-center justify-between mb-5">
+                        <button @click="postEditorOpen = false" class="text-sm text-flag-ink/60 hover:text-flag-red"><i class="fas fa-arrow-right"></i> رجوع للقائمة</button>
+                        <button @click="savePost()" :disabled="savingPost" class="de-btn de-btn-primary text-sm py-2.5 px-5 disabled:opacity-50">
+                            <span x-text="savingPost ? 'جاري الحفظ...' : 'حفظ المقال'"></span>
+                        </button>
+                    </div>
+                    <p x-show="postFormError" x-cloak class="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3 mb-5" x-text="postFormError"></p>
+
+                    <div class="de-card rounded-2xl p-6 mb-5">
+                        <div class="mb-4">
+                            <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">العنوان</label>
+                            <input type="text" x-model="postForm.title" @input="postForm.slug = slugify(postForm.title)" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">الرابط (slug)</label>
+                            <input type="text" x-model="postForm.slug" dir="ltr" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">وصف قصير (يظهر في البطاقات ونتائج البحث)</label>
+                            <textarea x-model="postForm.excerpt" rows="2" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30"></textarea>
+                        </div>
+                        <div class="grid sm:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">التصنيف</label>
+                                <select x-model="postForm.category_id" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                                    <option :value="null">بدون تصنيف</option>
+                                    <template x-for="cat in blogCategories" :key="cat.id">
+                                        <option :value="cat.id" x-text="cat.name"></option>
+                                    </template>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">صورة الغلاف</label>
+                                <input type="file" accept="image/*" @change="postCoverFile = $event.target.files[0]"
+                                       class="w-full text-sm text-flag-ink/70 file:me-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-flag-black/5 file:text-flag-ink file:text-xs">
+                            </div>
+                        </div>
+                        <label class="flex items-center gap-2 text-sm text-flag-ink/70">
+                            <input type="checkbox" x-model="postForm.is_published" class="rounded"> منشور ومرئي للجميع
+                        </label>
+                    </div>
+
+                    <div class="de-card rounded-2xl p-6 mb-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <label class="block text-sm font-medium text-flag-ink/70">محتوى المقال</label>
+                            <div class="flex items-center gap-2">
+                                <label class="text-xs text-flag-ink/50">تباعد الأسطر:</label>
+                                <select @change="setLineHeight($event.target.value)" class="text-xs border border-black/15 rounded-lg px-2 py-1 bg-white">
+                                    <option value="">افتراضي</option>
+                                    <option value="1.5">1.5</option>
+                                    <option value="2">2</option>
+                                    <option value="2.5">2.5</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="quill-editor-container" style="height: 400px;"></div>
+                    </div>
+                </div>
+
+                <!-- Categories -->
+                <div x-show="blogSubTab === 'categories'" x-cloak>
+                    <div class="grid lg:grid-cols-3 gap-6">
+                        <div class="de-card rounded-2xl p-6 h-fit">
+                            <h2 class="font-display font-semibold text-flag-ink mb-4">إضافة تصنيف</h2>
+                            <form @submit.prevent="saveCategory()" class="space-y-3">
+                                <input type="text" x-model="newCategoryName" placeholder="اسم التصنيف" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                                <button type="submit" :disabled="!newCategoryName.trim()" class="de-btn de-btn-primary w-full text-sm py-2.5 disabled:opacity-50">إضافة</button>
+                            </form>
+                        </div>
+                        <div class="lg:col-span-2 de-card rounded-2xl overflow-hidden">
+                            <div class="divide-y divide-black/5">
+                                <template x-for="cat in blogCategories" :key="cat.id">
+                                    <div class="p-4 flex items-center justify-between">
+                                        <span class="text-sm text-flag-ink" x-text="cat.name"></span>
+                                        <button @click="deleteCategory(cat)" class="text-flag-ink/40 hover:text-red-600"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </template>
+                                <div x-show="blogCategories.length === 0" class="p-8 text-center text-sm text-flag-ink/40">لا توجد تصنيفات بعد</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comments moderation -->
+                <div x-show="blogSubTab === 'comments'" x-cloak>
+                    <div class="de-card rounded-2xl overflow-hidden divide-y divide-black/5">
+                        <template x-for="c in allComments" :key="c.id">
+                            <div class="p-4 sm:p-5" :class="c.is_hidden ? 'opacity-50' : ''">
+                                <div class="flex items-center justify-between gap-3 mb-2">
+                                    <div class="min-w-0">
+                                        <span class="text-sm font-medium text-flag-ink" x-text="c.users ? c.users.full_name : 'مستخدم'"></span>
+                                        <span class="text-xs text-flag-ink/40 mx-1">·</span>
+                                        <span class="text-xs text-flag-ink/40" x-text="c.blog_posts ? c.blog_posts.title : ''"></span>
+                                    </div>
+                                    <div class="flex items-center gap-2 flex-shrink-0">
+                                        <button @click="toggleCommentHidden(c)" class="text-xs px-2.5 py-1 rounded-full" :class="c.is_hidden ? 'bg-emerald-100 text-emerald-800' : 'bg-flag-black/5 text-flag-ink/60'">
+                                            <span x-text="c.is_hidden ? 'إظهار' : 'إخفاء'"></span>
+                                        </button>
+                                        <button @click="deleteComment(c)" class="text-flag-ink/40 hover:text-red-600"><i class="fas fa-trash"></i></button>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-flag-ink/70" x-text="c.body"></p>
+                            </div>
+                        </template>
+                        <div x-show="!commentsLoading && allComments.length === 0" class="p-10 text-center text-sm text-flag-ink/40">لا توجد تعليقات بعد</div>
+                        <div x-show="commentsLoading" x-cloak class="p-10 text-center text-sm text-flag-ink/40"><i class="fas fa-circle-notch fa-spin"></i> جاري التحميل...</div>
+                    </div>
+                </div>
+            </div>
+
             <!-- ===== Support tab ===== -->
             <div x-show="activeTab === 'support'" x-cloak class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
                 <div class="de-card rounded-2xl overflow-hidden grid md:grid-cols-5" style="height: 640px;">
@@ -967,6 +1130,27 @@
         </div>
     </div>
 
+    <!-- ============ Post delete confirmation modal ============ -->
+    <div x-show="deletePostTarget" x-cloak x-transition
+         class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
+        <div class="de-card w-full max-w-sm overflow-hidden" @click.outside="deletePostTarget = null">
+            <div class="de-flag-ribbon"></div>
+            <div class="p-6 text-center">
+                <div class="h-12 w-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-trash"></i>
+                </div>
+                <h3 class="font-display font-semibold text-flag-ink mb-2">حذف المقال؟</h3>
+                <p class="text-sm text-flag-ink/60 mb-6">
+                    سيتم حذف <span class="font-medium" x-text="deletePostTarget && deletePostTarget.title"></span> نهائيًا مع تعليقاته وإعجاباته. لا يمكن التراجع عن هذا الإجراء.
+                </p>
+                <div class="flex gap-3">
+                    <button @click="deletePostTarget = null" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#1E293B;">إلغاء</button>
+                    <button @click="deletePost()" class="de-btn de-btn-primary flex-1 text-sm py-2.5">حذف</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ============ Toast ============ -->
     <div x-show="toast" x-cloak x-transition
          class="fixed bottom-6 inset-x-0 flex justify-center z-50 px-4">
@@ -999,6 +1183,12 @@
                 events: [], eventsLoading: false, eventImageFile: null, savingEvent: false,
                 eventFormError: '', deleteEventTarget: null,
                 eventForm: { id: null, title: '', description: '', image_path: null, event_date_local: '', location: '', is_paid: false, price: null, is_active: true },
+
+                blogSubTab: 'posts', blogPosts: [], blogPostsLoading: false, blogCategories: [],
+                postEditorOpen: false, savingPost: false, postFormError: '', postCoverFile: null,
+                quillInstance: null, deletePostTarget: null, newCategoryName: '',
+                allComments: [], commentsLoading: false,
+                postForm: { id: null, title: '', slug: '', excerpt: '', category_id: null, cover_image_path: null, is_published: false, published_at: null },
                 testBuilder: { id: null, title: '', description: '', test_type: '', level: 'B1', duration_minutes: 30, passing_score: 60, is_active: true, is_skill_practice: false, skill: '', sections: [], writing: { enabled: false, name: '', prompt: '', sample_answer: '' } },
 
                 threads: [], threadsLoading: false, activeThread: null, threadMessages: [],
@@ -1459,6 +1649,238 @@
                         this.showToast('تم حذف الفعالية');
                         this.deleteEventTarget = null;
                         this.loadEvents();
+                    } catch (e) { console.error(e); }
+                },
+
+                slugify(text) {
+                    if (!text) return '';
+                    let slug = text.toString().trim().toLowerCase()
+                        .replace(/[^\w\s-]/g, '')
+                        .replace(/[\s_-]+/g, '-')
+                        .replace(/^-+|-+$/g, '');
+                    if (!slug) slug = 'post-' + Date.now();
+                    return slug;
+                },
+
+                async loadBlogPosts() {
+                    this.blogPostsLoading = true;
+                    try {
+                        const { data, error } = await sb.from('blog_posts')
+                            .select('*, blog_categories(name)')
+                            .order('created_at', { ascending: false });
+                        if (!error) this.blogPosts = data;
+                    } catch (e) { console.error(e); }
+                    finally { this.blogPostsLoading = false; }
+                },
+
+                newPost() {
+                    this.postForm = { id: null, title: '', slug: '', excerpt: '', category_id: null, cover_image_path: null, is_published: false, published_at: null };
+                    this.postCoverFile = null;
+                    this.postFormError = '';
+                    this.postEditorOpen = true;
+                    this.$nextTick(() => this.initQuillEditor(''));
+                },
+
+                editPost(post) {
+                    this.postForm = {
+                        id: post.id, title: post.title, slug: post.slug, excerpt: post.excerpt || '',
+                        category_id: post.category_id, cover_image_path: post.cover_image_path,
+                        is_published: post.is_published, published_at: post.published_at
+                    };
+                    this.postCoverFile = null;
+                    this.postFormError = '';
+                    this.postEditorOpen = true;
+                    this.$nextTick(() => this.initQuillEditor(post.content || ''));
+                },
+
+                initQuillEditor(initialHtml) {
+                    const container = document.getElementById('quill-editor-container');
+                    if (!container || typeof Quill === 'undefined') return;
+                    container.innerHTML = '';
+
+                    if (!window.__lineHeightRegistered) {
+                        const Parchment = Quill.import('parchment');
+                        const LineHeightStyle = new Parchment.Attributor.Style('lineheight', 'line-height', {
+                            scope: Parchment.Scope.BLOCK,
+                            whitelist: ['1.5', '2', '2.5']
+                        });
+                        Quill.register(LineHeightStyle, true);
+                        window.__lineHeightRegistered = true;
+                    }
+
+                    this.quillInstance = new Quill(container, {
+                        theme: 'snow',
+                        modules: {
+                            toolbar: {
+                                container: [
+                                    [{ header: [1, 2, 3, false] }],
+                                    ['bold', 'italic', 'underline', 'strike'],
+                                    [{ color: [] }, { background: [] }],
+                                    [{ align: [] }],
+                                    [{ list: 'ordered' }, { list: 'bullet' }],
+                                    [{ indent: '-1' }, { indent: '+1' }],
+                                    ['blockquote', 'code-block'],
+                                    ['link', 'image', 'video'],
+                                    ['clean']
+                                ],
+                                handlers: { image: () => this.uploadEditorImage() }
+                            }
+                        }
+                    });
+                    if (initialHtml) this.quillInstance.clipboard.dangerouslyPasteHTML(initialHtml);
+                },
+
+                uploadEditorImage() {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/*';
+                    input.onchange = async () => {
+                        const file = input.files[0];
+                        if (!file) return;
+                        try {
+                            const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+                            const path = `${crypto.randomUUID()}-${safeName}`;
+                            const { error } = await sb.storage.from('blog-images').upload(path, file);
+                            if (error) { this.showToast('تعذّر رفع الصورة'); return; }
+                            const url = sb.storage.from('blog-images').getPublicUrl(path).data.publicUrl;
+                            const range = this.quillInstance.getSelection(true);
+                            this.quillInstance.insertEmbed(range.index, 'image', url);
+                            this.quillInstance.setSelection(range.index + 1);
+                        } catch (e) {
+                            console.error(e);
+                            this.showToast('تعذّر رفع الصورة');
+                        }
+                    };
+                    input.click();
+                },
+
+                setLineHeight(value) {
+                    if (!this.quillInstance) return;
+                    const range = this.quillInstance.getSelection();
+                    if (!range) { this.showToast('حدد نصًا في المقال أولاً'); return; }
+                    this.quillInstance.formatLine(range.index, range.length, 'lineheight', value || false);
+                },
+
+                async savePost() {
+                    this.postFormError = '';
+                    if (!this.postForm.title.trim() || !this.postForm.slug.trim()) {
+                        this.postFormError = 'العنوان والرابط مطلوبان';
+                        return;
+                    }
+                    const content = this.quillInstance ? this.quillInstance.root.innerHTML : '';
+                    if (!content || content === '<p><br></p>') {
+                        this.postFormError = 'محتوى المقال مطلوب';
+                        return;
+                    }
+                    this.savingPost = true;
+                    try {
+                        let coverPath = this.postForm.cover_image_path;
+                        if (this.postCoverFile) {
+                            const safeName = this.postCoverFile.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+                            const path = `${crypto.randomUUID()}-${safeName}`;
+                            const { error: upErr } = await sb.storage.from('blog-images').upload(path, this.postCoverFile);
+                            if (upErr) throw upErr;
+                            coverPath = path;
+                        }
+
+                        let publishedAt = this.postForm.published_at;
+                        if (this.postForm.is_published && !publishedAt) publishedAt = new Date().toISOString();
+
+                        const payload = {
+                            title: this.postForm.title.trim(),
+                            slug: this.postForm.slug.trim(),
+                            excerpt: this.postForm.excerpt.trim() || null,
+                            content,
+                            cover_image_path: coverPath,
+                            category_id: this.postForm.category_id || null,
+                            is_published: this.postForm.is_published,
+                            published_at: this.postForm.is_published ? publishedAt : null,
+                            updated_at: new Date().toISOString()
+                        };
+
+                        if (this.postForm.id) {
+                            const { error } = await sb.from('blog_posts').update(payload).eq('id', this.postForm.id);
+                            if (error) throw error;
+                        } else {
+                            payload.created_by = this.admin.id;
+                            const { error } = await sb.from('blog_posts').insert(payload);
+                            if (error) throw error;
+                        }
+
+                        this.showToast('تم حفظ المقال');
+                        this.postEditorOpen = false;
+                        this.loadBlogPosts();
+                    } catch (e) {
+                        console.error(e);
+                        this.postFormError = (e.message && e.message.includes('duplicate')) ? 'هذا الرابط مُستخدم بالفعل، جرّب رابطًا آخر' : 'تعذّر حفظ المقال';
+                    } finally {
+                        this.savingPost = false;
+                    }
+                },
+
+                confirmDeletePost(post) { this.deletePostTarget = post; },
+
+                async deletePost() {
+                    if (!this.deletePostTarget) return;
+                    try {
+                        if (this.deletePostTarget.cover_image_path) {
+                            await sb.storage.from('blog-images').remove([this.deletePostTarget.cover_image_path]);
+                        }
+                        await sb.from('blog_posts').delete().eq('id', this.deletePostTarget.id);
+                        this.showToast('تم حذف المقال');
+                        this.deletePostTarget = null;
+                        this.loadBlogPosts();
+                    } catch (e) { console.error(e); }
+                },
+
+                async loadBlogCategories() {
+                    try {
+                        const { data, error } = await sb.from('blog_categories').select('*').order('name');
+                        if (!error) this.blogCategories = data;
+                    } catch (e) { console.error(e); }
+                },
+
+                async saveCategory() {
+                    if (!this.newCategoryName.trim()) return;
+                    try {
+                        const { error } = await sb.from('blog_categories').insert({
+                            name: this.newCategoryName.trim(), slug: this.slugify(this.newCategoryName)
+                        });
+                        if (error) { this.showToast('تعذّر إضافة التصنيف'); return; }
+                        this.newCategoryName = '';
+                        this.loadBlogCategories();
+                    } catch (e) { console.error(e); }
+                },
+
+                async deleteCategory(cat) {
+                    try {
+                        await sb.from('blog_categories').delete().eq('id', cat.id);
+                        this.loadBlogCategories();
+                    } catch (e) { console.error(e); }
+                },
+
+                async loadAllComments() {
+                    this.commentsLoading = true;
+                    try {
+                        const { data, error } = await sb.from('blog_comments')
+                            .select('*, users(full_name), blog_posts(title)')
+                            .order('created_at', { ascending: false });
+                        if (!error) this.allComments = data;
+                    } catch (e) { console.error(e); }
+                    finally { this.commentsLoading = false; }
+                },
+
+                async toggleCommentHidden(c) {
+                    try {
+                        const { error } = await sb.from('blog_comments').update({ is_hidden: !c.is_hidden }).eq('id', c.id);
+                        if (!error) c.is_hidden = !c.is_hidden;
+                    } catch (e) { console.error(e); }
+                },
+
+                async deleteComment(c) {
+                    try {
+                        await sb.from('blog_comments').delete().eq('id', c.id);
+                        this.loadAllComments();
                     } catch (e) { console.error(e); }
                 },
 

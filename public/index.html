@@ -92,6 +92,7 @@
         showLoginPassword: false,
         showRegisterPassword: false,
         showRegisterPasswordConfirm: false,
+        latestPosts: [],
         userData: {
             full_name: '',
             email: '',
@@ -108,6 +109,22 @@
                 } catch (e) {
                     console.error('Failed to load profile:', e);
                 }
+            }
+            this.loadLatestPosts();
+        },
+        async loadLatestPosts() {
+            try {
+                const { data } = await sb.from('blog_posts')
+                    .select('id, title, slug, excerpt, cover_image_path')
+                    .eq('is_published', true)
+                    .order('published_at', { ascending: false })
+                    .limit(3);
+                this.latestPosts = (data || []).map(p => ({
+                    ...p,
+                    imageUrl: p.cover_image_path ? sb.storage.from('blog-images').getPublicUrl(p.cover_image_path).data.publicUrl : null
+                }));
+            } catch (e) {
+                console.error(e);
             }
         },
         async login(email, password) {
@@ -711,6 +728,37 @@
                             <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
                         </div>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Latest blog posts -->
+        <section class="py-20 px-4 sm:px-6 lg:px-8 bg-flag-cream/40">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="font-display text-3xl font-bold text-flag-ink mb-3">من المدونة</h2>
+                    <p class="text-flag-ink/60">دروس مكتوبة ومقالات لتحضير اختباراتك بثقة</p>
+                </div>
+                <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+                    <template x-for="post in latestPosts" :key="post.id">
+                        <a :href="'blog-post.html?slug=' + post.slug" class="de-card rounded-2xl overflow-hidden block">
+                            <div class="aspect-video bg-flag-cream overflow-hidden">
+                                <img :src="post.imageUrl" :alt="post.title" class="w-full h-full object-cover" x-show="post.imageUrl">
+                                <div class="w-full h-full flex items-center justify-center text-flag-ink/20" x-show="!post.imageUrl">
+                                    <i class="fas fa-book-open-reader text-3xl"></i>
+                                </div>
+                            </div>
+                            <div class="p-5">
+                                <h3 class="font-display font-semibold text-flag-ink mb-2 line-clamp-2" x-text="post.title"></h3>
+                                <p class="text-sm text-flag-ink/60 line-clamp-2" x-text="post.excerpt"></p>
+                            </div>
+                        </a>
+                    </template>
+                </div>
+                <div class="text-center" x-show="latestPosts.length > 0">
+                    <a href="blog.html" class="de-btn text-sm py-3 px-8" style="background:#EEEAE0;color:#1E293B;">
+                        <i class="fas fa-book-open-reader"></i> المزيد من المقالات
+                    </a>
                 </div>
             </div>
         </section>
