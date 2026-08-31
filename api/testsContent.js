@@ -10,33 +10,29 @@
 //
 // `is_skill_practice: true` marks the short single-skill drills (as
 // opposed to the long realistic exams). `skill` groups them (reading/
-// listening/writing/speaking) so a library page like public/lesen.html,
-// public/hoeren.html, or public/schreiben.html can query "every drill
-// for this skill, newest first" -- each drill still has its own unique
-// test_type so upserting by test_type stays safe.
+// listening/writing/speaking); `level` is an honest CEFR estimate (A2/
+// B1/B2) based on actual sentence complexity, vocabulary range, and
+// register -- NOT a default. Every skill-practice test's level was
+// reviewed and reassigned in one pass rather than inheriting a uniform
+// 'B1' placeholder from creation. Full-exam levels (Goethe/telc/OSD B1
+// or B2) are a different thing entirely -- they name which real exam
+// format the test represents, not a calibration claim; whether their
+// actual difficulty matches a real exam at that level is a separate,
+// larger, not-yet-done review.
 //
-// `content_kind` distinguishes a multiple-choice quiz ('quiz', the
-// default) from a pure AI-graded essay prompt ('essay', no sections at
-// all -- content lives entirely in test_writing_prompts). A THIRD real
-// shape now exists too, using the SAME content_kind='quiz' value: a
-// "mixed" test that has both sections/questions (a grammar quiz) AND a
-// test_writing_prompts row attached -- exactly the pattern the full
-// exams have always used (MC sections, then a writing prompt at the
-// end). public/schreiben.html's quiz flow checks for an attached
-// writing prompt after the MC portion finishes and offers to continue
-// into the SAME essay-grading flow used by pure 'essay' tests, chained
-// rather than duplicated.
+// `content_kind` distinguishes a multiple-choice quiz ('quiz', default)
+// from a pure AI-graded essay prompt ('essay', no sections at all) from
+// a "mixed" test (content_kind='quiz' but WITH a test_writing_prompts
+// row attached -- same shape full exams have always used). public/
+// schreiben.html's quiz flow offers to continue into the essay-grading
+// flow after the MC portion when a writing prompt is attached.
 //
 // NOTE: content can now also be created/edited live from the admin
 // dashboard's test builder (public/admin.html, "الاختبارات" تبويب), backed
-// by the admin-tests Edge Function -- it already supports attaching a
-// writing prompt to any test via the same toggle used for full exams,
-// so "mixed" tests can be built directly from the dashboard. It does
-// NOT yet support creating a pure 'essay'-kind test (zero sections),
-// which still needs this file + the seed script. Tests added via the
-// admin UI live only in the database, not in this file. Running the
-// seed script again is safe either way (it upserts by test_type) but
-// will NOT remove or overwrite tests created purely through the admin UI.
+// by the admin-tests Edge Function. Tests added via the admin UI live
+// only in the database, not in this file. Running the seed script again
+// is safe either way (it upserts by test_type) but will NOT remove or
+// overwrite tests created purely through the admin UI.
 
 const mockTests = [
   {
@@ -122,7 +118,7 @@ const mockTests = [
     "title": "تدريب سريع: القراءة",
     "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق، مثالي للتدريب اليومي السريع",
     "test_type": "skill_reading",
-    "level": "B1",
+    "level": "A2",
     "duration_minutes": 6,
     "total_questions": 6,
     "passing_score": 60,
@@ -135,7 +131,7 @@ const mockTests = [
     "title": "تدريب سريع: الاستماع",
     "description": "حوار قصير وست أسئلة استيعاب — حوالي 6 دقائق، مثالي للتدريب اليومي السريع",
     "test_type": "skill_listening",
-    "level": "B1",
+    "level": "A2",
     "duration_minutes": 6,
     "total_questions": 6,
     "passing_score": 60,
@@ -161,7 +157,7 @@ const mockTests = [
     "title": "تدريب القراءة: في السوبرماركت",
     "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
     "test_type": "skill_reading_market",
-    "level": "B1",
+    "level": "A2",
     "duration_minutes": 6,
     "total_questions": 6,
     "passing_score": 60,
@@ -174,7 +170,7 @@ const mockTests = [
     "title": "تدريب القراءة: رحلة نهاية الأسبوع",
     "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
     "test_type": "skill_reading_trip",
-    "level": "B1",
+    "level": "A2",
     "duration_minutes": 6,
     "total_questions": 6,
     "passing_score": 60,
@@ -187,7 +183,7 @@ const mockTests = [
     "title": "تدريب القراءة: الجار الجديد",
     "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
     "test_type": "skill_reading_neighbor",
-    "level": "B1",
+    "level": "A2",
     "duration_minutes": 6,
     "total_questions": 6,
     "passing_score": 60,
@@ -200,7 +196,7 @@ const mockTests = [
     "title": "تدريب الاستماع: حجز طاولة في مطعم",
     "description": "حوار قصير وست أسئلة استيعاب — حوالي 6 دقائق",
     "test_type": "skill_listening_restaurant",
-    "level": "B1",
+    "level": "A2",
     "duration_minutes": 6,
     "total_questions": 6,
     "passing_score": 60,
@@ -213,7 +209,7 @@ const mockTests = [
     "title": "تدريب الاستماع: السؤال عن الطريق",
     "description": "حوار قصير وست أسئلة استيعاب — حوالي 6 دقائق",
     "test_type": "skill_listening_directions",
-    "level": "B1",
+    "level": "A2",
     "duration_minutes": 6,
     "total_questions": 6,
     "passing_score": 60,
@@ -252,7 +248,7 @@ const mockTests = [
     "title": "تدريب القراءة: عند طبيب الأسنان",
     "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
     "test_type": "skill_reading_dentist",
-    "level": "B1",
+    "level": "A2",
     "duration_minutes": 6,
     "total_questions": 6,
     "passing_score": 60,
@@ -265,7 +261,7 @@ const mockTests = [
     "title": "تدريب القراءة: حفلة عيد ميلاد",
     "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
     "test_type": "skill_reading_birthday",
-    "level": "B1",
+    "level": "A2",
     "duration_minutes": 6,
     "total_questions": 6,
     "passing_score": 60,
@@ -291,7 +287,7 @@ const mockTests = [
     "title": "تدريب القراءة: شراء هاتف جديد",
     "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
     "test_type": "skill_reading_phone",
-    "level": "B1",
+    "level": "A2",
     "duration_minutes": 6,
     "total_questions": 6,
     "passing_score": 60,
@@ -317,7 +313,7 @@ const mockTests = [
     "title": "تدريب القراءة: السفر بالقطار",
     "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
     "test_type": "skill_reading_train",
-    "level": "B1",
+    "level": "A2",
     "duration_minutes": 6,
     "total_questions": 6,
     "passing_score": 60,
@@ -382,7 +378,7 @@ const mockTests = [
     "title": "تدريب الاستماع: حجز موعد عند الحلاق",
     "description": "حوار قصير وست أسئلة استيعاب — حوالي 6 دقائق",
     "test_type": "skill_listening_hairdresser",
-    "level": "B1",
+    "level": "A2",
     "duration_minutes": 6,
     "total_questions": 6,
     "passing_score": 60,
@@ -421,7 +417,7 @@ const mockTests = [
     "title": "تدريب الاستماع: نشرة الطقس",
     "description": "إعلان قصير وست أسئلة استيعاب — حوالي 6 دقائق",
     "test_type": "skill_listening_weather",
-    "level": "B1",
+    "level": "A2",
     "duration_minutes": 6,
     "total_questions": 6,
     "passing_score": 60,
@@ -574,7 +570,7 @@ const mockTests = [
     "title": "تدريب الاستماع: في سيارة الأجرة",
     "description": "حوار قصير وست أسئلة استيعاب — حوالي 6 دقائق",
     "test_type": "skill_listening_taxi",
-    "level": "B1",
+    "level": "A2",
     "duration_minutes": 6,
     "total_questions": 6,
     "passing_score": 60,
@@ -644,7 +640,7 @@ const mockTests = [
     "title": "تدريب الاستماع: طلب توصيل طعام",
     "description": "حوار قصير وست أسئلة استيعاب — حوالي 6 دقائق",
     "test_type": "skill_listening_food_delivery",
-    "level": "B1",
+    "level": "A2",
     "duration_minutes": 6,
     "total_questions": 6,
     "passing_score": 60,
@@ -700,7 +696,7 @@ const mockTests = [
     "title": "تدريب مختلط: الأفعال الشرطية + تقديم نصيحة",
     "description": "اختبار قواعد عن الأفعال الشرطية، متبوع بنشاط كتابة تقديم نصيحة — حوالي 15 دقيقة",
     "test_type": "skill_writing_modal_verbs",
-    "level": "B1",
+    "level": "A2",
     "duration_minutes": 15,
     "total_questions": 6,
     "passing_score": 60,

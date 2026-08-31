@@ -103,6 +103,17 @@
                     </div>
                 </div>
 
+                <!-- Level filter -->
+                <div class="flex items-center gap-2 mb-6 flex-wrap">
+                    <span class="text-xs font-medium text-flag-ink/40 me-1">المستوى:</span>
+                    <button @click="selectedLevel = null" class="px-4 py-1.5 rounded-full text-xs font-medium transition-colors"
+                            :class="selectedLevel === null ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10'">الكل</button>
+                    <template x-for="lvl in ['A2','B1','B2']" :key="lvl">
+                        <button @click="selectedLevel = lvl" class="px-4 py-1.5 rounded-full text-xs font-medium transition-colors"
+                                :class="selectedLevel === lvl ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10'" x-text="lvl"></button>
+                    </template>
+                </div>
+
                 <!-- Free tier quota banner -->
                 <div x-show="isFreeTier" x-cloak class="de-card rounded-2xl p-5 mb-8 flex items-center justify-between gap-4 flex-wrap" style="border-color:rgba(56,189,248,0.4);">
                     <div class="flex items-center gap-3">
@@ -121,7 +132,7 @@
 
                 <!-- Test library -->
                 <div class="grid sm:grid-cols-2 gap-5 mb-10">
-                    <template x-for="t in tests" :key="t.id">
+                    <template x-for="t in filteredTests" :key="t.id">
                         <button @click="t.content_kind === 'essay' ? openEssay(t) : startPractice(t)" class="de-card rounded-2xl p-5 text-start w-full">
                             <div class="flex items-start justify-between gap-3 mb-3">
                                 <div class="h-11 w-11 rounded-xl bg-flag-red/10 flex items-center justify-center flex-shrink-0">
@@ -130,7 +141,10 @@
                                 <span x-show="lastScores[t.id] !== undefined" x-cloak class="de-badge de-badge-gold flex-shrink-0" x-text="lastScores[t.id] + '%'"></span>
                             </div>
                             <span class="de-badge de-badge-red mb-2 inline-block" x-show="t.content_kind === 'essay'">نشاط كتابة حرة — تقييم بالذكاء الاصطناعي</span>
-                            <h3 class="font-display font-semibold text-flag-ink mb-1" x-text="t.title"></h3>
+                            <div class="flex items-center gap-2 mb-1">
+                                <h3 class="font-display font-semibold text-flag-ink" x-text="t.title"></h3>
+                                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-flag-black/5 text-flag-ink/50 flex-shrink-0" x-text="t.level"></span>
+                            </div>
                             <p class="text-sm text-flag-ink/60 mb-3" x-text="t.description"></p>
                             <div class="flex items-center gap-2 text-xs text-flag-ink/40">
                                 <i class="fas fa-clock"></i> <span x-text="t.duration_minutes"></span> دقائق
@@ -141,7 +155,7 @@
                         </button>
                     </template>
                 </div>
-                <div x-show="!testsLoading && tests.length === 0" class="de-card rounded-2xl p-8 text-center text-sm text-flag-ink/40">
+                <div x-show="!testsLoading && filteredTests.length === 0" class="de-card rounded-2xl p-8 text-center text-sm text-flag-ink/40">
                     لا توجد تدريبات متاحة حاليًا — سيتم إضافتها قريبًا
                 </div>
             </main>
@@ -500,6 +514,10 @@
                 previousEssayScore: null,
 
                 tests: [],
+                selectedLevel: null,
+                get filteredTests() {
+                    return this.selectedLevel ? this.tests.filter(t => t.level === this.selectedLevel) : this.tests;
+                },
                 testsLoading: false,
                 lastScores: {}, // test_id -> most recent completed score
                 resources: [],
