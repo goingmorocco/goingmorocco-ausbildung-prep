@@ -192,7 +192,7 @@
                               class="absolute -top-1.5 -end-1.5 h-5 min-w-[1.25rem] px-1 rounded-full bg-flag-gold text-white text-[10px] font-bold font-mono flex items-center justify-center"
                               x-text="stats.pending"></span>
                     </button>
-                    <button @click="activeTab = 'notifications'"
+                    <button @click="activeTab = 'notifications'; loadEvents()"
                             class="px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors"
                             :class="activeTab === 'notifications' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'">
                         <i class="fas fa-bell me-1"></i> الإشعارات
@@ -418,6 +418,13 @@
                                 <label class="block text-sm font-medium text-flag-ink/70 mb-2">
                                     رابط (اختياري) — عند إضافته يفتح الإشعار الرابط مباشرة بدل نافذة النص
                                 </label>
+                                <select @change="if ($event.target.value) linkToEvent($event.target.value)"
+                                        class="w-full px-4 py-2.5 border border-black/15 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-flag-red/30 mb-2">
+                                    <option value="">— أو اربطه بفعالية محددة —</option>
+                                    <template x-for="ev in events" :key="ev.id">
+                                        <option :value="ev.id" x-text="ev.title"></option>
+                                    </template>
+                                </select>
                                 <input type="text" x-model="notifyLink" placeholder="مثال: events.html أو https://..."
                                        dir="ltr" class="w-full px-4 py-2.5 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30">
                             </div>
@@ -449,9 +456,10 @@
                                         <span class="text-xs text-flag-ink/40 font-mono whitespace-nowrap" x-text="formatDate(n.sent_at)"></span>
                                     </div>
                                     <p class="text-sm text-flag-ink/60 mb-2" x-text="n.message"></p>
-                                    <div class="flex items-center gap-3 text-xs text-flag-ink/40">
+                                    <div class="flex items-center gap-3 text-xs text-flag-ink/40 flex-wrap">
                                         <span><i class="fas fa-users"></i> <span x-text="n.recipient_count"></span> مستلم</span>
                                         <span><i class="fas fa-bullseye"></i> <span x-text="audienceLabel(n.audience)"></span></span>
+                                        <span class="text-emerald-700" x-show="n.link_url"><i class="fas fa-link"></i> يحتوي رابطًا</span>
                                     </div>
                                 </div>
                             </template>
@@ -881,6 +889,9 @@
                                         </p>
                                     </div>
                                     <div class="flex items-center gap-2 flex-shrink-0">
+                                        <button @click="copyEventLink(ev)" class="h-8 w-8 rounded-lg bg-flag-black/5 text-flag-ink/60 hover:bg-flag-black/10 transition-colors" title="نسخ الرابط">
+                                            <i class="fas fa-link"></i>
+                                        </button>
                                         <button @click="editEvent(ev)" class="h-8 w-8 rounded-lg bg-flag-black/5 text-flag-ink/60 hover:bg-flag-black/10 transition-colors" title="تعديل">
                                             <i class="fas fa-pen"></i>
                                         </button>
@@ -1379,6 +1390,24 @@
                     this.showToast('تم حذف العضو');
                     this.deleteTarget = null;
                     this.loadStats(); this.loadMembers();
+                },
+
+                eventLink(eventId) {
+                    return window.location.origin + window.location.pathname.replace(/[^/]*$/, '') + 'events.html?event=' + eventId;
+                },
+
+                linkToEvent(eventId) {
+                    this.notifyLink = this.eventLink(eventId);
+                },
+
+                async copyEventLink(ev) {
+                    try {
+                        await navigator.clipboard.writeText(this.eventLink(ev.id));
+                        this.showToast('تم نسخ رابط الفعالية');
+                    } catch (e) {
+                        console.error(e);
+                        this.showToast('تعذّر نسخ الرابط');
+                    }
                 },
 
                 async sendNotification() {
