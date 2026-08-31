@@ -453,7 +453,12 @@
                                 <div class="p-5">
                                     <div class="flex items-start justify-between gap-3 mb-1">
                                         <h3 class="font-medium text-flag-ink" x-text="n.title"></h3>
-                                        <span class="text-xs text-flag-ink/40 font-mono whitespace-nowrap" x-text="formatDate(n.sent_at)"></span>
+                                        <div class="flex items-center gap-3 flex-shrink-0">
+                                            <span class="text-xs text-flag-ink/40 font-mono whitespace-nowrap" x-text="formatDate(n.sent_at)"></span>
+                                            <button @click="confirmDeleteNotification(n)" class="text-flag-ink/30 hover:text-red-600" title="حذف">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                     <p class="text-sm text-flag-ink/60 mb-2" x-text="n.message"></p>
                                     <div class="flex items-center gap-3 text-xs text-flag-ink/40 flex-wrap">
@@ -1231,6 +1236,27 @@
         </div>
     </div>
 
+    <!-- ============ Notification delete confirmation modal ============ -->
+    <div x-show="deleteNotificationTarget" x-cloak x-transition
+         class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
+        <div class="de-card w-full max-w-sm overflow-hidden" @click.outside="deleteNotificationTarget = null">
+            <div class="de-flag-ribbon"></div>
+            <div class="p-6 text-center">
+                <div class="h-12 w-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-trash"></i>
+                </div>
+                <h3 class="font-display font-semibold text-flag-ink mb-2">حذف الإشعار؟</h3>
+                <p class="text-sm text-flag-ink/60 mb-6">
+                    سيتم حذف <span class="font-medium" x-text="deleteNotificationTarget && deleteNotificationTarget.title"></span> نهائيًا لجميع من استلموه. لا يمكن التراجع عن هذا الإجراء.
+                </p>
+                <div class="flex gap-3">
+                    <button @click="deleteNotificationTarget = null" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#1E293B;">إلغاء</button>
+                    <button @click="deleteNotification()" class="de-btn de-btn-primary flex-1 text-sm py-2.5">حذف</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ============ Toast ============ -->
     <div x-show="toast" x-cloak x-transition
          class="fixed bottom-6 inset-x-0 flex justify-center z-50 px-4">
@@ -1253,6 +1279,7 @@
 
                 members: [], memberFilter: 'all', memberSearch: '', membersLoading: false,
                 notifications: [], notifyTitle: '', notifyMessage: '', notifyLink: '', notifyAudience: 'all', sending: false,
+                deleteNotificationTarget: null,
 
                 resources: [], resourcesLoading: false, deleteResourceTarget: null,
 
@@ -1426,6 +1453,18 @@
                         }
                     } catch (e) { console.error(e); }
                     finally { this.sending = false; }
+                },
+
+                confirmDeleteNotification(n) { this.deleteNotificationTarget = n; },
+
+                async deleteNotification() {
+                    if (!this.deleteNotificationTarget) return;
+                    try {
+                        await sb.from('notifications').delete().eq('id', this.deleteNotificationTarget.id);
+                        this.showToast('تم حذف الإشعار');
+                        this.deleteNotificationTarget = null;
+                        this.loadNotifications();
+                    } catch (e) { console.error(e); }
                 },
 
                 async loadResources() {

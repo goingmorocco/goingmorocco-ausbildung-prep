@@ -147,7 +147,10 @@
                                               x-text="unreadNotifCount"></span>
                                     </button>
                                     <div x-show="open" x-cloak x-transition class="absolute top-full mt-2 end-0 w-72 sm:w-80 max-h-96 overflow-y-auto de-card rounded-xl overflow-hidden z-50">
-                                        <div class="px-4 py-3 border-b border-black/5 font-display font-semibold text-sm text-flag-ink">الإشعارات</div>
+                                        <div class="px-4 py-3 border-b border-black/5 flex items-center justify-between">
+                                            <span class="font-display font-semibold text-sm text-flag-ink">الإشعارات</span>
+                                            <button x-show="notifications.length > 0" @click="clearAllNotifications()" class="text-xs text-flag-ink/40 hover:text-flag-red transition-colors">مسح الكل</button>
+                                        </div>
                                         <template x-for="n in notifications" :key="n.id">
                                             <button @click="openNotification(n); open = false" class="block w-full text-start px-4 py-3 border-b border-black/5 hover:bg-flag-cream/60 transition-colors">
                                                 <div class="flex items-center gap-2 mb-1">
@@ -998,6 +1001,19 @@
                 },
 
                 closeNotification() { this.viewingNotification = null; },
+
+                async clearAllNotifications() {
+                    const previous = this.notifications;
+                    this.notifications = [];
+                    this.unreadNotifCount = 0;
+                    try {
+                        await sb.from('notification_recipients').delete().eq('user_id', this.user.id);
+                    } catch (e) {
+                        console.error(e);
+                        this.notifications = previous; // restore on failure so nothing's silently lost
+                        this.unreadNotifCount = previous.filter(n => !n.read_at).length;
+                    }
+                },
 
                 async loadPerformanceReport() {
                     try {
