@@ -48,6 +48,68 @@
 
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>[x-cloak]{display:none !important;}</style>
+
+    <!-- Tailwind's CDN injects its preflight/reset CSS dynamically at -->
+    <!-- runtime, so its rules can end up applied AFTER Quill's own       -->
+    <!-- static stylesheet regardless of HTML source order, knocking out -->
+    <!-- Quill's default toolbar/button/icon styling entirely. This block -->
+    <!-- is a real literal <style> tag (not dynamically injected), so it -->
+    <!-- always cascades last and reliably wins -- it explicitly restores -->
+    <!-- exactly what Quill needs, rather than guessing at load order. -->
+    <style>
+        .ql-toolbar.ql-snow {
+            display: flex !important;
+            flex-wrap: wrap;
+            align-items: center;
+            border: 1px solid #ccc !important;
+            border-radius: 0.75rem 0.75rem 0 0;
+            background: #fff;
+        }
+        .ql-toolbar.ql-snow button {
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            width: 28px !important;
+            height: 28px !important;
+            padding: 3px !important;
+            background: transparent !important;
+            border: none !important;
+            cursor: pointer;
+        }
+        .ql-toolbar.ql-snow button:hover { color: #06c; }
+        .ql-toolbar.ql-snow svg {
+            display: inline-block !important;
+            width: 18px !important;
+            height: 18px !important;
+        }
+        .ql-toolbar .ql-stroke { fill: none !important; stroke: #444 !important; stroke-width: 2; }
+        .ql-toolbar .ql-fill { fill: #444 !important; stroke: none !important; }
+        .ql-toolbar .ql-picker { font-size: 13px !important; height: 28px !important; }
+        .ql-toolbar .ql-picker-label { display: flex !important; align-items: center; border: 1px solid transparent !important; padding: 0 4px !important; }
+        .ql-toolbar .ql-picker-options {
+            display: none;
+            position: absolute;
+            background: #fff !important;
+            border: 1px solid #ccc !important;
+            border-radius: 0.5rem;
+            padding: 4px 8px !important;
+            z-index: 50;
+        }
+        .ql-toolbar .ql-picker.ql-expanded .ql-picker-options { display: block !important; }
+        .ql-container.ql-snow {
+            border: 1px solid #ccc !important;
+            border-top: none !important;
+            border-radius: 0 0 0.75rem 0.75rem;
+            font-family: 'Cairo', sans-serif;
+        }
+        .ql-editor {
+            min-height: 340px !important;
+            padding: 1rem !important;
+            font-size: 15px;
+            line-height: 1.8;
+        }
+        .ql-editor.ql-blank::before { color: #94a3b8 !important; font-style: normal !important; }
+    </style>
 </head>
 <body class="font-arabic de-paper-bg text-flag-ink antialiased min-h-screen" x-data="adminApp()" x-init="init()">
 
@@ -1708,25 +1770,23 @@
                         window.__lineHeightRegistered = true;
                     }
 
+                    const toolbarOptions = [
+                        [{ header: [1, 2, 3, false] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ color: [] }, { background: [] }],
+                        [{ align: [] }],
+                        [{ list: 'ordered' }, { list: 'bullet' }],
+                        [{ indent: '-1' }, { indent: '+1' }],
+                        ['blockquote', 'code-block'],
+                        ['link', 'image', 'video'],
+                        ['clean']
+                    ];
+
                     this.quillInstance = new Quill(container, {
                         theme: 'snow',
-                        modules: {
-                            toolbar: {
-                                container: [
-                                    [{ header: [1, 2, 3, false] }],
-                                    ['bold', 'italic', 'underline', 'strike'],
-                                    [{ color: [] }, { background: [] }],
-                                    [{ align: [] }],
-                                    [{ list: 'ordered' }, { list: 'bullet' }],
-                                    [{ indent: '-1' }, { indent: '+1' }],
-                                    ['blockquote', 'code-block'],
-                                    ['link', 'image', 'video'],
-                                    ['clean']
-                                ],
-                                handlers: { image: () => this.uploadEditorImage() }
-                            }
-                        }
+                        modules: { toolbar: toolbarOptions }
                     });
+                    this.quillInstance.getModule('toolbar').addHandler('image', () => this.uploadEditorImage());
                     if (initialHtml) this.quillInstance.clipboard.dangerouslyPasteHTML(initialHtml);
                 },
 
