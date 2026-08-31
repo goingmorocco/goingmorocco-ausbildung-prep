@@ -91,6 +91,23 @@
                             </a>
 
                             <div class="hidden md:flex items-center gap-4">
+                                <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                                    <button @click="open = !open" class="text-sm font-medium text-flag-ink/70 hover:text-flag-red transition-colors flex items-center gap-1.5">
+                                        <i class="fas fa-bolt"></i> تدريبات سريعة
+                                        <i class="fas fa-chevron-down text-[10px] transition-transform" :class="open ? 'rotate-180' : ''"></i>
+                                    </button>
+                                    <div x-show="open" x-cloak x-transition class="absolute top-full mt-2 start-0 w-48 de-card rounded-xl overflow-hidden z-50">
+                                        <a href="lesen.html" @click="open = false" class="block px-4 py-2.5 text-sm text-flag-ink/80 hover:bg-flag-cream/60 transition-colors">
+                                            <i class="fas fa-book-open text-flag-red w-4"></i> تدريبات القراءة
+                                        </a>
+                                        <a href="schreiben.html" @click="open = false" class="block px-4 py-2.5 text-sm text-flag-ink/80 hover:bg-flag-cream/60 transition-colors">
+                                            <i class="fas fa-pen text-flag-red w-4"></i> تدريبات الكتابة
+                                        </a>
+                                        <a href="hoeren.html" @click="open = false" class="block px-4 py-2.5 text-sm text-flag-ink/80 hover:bg-flag-cream/60 transition-colors">
+                                            <i class="fas fa-headphones text-flag-red w-4"></i> تدريبات الاستماع
+                                        </a>
+                                    </div>
+                                </div>
                                 <a href="classroom.html" class="text-sm font-medium text-flag-ink/70 hover:text-flag-red transition-colors">
                                     <i class="fas fa-chalkboard"></i> الفصل الدراسي
                                 </a>
@@ -131,6 +148,16 @@
                                 </div>
                                 <a href="classroom.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#1E293B;">
                                     <i class="fas fa-chalkboard"></i> الفصل الدراسي
+                                </a>
+                                <div class="text-xs font-medium text-flag-ink/40 px-1 pt-1">تدريبات سريعة</div>
+                                <a href="lesen.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#1E293B;">
+                                    <i class="fas fa-book-open"></i> تدريبات القراءة
+                                </a>
+                                <a href="schreiben.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#1E293B;">
+                                    <i class="fas fa-pen"></i> تدريبات الكتابة
+                                </a>
+                                <a href="hoeren.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#1E293B;">
+                                    <i class="fas fa-headphones"></i> تدريبات الاستماع
                                 </a>
                                 <button @click="showSubscriptionModal = true; showMobileMenu = false" class="de-btn de-btn-gold w-full text-sm py-2">
                                     <i class="fas fa-credit-card"></i> الاشتراك
