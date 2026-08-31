@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
     }
 
     if (body.action === 'send') {
-      const { title, message, audience } = body;
+      const { title, message, audience, link_url } = body;
       if (!title || !message || !audience) {
         return json({ success: false, message: 'العنوان والرسالة والجمهور المستهدف مطلوبة' }, 400);
       }
@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
 
       const { data: notification, error: notifErr } = await admin
         .from('notifications')
-        .insert({ title, message, audience, sent_by: userId })
+        .insert({ title, message, audience, link_url: link_url || null, sent_by: userId })
         .select()
         .single();
       if (notifErr) throw notifErr;

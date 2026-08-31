@@ -215,7 +215,7 @@
                     <button @click="activeTab = 'events'; loadEvents()"
                             class="px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors"
                             :class="activeTab === 'events' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'">
-                        <i class="fas fa-calendar-star me-1"></i> الفعاليات
+                        <i class="fas fa-calendar-days me-1"></i> الفعاليات
                     </button>
                     <button @click="activeTab = 'blog'; blogSubTab = 'posts'; loadBlogPosts(); loadBlogCategories()"
                             class="px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors"
@@ -413,6 +413,13 @@
                                 <label class="block text-sm font-medium text-flag-ink/70 mb-2">الرسالة</label>
                                 <textarea x-model="notifyMessage" required rows="4"
                                           class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/30 resize-none"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-flag-ink/70 mb-2">
+                                    رابط (اختياري) — عند إضافته يفتح الإشعار الرابط مباشرة بدل نافذة النص
+                                </label>
+                                <input type="text" x-model="notifyLink" placeholder="مثال: events.html أو https://..."
+                                       dir="ltr" class="w-full px-4 py-2.5 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-flag-ink/70 mb-2">الجمهور المستهدف</label>
@@ -1234,7 +1241,7 @@
                 stats: { total: 0, pending: 0, active: 0, rejected: 0, activeSubscriptions: 0 },
 
                 members: [], memberFilter: 'all', memberSearch: '', membersLoading: false,
-                notifications: [], notifyTitle: '', notifyMessage: '', notifyAudience: 'all', sending: false,
+                notifications: [], notifyTitle: '', notifyMessage: '', notifyLink: '', notifyAudience: 'all', sending: false,
 
                 resources: [], resourcesLoading: false, deleteResourceTarget: null,
 
@@ -1378,11 +1385,13 @@
                     this.sending = true;
                     try {
                         const data = await sbInvoke('admin-notifications', {
-                            action: 'send', title: this.notifyTitle, message: this.notifyMessage, audience: this.notifyAudience
+                            action: 'send', title: this.notifyTitle, message: this.notifyMessage,
+                            audience: this.notifyAudience, link_url: this.notifyLink.trim() || null
                         });
                         if (data.success) {
                             this.notifyTitle = '';
                             this.notifyMessage = '';
+                            this.notifyLink = '';
                             this.showToast('تم إرسال الإشعار');
                             this.loadNotifications();
                         }

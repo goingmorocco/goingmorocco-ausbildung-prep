@@ -112,7 +112,7 @@
                                     <i class="fas fa-chalkboard"></i> الفصل الدراسي
                                 </a>
                                 <a href="events.html" class="text-sm font-medium text-flag-ink/70 hover:text-flag-red transition-colors">
-                                    <i class="fas fa-calendar-star"></i> الفعاليات
+                                    <i class="fas fa-calendar-days"></i> الفعاليات
                                 </a>
                                 <a href="blog.html" class="text-sm font-medium text-flag-ink/70 hover:text-flag-red transition-colors">
                                     <i class="fas fa-book-open-reader"></i> المدونة
@@ -138,9 +138,33 @@
                                 </button>
                             </div>
 
-                            <button @click="showMobileMenu = !showMobileMenu" class="md:hidden h-10 w-10 rounded-full border border-black/10">
-                                <i class="fas" :class="showMobileMenu ? 'fa-times' : 'fa-bars'"></i>
-                            </button>
+                            <div class="flex items-center gap-3">
+                                <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                                    <button @click="open = !open; if (open) markAllNotificationsRead()" class="relative h-9 w-9 rounded-full bg-flag-black/5 flex items-center justify-center text-flag-ink/60 hover:text-flag-red transition-colors">
+                                        <i class="fas fa-bell"></i>
+                                        <span x-show="unreadNotifCount > 0" x-cloak
+                                              class="absolute -top-1 -end-1 h-4 min-w-[1rem] px-1 rounded-full bg-red-600 text-white text-[9px] font-bold font-mono flex items-center justify-center"
+                                              x-text="unreadNotifCount"></span>
+                                    </button>
+                                    <div x-show="open" x-cloak x-transition class="absolute top-full mt-2 end-0 w-72 sm:w-80 max-h-96 overflow-y-auto de-card rounded-xl overflow-hidden z-50">
+                                        <div class="px-4 py-3 border-b border-black/5 font-display font-semibold text-sm text-flag-ink">الإشعارات</div>
+                                        <template x-for="n in notifications" :key="n.id">
+                                            <button @click="openNotification(n); open = false" class="block w-full text-start px-4 py-3 border-b border-black/5 hover:bg-flag-cream/60 transition-colors">
+                                                <div class="flex items-center gap-2 mb-1">
+                                                    <span class="h-1.5 w-1.5 rounded-full bg-flag-red flex-shrink-0" x-show="!n.read_at"></span>
+                                                    <span class="text-sm font-medium text-flag-ink truncate" x-text="n.title"></span>
+                                                </div>
+                                                <p class="text-xs text-flag-ink/50 line-clamp-2" x-text="n.message"></p>
+                                            </button>
+                                        </template>
+                                        <div x-show="notifications.length === 0" class="p-8 text-center text-sm text-flag-ink/40">لا توجد إشعارات</div>
+                                    </div>
+                                </div>
+
+                                <button @click="showMobileMenu = !showMobileMenu" class="md:hidden h-10 w-10 rounded-full border border-black/10">
+                                    <i class="fas" :class="showMobileMenu ? 'fa-times' : 'fa-bars'"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div x-show="showMobileMenu" x-cloak x-transition class="md:hidden pb-4">
@@ -156,7 +180,7 @@
                                     <i class="fas fa-chalkboard"></i> الفصل الدراسي
                                 </a>
                                 <a href="events.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#1E293B;">
-                                    <i class="fas fa-calendar-star"></i> الفعاليات
+                                    <i class="fas fa-calendar-days"></i> الفعاليات
                                 </a>
                                 <a href="blog.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#1E293B;">
                                     <i class="fas fa-book-open-reader"></i> المدونة
@@ -773,6 +797,25 @@
         </div>
     </div>
 
+    <!-- ============ Notification lightbox (text-only notifications) ============ -->
+    <div x-show="viewingNotification" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
+        <div class="de-card w-full max-w-md overflow-hidden" @click.outside="closeNotification()">
+            <div class="de-flag-ribbon"></div>
+            <div class="p-6">
+                <div class="flex items-start justify-between gap-4 mb-4">
+                    <span class="de-stamp de-stamp-onlight h-11 w-11 text-xs flex-shrink-0"><i class="fas fa-bell"></i></span>
+                    <button @click="closeNotification()" class="text-flag-ink/40 hover:text-flag-red"><i class="fas fa-times"></i></button>
+                </div>
+                <h3 class="font-display font-semibold text-flag-ink mb-2" x-text="viewingNotification && viewingNotification.title"></h3>
+                <p class="text-sm text-flag-ink/70 whitespace-pre-line mb-5" x-text="viewingNotification && viewingNotification.message"></p>
+                <p class="text-xs text-flag-ink/40 mb-5" x-show="viewingNotification">
+                    <i class="fas fa-clock"></i> <span x-text="viewingNotification && formatDate(viewingNotification.sent_at)"></span>
+                </p>
+                <button @click="closeNotification()" class="de-btn w-full text-sm py-2.5" style="background:#EEEAE0;color:#1E293B;">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ============ Upgrade prompt ============ -->
     <div x-show="showUpgradePrompt" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
         <div class="de-card w-full max-w-sm overflow-hidden text-center">
@@ -808,6 +851,7 @@
                 isFreeTier: false,
                 freeTestsUsed: 0,
                 showUpgradePrompt: false,
+                notifications: [], unreadNotifCount: 0, viewingNotification: null,
 
                 subscription: null,
                 testAttempts: [],
@@ -898,6 +942,7 @@
                         }
                         this.loadPerformanceReport();
                         if (this.isFreeTier) this.loadFreeQuota();
+                        this.loadNotifications();
                     } catch (e) {
                         console.error('Error loading dashboard data:', e);
                         this.showToast('تعذّر تحميل بعض بيانات لوحة التحكم');
@@ -910,6 +955,49 @@
                         if (!error) this.freeTestsUsed = data;
                     } catch (e) { console.error(e); }
                 },
+
+                async loadNotifications() {
+                    try {
+                        const { data, error } = await sb.from('notification_recipients')
+                            .select('id, read_at, notifications(id, title, message, link_url, sent_at)')
+                            .eq('user_id', this.user.id)
+                            .limit(30);
+                        if (error) throw error;
+                        this.notifications = (data || [])
+                            .filter(r => r.notifications)
+                            .map(r => ({
+                                recipient_id: r.id, read_at: r.read_at,
+                                id: r.notifications.id, title: r.notifications.title,
+                                message: r.notifications.message, link_url: r.notifications.link_url,
+                                sent_at: r.notifications.sent_at
+                            }))
+                            .sort((a, b) => new Date(b.sent_at) - new Date(a.sent_at));
+                        this.unreadNotifCount = this.notifications.filter(n => !n.read_at).length;
+                    } catch (e) { console.error(e); }
+                },
+
+                async markAllNotificationsRead() {
+                    if (this.unreadNotifCount === 0) return;
+                    const now = new Date().toISOString();
+                    this.notifications.forEach(n => { if (!n.read_at) n.read_at = now; });
+                    this.unreadNotifCount = 0;
+                    try {
+                        await sb.from('notification_recipients')
+                            .update({ read_at: now })
+                            .eq('user_id', this.user.id)
+                            .is('read_at', null);
+                    } catch (e) { console.error(e); }
+                },
+
+                openNotification(n) {
+                    if (n.link_url) {
+                        window.location.href = n.link_url;
+                    } else {
+                        this.viewingNotification = n;
+                    }
+                },
+
+                closeNotification() { this.viewingNotification = null; },
 
                 async loadPerformanceReport() {
                     try {
