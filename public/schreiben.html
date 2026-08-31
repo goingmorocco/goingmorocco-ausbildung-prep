@@ -266,10 +266,15 @@
                             </div>
                         </div>
 
-                        <div class="flex justify-center gap-3 mb-8">
+                        <div class="flex justify-center gap-3 mb-4">
                             <button @click="closeTestModal()" class="de-btn text-sm py-2.5 px-5" style="background:#EEEAE0;color:#1E293B;">إنهاء</button>
                             <button @click="retakePractice()" class="de-btn de-btn-primary text-sm py-2.5 px-5">
                                 <i class="fas fa-rotate-right"></i> أعد المحاولة
+                            </button>
+                        </div>
+                        <div x-show="activeTestWriting" x-cloak class="mb-8">
+                            <button @click="continueToWriting()" class="de-btn de-btn-gold text-sm py-2.5 px-6">
+                                <i class="fas fa-pen"></i> متابعة إلى نشاط الكتابة
                             </button>
                         </div>
 
@@ -508,6 +513,7 @@
                 currentQuestionIndex: 0,
                 selectedAnswers: {},
                 testResults: null,
+                activeTestWriting: null,
                 timeLeftSeconds: 0,
                 timerHandle: null,
                 testStartedAt: null,
@@ -596,6 +602,7 @@
 
                         const detailData = await sbInvoke('test-detail', { test_id: test.id });
                         const sections = (detailData.success && detailData.test.sections) ? detailData.test.sections : [];
+                        this.activeTestWriting = (detailData.success && detailData.test.writing) ? detailData.test.writing : null;
                         const flattened = [];
                         sections.forEach(section => {
                             section.items.forEach(item => {
@@ -669,12 +676,27 @@
                     this.showTestModal = false;
                     this.testModalExpanded = false;
                     this.activeTest = null;
+                    this.activeTestWriting = null;
                     this.gradedItems = [];
                     this.activeAttemptId = null;
                     this.testResults = null;
                     this.selectedAnswers = {};
                     this.currentQuestionIndex = 0;
                     this.loadLibrary(); // refresh last-score badges for next time
+                },
+
+                continueToWriting() {
+                    const test = this.activeTest;
+                    const prompt = this.activeTestWriting;
+                    if (!test || !prompt) return;
+                    this.essayTest = test;
+                    this.essayPrompt = prompt;
+                    this.previousEssayScore = this.lastScores[test.id] !== undefined ? this.lastScores[test.id] : null;
+                    this.essayDraft = '';
+                    this.essayGradeResult = null;
+                    this.closeTestModal();
+                    this.essayModalExpanded = false;
+                    this.showEssayModal = true;
                 },
 
                 retakePractice() {

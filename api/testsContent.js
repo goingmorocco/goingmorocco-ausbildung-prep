@@ -8,33 +8,35 @@
 // until you run `node scripts/generate-audio.js` (see that file for setup).
 // Until then the frontend gracefully falls back to the transcript.
 //
-// `is_skill_practice: true` marks the short 5-8 minute single-skill
-// drills (as opposed to the long realistic exams). `skill` groups them
-// (reading/listening/writing/speaking) so a library page like
-// public/lesen.html, public/hoeren.html, or public/schreiben.html can
-// query "every drill for this skill, newest first" regardless of how
-// many exist -- each individual drill still has its own unique test_type
-// (e.g. 'skill_reading_market') so upserting by test_type stays safe.
+// `is_skill_practice: true` marks the short single-skill drills (as
+// opposed to the long realistic exams). `skill` groups them (reading/
+// listening/writing/speaking) so a library page like public/lesen.html,
+// public/hoeren.html, or public/schreiben.html can query "every drill
+// for this skill, newest first" -- each drill still has its own unique
+// test_type so upserting by test_type stays safe.
 //
 // `content_kind` distinguishes a multiple-choice quiz ('quiz', the
-// default) from a real AI-graded essay prompt ('essay') -- an essay-type
-// test has NO sections/questions/answers at all; its content lives
-// entirely in its test_writing_prompts row. The grammar/connectors/
-// word-choice 'quiz' writing drills exist because free-composition
-// writing can't be auto-graded reliably by rules -- but 'essay' tests
-// now ARE real free-composition prompts, graded live by the grade-writing
-// Edge Function (Groq). Both kinds coexist in the same schreiben.html
-// library, distinguished by content_kind.
+// default) from a pure AI-graded essay prompt ('essay', no sections at
+// all -- content lives entirely in test_writing_prompts). A THIRD real
+// shape now exists too, using the SAME content_kind='quiz' value: a
+// "mixed" test that has both sections/questions (a grammar quiz) AND a
+// test_writing_prompts row attached -- exactly the pattern the full
+// exams have always used (MC sections, then a writing prompt at the
+// end). public/schreiben.html's quiz flow checks for an attached
+// writing prompt after the MC portion finishes and offers to continue
+// into the SAME essay-grading flow used by pure 'essay' tests, chained
+// rather than duplicated.
 //
 // NOTE: content can now also be created/edited live from the admin
-// dashboard's test builder (public/admin.html, "الاختبارات" tab), backed
-// by the admin-tests Edge Function -- though as of this note, that
-// builder only supports creating/editing 'quiz'-kind tests, not 'essay'-
-// kind ones (which still need to go through this file + the seed
-// script). Tests added via the admin UI live only in the database, not
-// in this file. Running the seed script again is safe either way (it
-// upserts by test_type) but will NOT remove or overwrite tests created
-// purely through the admin UI.
+// dashboard's test builder (public/admin.html, "الاختبارات" تبويب), backed
+// by the admin-tests Edge Function -- it already supports attaching a
+// writing prompt to any test via the same toggle used for full exams,
+// so "mixed" tests can be built directly from the dashboard. It does
+// NOT yet support creating a pure 'essay'-kind test (zero sections),
+// which still needs this file + the seed script. Tests added via the
+// admin UI live only in the database, not in this file. Running the
+// seed script again is safe either way (it upserts by test_type) but
+// will NOT remove or overwrite tests created purely through the admin UI.
 
 const mockTests = [
   {
@@ -468,6 +470,286 @@ const mockTests = [
     "is_skill_practice": true,
     "skill": "writing",
     "content_kind": "essay"
+  },
+  {
+    "id": "test_skill_reading_optician",
+    "title": "تدريب القراءة: عند طبيب العيون",
+    "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_reading_optician",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "reading",
+    "content_kind": "quiz"
+  },
+  {
+    "id": "test_skill_reading_bikeshop",
+    "title": "تدريب القراءة: في محل الدراجات",
+    "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_reading_bikeshop",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "reading",
+    "content_kind": "quiz"
+  },
+  {
+    "id": "test_skill_reading_gym",
+    "title": "تدريب القراءة: الاشتراك في النادي الرياضي",
+    "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_reading_gym",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "reading",
+    "content_kind": "quiz"
+  },
+  {
+    "id": "test_skill_reading_apartment_viewing",
+    "title": "تدريب القراءة: معاينة شقة",
+    "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_reading_apartment_viewing",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "reading",
+    "content_kind": "quiz"
+  },
+  {
+    "id": "test_skill_reading_airport",
+    "title": "تدريب القراءة: في المطار",
+    "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_reading_airport",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "reading",
+    "content_kind": "quiz"
+  },
+  {
+    "id": "test_skill_reading_package",
+    "title": "تدريب القراءة: استلام طرد من البريد",
+    "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_reading_package",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "reading",
+    "content_kind": "quiz"
+  },
+  {
+    "id": "test_skill_reading_copyshop",
+    "title": "تدريب القراءة: في محل التصوير والطباعة",
+    "description": "نص قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_reading_copyshop",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "reading",
+    "content_kind": "quiz"
+  },
+  {
+    "id": "test_skill_listening_taxi",
+    "title": "تدريب الاستماع: في سيارة الأجرة",
+    "description": "حوار قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_listening_taxi",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "listening",
+    "content_kind": "quiz"
+  },
+  {
+    "id": "test_skill_listening_flight_announcement",
+    "title": "تدريب الاستماع: إعلان في المطار",
+    "description": "إعلان قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_listening_flight_announcement",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "listening",
+    "content_kind": "quiz"
+  },
+  {
+    "id": "test_skill_listening_car_repair",
+    "title": "تدريب الاستماع: مكالمة مع ورشة السيارات",
+    "description": "حوار قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_listening_car_repair",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "listening",
+    "content_kind": "quiz"
+  },
+  {
+    "id": "test_skill_listening_radio_news",
+    "title": "تدريب الاستماع: نشرة أخبار إذاعية",
+    "description": "إعلان قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_listening_radio_news",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "listening",
+    "content_kind": "quiz"
+  },
+  {
+    "id": "test_skill_listening_apartment_ad",
+    "title": "تدريب الاستماع: مكالمة بخصوص إعلان شقة",
+    "description": "حوار قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_listening_apartment_ad",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "listening",
+    "content_kind": "quiz"
+  },
+  {
+    "id": "test_skill_listening_food_delivery",
+    "title": "تدريب الاستماع: طلب توصيل طعام",
+    "description": "حوار قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_listening_food_delivery",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "listening",
+    "content_kind": "quiz"
+  },
+  {
+    "id": "test_skill_listening_dentist_booking",
+    "title": "تدريب الاستماع: حجز موعد عند طبيب الأسنان",
+    "description": "حوار قصير وست أسئلة استيعاب — حوالي 6 دقائق",
+    "test_type": "skill_listening_dentist_booking",
+    "level": "B1",
+    "duration_minutes": 6,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "listening",
+    "content_kind": "quiz"
+  },
+  {
+    "id": "test_skill_writing_prepositions",
+    "title": "تدريب مختلط: حروف الجر + رسالة شكوى",
+    "description": "اختبار قواعد عن حروف الجر، متبوع بنشاط كتابة رسالة شكوى — حوالي 15 دقيقة",
+    "test_type": "skill_writing_prepositions",
+    "level": "B1",
+    "duration_minutes": 15,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "writing",
+    "content_kind": "quiz"
+  },
+  {
+    "id": "test_skill_writing_past_tense",
+    "title": "تدريب مختلط: الماضي (Perfekt/Präteritum) + سرد تجربة",
+    "description": "اختبار قواعد عن صيغ الماضي، متبوع بنشاط كتابة سرد تجربة شخصية — حوالي 15 دقيقة",
+    "test_type": "skill_writing_past_tense",
+    "level": "B1",
+    "duration_minutes": 15,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "writing",
+    "content_kind": "quiz"
+  },
+  {
+    "id": "test_skill_writing_modal_verbs",
+    "title": "تدريب مختلط: الأفعال الشرطية + تقديم نصيحة",
+    "description": "اختبار قواعد عن الأفعال الشرطية، متبوع بنشاط كتابة تقديم نصيحة — حوالي 15 دقيقة",
+    "test_type": "skill_writing_modal_verbs",
+    "level": "B1",
+    "duration_minutes": 15,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "writing",
+    "content_kind": "quiz"
+  },
+  {
+    "id": "test_skill_writing_adjective_endings",
+    "title": "تدريب مختلط: نهايات الصفات + وصف منتج",
+    "description": "اختبار قواعد عن نهايات الصفات، متبوع بنشاط كتابة وصف منتج — حوالي 15 دقيقة",
+    "test_type": "skill_writing_adjective_endings",
+    "level": "B2",
+    "duration_minutes": 15,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "writing",
+    "content_kind": "quiz"
+  },
+  {
+    "id": "test_skill_writing_connectors_advanced",
+    "title": "تدريب مختلط: أدوات الربط المتقدمة + التعبير عن الرأي",
+    "description": "اختبار قواعد عن أدوات الربط، متبوع بنشاط كتابة التعبير عن رأي — حوالي 15 دقيقة",
+    "test_type": "skill_writing_connectors_advanced",
+    "level": "B2",
+    "duration_minutes": 15,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "writing",
+    "content_kind": "quiz"
+  },
+  {
+    "id": "test_skill_writing_passive_voice",
+    "title": "تدريب مختلط: المبني للمجهول + وصف إجراء",
+    "description": "اختبار قواعد عن المبني للمجهول، متبوع بنشاط كتابة وصف إجراء عمل — حوالي 15 دقيقة",
+    "test_type": "skill_writing_passive_voice",
+    "level": "B2",
+    "duration_minutes": 15,
+    "total_questions": 6,
+    "passing_score": 60,
+    "is_active": true,
+    "is_skill_practice": true,
+    "skill": "writing",
+    "content_kind": "quiz"
   }
 ];
 
@@ -16332,6 +16614,3239 @@ const mockContent = {
       "instructions": "اكتب رسالة غير رسمية من 80 إلى 100 كلمة تقريبًا.",
       "prompt": "اكتب رسالة إلى صديق تدعوه فيها لحضور حفلة عيد ميلادك. اذكر التاريخ والمكان، ولماذا تريد منه أن يحضر، واسأله إن كان يستطيع القدوم.",
       "sample_answer": "Liebe Sara,\n\nich feiere am 20. Mai meinen Geburtstag und würde mich sehr freuen, wenn du kommen könntest! Die Feier findet bei mir zu Hause statt, ab 18 Uhr.\n\nEs werden auch ein paar andere Freunde da sein, und ich habe schon angefangen, das Essen zu planen. Es wäre einfach nicht dasselbe ohne dich.\n\nHast du an diesem Tag schon etwas vor? Lass es mich bitte bald wissen.\n\nGanz liebe Grüße,\nNadia"
+    }
+  },
+  "test_skill_reading_optician": {
+    "sections": [
+      {
+        "key": "reading1",
+        "name": "قراءة سريعة",
+        "type": "reading",
+        "official_duration_minutes": null,
+        "instructions": "اقرأ النص التالي ثم أجب عن الأسئلة.",
+        "passage": "Beim Optiker\n\nSeit einigen Wochen bemerkt Karim, dass er beim Lesen Kopfschmerzen bekommt, deshalb hat er einen Termin beim Optiker vereinbart. Zuerst musste er mehrere einfache Sehtests machen, bei denen er Buchstaben auf einer Tafel lesen sollte. Der Optiker hat festgestellt, dass Karim eine leichte Sehschwäche hat und eine Brille zum Lesen braucht. Danach hat Karim gemeinsam mit einer Verkäuferin verschiedene Brillengestelle ausprobiert. Er hat sich für ein einfaches schwarzes Gestell entschieden, weil es gut zu seinem Gesicht passte. Die neue Brille wird in einer Woche fertig sein.",
+        "items": [
+          {
+            "id": "sro_q1",
+            "question_text": "Warum ist Karim zum Optiker gegangen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt Kopfschmerzen beim Lesen als Grund.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "sro_q1_a1",
+                "answer_text": "Er bekommt Kopfschmerzen beim Lesen",
+                "is_correct": true
+              },
+              {
+                "id": "sro_q1_a2",
+                "answer_text": "Er kann nichts mehr sehen",
+                "is_correct": false
+              },
+              {
+                "id": "sro_q1_a3",
+                "answer_text": "Seine alte Brille ist kaputt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sro_q2",
+            "question_text": "Karim musste Buchstaben auf einer Tafel lesen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt genau das.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "sro_q2_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "sro_q2_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sro_q3",
+            "question_text": "Was hat der Optiker festgestellt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt eine leichte Sehschwäche.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "sro_q3_a1",
+                "answer_text": "Eine leichte Sehschwäche",
+                "is_correct": true
+              },
+              {
+                "id": "sro_q3_a2",
+                "answer_text": "Eine schwere Augenkrankheit",
+                "is_correct": false
+              },
+              {
+                "id": "sro_q3_a3",
+                "answer_text": "Dass er nichts braucht",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sro_q4",
+            "question_text": "Wofür braucht Karim die Brille?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt eine Lesebrille.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "sro_q4_a1",
+                "answer_text": "Zum Lesen",
+                "is_correct": true
+              },
+              {
+                "id": "sro_q4_a2",
+                "answer_text": "Zum Autofahren",
+                "is_correct": false
+              },
+              {
+                "id": "sro_q4_a3",
+                "answer_text": "Zum Sport",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sro_q5",
+            "question_text": "Warum hat er sich für das schwarze Gestell entschieden?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt genau diesen Grund.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "sro_q5_a1",
+                "answer_text": "Es passte gut zu seinem Gesicht",
+                "is_correct": true
+              },
+              {
+                "id": "sro_q5_a2",
+                "answer_text": "Es war das günstigste",
+                "is_correct": false
+              },
+              {
+                "id": "sro_q5_a3",
+                "answer_text": "Die Verkäuferin hat es ausgesucht",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sro_q6",
+            "question_text": "Die Brille ist sofort fertig.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie wird erst in einer Woche fertig sein.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "sro_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "sro_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_reading_bikeshop": {
+    "sections": [
+      {
+        "key": "reading1",
+        "name": "قراءة سريعة",
+        "type": "reading",
+        "official_duration_minutes": null,
+        "instructions": "اقرأ النص التالي ثم أجب عن الأسئلة.",
+        "passage": "Im Fahrradladen\n\nDas Fahrrad von Sara hat seit letzter Woche ein Problem mit der Bremse, deshalb hat sie es zu einem Fahrradladen in der Nähe gebracht. Der Mechaniker hat das Fahrrad genau untersucht und gesagt, dass die Bremsen komplett erneuert werden müssen. Er hat ihr auch empfohlen, die Kette zu wechseln, weil sie schon sehr alt war. Sara war zuerst unsicher, ob das nötig ist, hat sich aber am Ende dafür entschieden. Die Reparatur wird zwei Tage dauern und ungefähr sechzig Euro kosten. Sara hat sich für diese Zeit ein Leihfahrrad ausgeliehen.",
+        "items": [
+          {
+            "id": "srbi_q1",
+            "question_text": "Welches Problem hat Saras Fahrrad?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt die Bremse.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "srbi_q1_a1",
+                "answer_text": "Ein Problem mit der Bremse",
+                "is_correct": true
+              },
+              {
+                "id": "srbi_q1_a2",
+                "answer_text": "Ein platter Reifen",
+                "is_correct": false
+              },
+              {
+                "id": "srbi_q1_a3",
+                "answer_text": "Ein kaputtes Licht",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srbi_q2",
+            "question_text": "Was muss laut Mechaniker komplett erneuert werden?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Mechaniker sagt, die Bremsen müssen erneuert werden.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "srbi_q2_a1",
+                "answer_text": "Die Bremsen",
+                "is_correct": true
+              },
+              {
+                "id": "srbi_q2_a2",
+                "answer_text": "Die Räder",
+                "is_correct": false
+              },
+              {
+                "id": "srbi_q2_a3",
+                "answer_text": "Der Sattel",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srbi_q3",
+            "question_text": "Der Mechaniker empfiehlt auch, die Kette zu wechseln.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt das genau so.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "srbi_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "srbi_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srbi_q4",
+            "question_text": "Wie lange wird die Reparatur dauern?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt zwei Tage.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "srbi_q4_a1",
+                "answer_text": "Zwei Tage",
+                "is_correct": true
+              },
+              {
+                "id": "srbi_q4_a2",
+                "answer_text": "Einen Tag",
+                "is_correct": false
+              },
+              {
+                "id": "srbi_q4_a3",
+                "answer_text": "Eine Woche",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srbi_q5",
+            "question_text": "Wie viel wird die Reparatur ungefähr kosten?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt ungefähr sechzig Euro.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "srbi_q5_a1",
+                "answer_text": "Ungefähr sechzig Euro",
+                "is_correct": true
+              },
+              {
+                "id": "srbi_q5_a2",
+                "answer_text": "Zwanzig Euro",
+                "is_correct": false
+              },
+              {
+                "id": "srbi_q5_a3",
+                "answer_text": "Hundertfünfzig Euro",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srbi_q6",
+            "question_text": "Sara hat sich ein Leihfahrrad ausgeliehen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt das genau so.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "srbi_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "srbi_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_reading_gym": {
+    "sections": [
+      {
+        "key": "reading1",
+        "name": "قراءة سريعة",
+        "type": "reading",
+        "official_duration_minutes": null,
+        "instructions": "اقرأ النص التالي ثم أجب عن الأسئلة.",
+        "passage": "Im Fitnessstudio anmelden\n\nAmine möchte seit Langem regelmäßig Sport treiben und hat deshalb ein Fitnessstudio in seiner Stadt besucht, um sich anzumelden. Ein Mitarbeiter hat ihm zuerst die verschiedenen Räume gezeigt, zum Beispiel den Kraftraum und den Raum für Kurse. Danach hat er ihm erklärt, dass es drei verschiedene Mitgliedschaften gibt: für sechs Monate, für ein Jahr, oder ohne feste Laufzeit. Amine hat sich für die Mitgliedschaft ohne feste Laufzeit entschieden, weil er nicht sicher war, wie oft er wirklich kommen wird. Am Ende hat er einen kostenlosen Probetermin für die nächste Woche bekommen, um das Studio besser kennenzulernen.",
+        "items": [
+          {
+            "id": "srgy_q1",
+            "question_text": "Warum ist Amine ins Fitnessstudio gegangen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt die Anmeldung als Grund.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "srgy_q1_a1",
+                "answer_text": "Um sich anzumelden",
+                "is_correct": true
+              },
+              {
+                "id": "srgy_q1_a2",
+                "answer_text": "Um Sport zu verkaufen",
+                "is_correct": false
+              },
+              {
+                "id": "srgy_q1_a3",
+                "answer_text": "Um einen Freund zu treffen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srgy_q2",
+            "question_text": "Was hat der Mitarbeiter Amine zuerst gezeigt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt die Räume zuerst.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "srgy_q2_a1",
+                "answer_text": "Die verschiedenen Räume",
+                "is_correct": true
+              },
+              {
+                "id": "srgy_q2_a2",
+                "answer_text": "Die Preisliste",
+                "is_correct": false
+              },
+              {
+                "id": "srgy_q2_a3",
+                "answer_text": "Die Umkleidekabine",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srgy_q3",
+            "question_text": "Wie viele Arten von Mitgliedschaften gibt es?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt drei Mitgliedschaften.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "srgy_q3_a1",
+                "answer_text": "Drei",
+                "is_correct": true
+              },
+              {
+                "id": "srgy_q3_a2",
+                "answer_text": "Zwei",
+                "is_correct": false
+              },
+              {
+                "id": "srgy_q3_a3",
+                "answer_text": "Vier",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srgy_q4",
+            "question_text": "Amine entscheidet sich für die Mitgliedschaft für ein Jahr.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er entscheidet sich für die Mitgliedschaft ohne feste Laufzeit.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "srgy_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "srgy_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "srgy_q5",
+            "question_text": "Warum wählt er diese Mitgliedschaft?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt genau diesen Grund.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "srgy_q5_a1",
+                "answer_text": "Er war nicht sicher, wie oft er kommen wird",
+                "is_correct": true
+              },
+              {
+                "id": "srgy_q5_a2",
+                "answer_text": "Sie war die günstigste",
+                "is_correct": false
+              },
+              {
+                "id": "srgy_q5_a3",
+                "answer_text": "Sein Freund hat sie auch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srgy_q6",
+            "question_text": "Amine bekommt einen kostenlosen Probetermin.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt das genau so.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "srgy_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "srgy_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_reading_apartment_viewing": {
+    "sections": [
+      {
+        "key": "reading1",
+        "name": "قراءة سريعة",
+        "type": "reading",
+        "official_duration_minutes": null,
+        "instructions": "اقرأ النص التالي ثم أجب عن الأسئلة.",
+        "passage": "Eine Wohnung besichtigen\n\nHiba sucht seit zwei Monaten eine neue Wohnung und hat endlich einen Termin bekommen, um eine Zweizimmerwohnung zu besichtigen. Die Vermieterin hat ihr zuerst das Wohnzimmer und die Küche gezeigt, die beide sehr hell waren. Das Schlafzimmer war leider kleiner, als Hiba auf den Fotos gedacht hatte. Sie hat auch gefragt, ob Haustiere erlaubt sind, und die Vermieterin hat gesagt, dass kleine Tiere kein Problem sind. Die Miete liegt etwas über Hibas Budget, aber die Lage gefällt ihr sehr gut, weil die U-Bahn-Station nur zwei Minuten entfernt ist. Sie will es sich noch überlegen und bis morgen antworten.",
+        "items": [
+          {
+            "id": "srav_q1",
+            "question_text": "Wie lange sucht Hiba schon eine neue Wohnung?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt zwei Monate.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "srav_q1_a1",
+                "answer_text": "Zwei Monate",
+                "is_correct": true
+              },
+              {
+                "id": "srav_q1_a2",
+                "answer_text": "Eine Woche",
+                "is_correct": false
+              },
+              {
+                "id": "srav_q1_a3",
+                "answer_text": "Ein Jahr",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srav_q2",
+            "question_text": "Was hat die Vermieterin zuerst gezeigt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt Wohnzimmer und Küche zuerst.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "srav_q2_a1",
+                "answer_text": "Das Wohnzimmer und die Küche",
+                "is_correct": true
+              },
+              {
+                "id": "srav_q2_a2",
+                "answer_text": "Das Bad",
+                "is_correct": false
+              },
+              {
+                "id": "srav_q2_a3",
+                "answer_text": "Den Balkon",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srav_q3",
+            "question_text": "Das Schlafzimmer war größer, als Hiba gedacht hatte.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Es war kleiner, als sie gedacht hatte.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "srav_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "srav_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "srav_q4",
+            "question_text": "Sind Haustiere in der Wohnung erlaubt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Vermieterin sagt, kleine Tiere sind kein Problem.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "srav_q4_a1",
+                "answer_text": "Ja, kleine Tiere sind kein Problem",
+                "is_correct": true
+              },
+              {
+                "id": "srav_q4_a2",
+                "answer_text": "Nein, gar keine Tiere",
+                "is_correct": false
+              },
+              {
+                "id": "srav_q4_a3",
+                "answer_text": "Nur Hunde",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srav_q5",
+            "question_text": "Was gefällt Hiba an der Lage besonders?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt die nahe U-Bahn-Station.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "srav_q5_a1",
+                "answer_text": "Die U-Bahn-Station ist nah",
+                "is_correct": true
+              },
+              {
+                "id": "srav_q5_a2",
+                "answer_text": "Der Park in der Nähe",
+                "is_correct": false
+              },
+              {
+                "id": "srav_q5_a3",
+                "answer_text": "Die ruhige Straße",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srav_q6",
+            "question_text": "Hiba entscheidet sich sofort für die Wohnung.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie will es sich noch überlegen und morgen antworten.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "srav_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "srav_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_reading_airport": {
+    "sections": [
+      {
+        "key": "reading1",
+        "name": "قراءة سريعة",
+        "type": "reading",
+        "official_duration_minutes": null,
+        "instructions": "اقرأ النص التالي ثم أجب عن الأسئلة.",
+        "passage": "Am Flughafen\n\nYassin ist zum ersten Mal alleine geflogen und war deshalb ein wenig aufgeregt. Er ist drei Stunden vor dem Abflug am Flughafen angekommen, wie es ihm sein Vater empfohlen hatte. Am Check-in-Schalter hat er seinen Koffer abgegeben und seine Bordkarte bekommen. Danach musste er durch die Sicherheitskontrolle gehen, wo er seine Jacke und seinen Gürtel ausziehen musste. Das hat ihn überrascht, aber es ging schneller, als er gedacht hatte. Er hatte noch viel Zeit und hat deshalb in einem Café gewartet, bevor er zum richtigen Gate gegangen ist. Der Flug hatte am Ende keine Verspätung.",
+        "items": [
+          {
+            "id": "srap_q1",
+            "question_text": "Yassin ist zum ersten Mal alleine geflogen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt genau das.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "srap_q1_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "srap_q1_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srap_q2",
+            "question_text": "Wie lange vor dem Abflug ist er angekommen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt drei Stunden.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "srap_q2_a1",
+                "answer_text": "Drei Stunden",
+                "is_correct": true
+              },
+              {
+                "id": "srap_q2_a2",
+                "answer_text": "Eine Stunde",
+                "is_correct": false
+              },
+              {
+                "id": "srap_q2_a3",
+                "answer_text": "Fünf Stunden",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srap_q3",
+            "question_text": "Was hat er am Check-in-Schalter gemacht?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt die Koffer-Abgabe.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "srap_q3_a1",
+                "answer_text": "Seinen Koffer abgegeben",
+                "is_correct": true
+              },
+              {
+                "id": "srap_q3_a2",
+                "answer_text": "Sein Ticket gekauft",
+                "is_correct": false
+              },
+              {
+                "id": "srap_q3_a3",
+                "answer_text": "Sein Gepäck verloren",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srap_q4",
+            "question_text": "Was musste er bei der Sicherheitskontrolle ausziehen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt Jacke und Gürtel.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "srap_q4_a1",
+                "answer_text": "Jacke und Gürtel",
+                "is_correct": true
+              },
+              {
+                "id": "srap_q4_a2",
+                "answer_text": "Nur die Schuhe",
+                "is_correct": false
+              },
+              {
+                "id": "srap_q4_a3",
+                "answer_text": "Seine Uhr",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srap_q5",
+            "question_text": "Die Sicherheitskontrolle hat länger gedauert, als er gedacht hatte.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Es ging schneller, als er gedacht hatte.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "srap_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "srap_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "srap_q6",
+            "question_text": "Hatte der Flug am Ende Verspätung?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text sagt, der Flug hatte keine Verspätung.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "srap_q6_a1",
+                "answer_text": "Nein, keine Verspätung",
+                "is_correct": true
+              },
+              {
+                "id": "srap_q6_a2",
+                "answer_text": "Ja, eine Stunde",
+                "is_correct": false
+              },
+              {
+                "id": "srap_q6_a3",
+                "answer_text": "Ja, dreißig Minuten",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_reading_package": {
+    "sections": [
+      {
+        "key": "reading1",
+        "name": "قراءة سريعة",
+        "type": "reading",
+        "official_duration_minutes": null,
+        "instructions": "اقرأ النص التالي ثم أجب عن الأسئلة.",
+        "passage": "Ein Paket bei der Post abholen\n\nAls Nadia letzte Woche nicht zu Hause war, konnte der Postbote ihr Paket nicht zustellen und hat stattdessen eine Benachrichtigung in den Briefkasten gelegt. Auf dem Zettel stand, dass sie das Paket bei der Postfiliale in ihrer Straße abholen kann. Am nächsten Tag ist Nadia dorthin gegangen und musste zuerst kurz warten, weil viele Kunden in der Schlange standen. Als sie an der Reihe war, hat sie ihren Personalausweis und die Benachrichtigung gezeigt. Die Mitarbeiterin hat kurz nach dem Paket gesucht und es ihr dann gegeben. Nadia war überrascht, wie schnell alles am Ende ging.",
+        "items": [
+          {
+            "id": "srpk_q1",
+            "question_text": "Warum konnte der Postbote das Paket nicht zustellen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt genau diesen Grund.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "srpk_q1_a1",
+                "answer_text": "Nadia war nicht zu Hause",
+                "is_correct": true
+              },
+              {
+                "id": "srpk_q1_a2",
+                "answer_text": "Die Adresse war falsch",
+                "is_correct": false
+              },
+              {
+                "id": "srpk_q1_a3",
+                "answer_text": "Das Paket war beschädigt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srpk_q2",
+            "question_text": "Was hat der Postbote stattdessen gemacht?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt die Benachrichtigung.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "srpk_q2_a1",
+                "answer_text": "Eine Benachrichtigung in den Briefkasten gelegt",
+                "is_correct": true
+              },
+              {
+                "id": "srpk_q2_a2",
+                "answer_text": "Das Paket zurückgeschickt",
+                "is_correct": false
+              },
+              {
+                "id": "srpk_q2_a3",
+                "answer_text": "Einen Nachbarn gefragt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srpk_q3",
+            "question_text": "Wo kann Nadia das Paket abholen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt die Postfiliale in ihrer Straße.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "srpk_q3_a1",
+                "answer_text": "Bei der Postfiliale in ihrer Straße",
+                "is_correct": true
+              },
+              {
+                "id": "srpk_q3_a2",
+                "answer_text": "Bei einem Nachbarn",
+                "is_correct": false
+              },
+              {
+                "id": "srpk_q3_a3",
+                "answer_text": "Im Rathaus",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srpk_q4",
+            "question_text": "Nadia musste nicht warten, weil niemand da war.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie musste kurz warten, weil viele Kunden in der Schlange standen.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "srpk_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "srpk_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "srpk_q5",
+            "question_text": "Was musste Nadia zeigen, um das Paket zu bekommen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt beide Dokumente.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "srpk_q5_a1",
+                "answer_text": "Personalausweis und Benachrichtigung",
+                "is_correct": true
+              },
+              {
+                "id": "srpk_q5_a2",
+                "answer_text": "Nur ihren Reisepass",
+                "is_correct": false
+              },
+              {
+                "id": "srpk_q5_a3",
+                "answer_text": "Eine Quittung",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srpk_q6",
+            "question_text": "Nadia war überrascht, wie schnell alles ging.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt das genau so.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "srpk_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "srpk_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_reading_copyshop": {
+    "sections": [
+      {
+        "key": "reading1",
+        "name": "قراءة سريعة",
+        "type": "reading",
+        "official_duration_minutes": null,
+        "instructions": "اقرأ النص التالي ثم أجب عن الأسئلة.",
+        "passage": "Im Copyshop\n\nOmar brauchte dringend gedruckte Kopien seiner Bewerbungsunterlagen für ein Vorstellungsgespräch am nächsten Tag, deshalb ist er in einen Copyshop in der Nähe gegangen. Er hat der Mitarbeiterin einen USB-Stick mit seinen Dokumenten gegeben und gebeten, alles dreimal in Farbe auszudrucken. Sie hat ihm auch angeboten, die Dokumente zu binden, damit sie ordentlicher aussehen. Omar fand die Idee gut und hat sich dafür entschieden. Der ganze Vorgang hat nur zehn Minuten gedauert, und er hat am Ende weniger bezahlt, als er erwartet hatte. Zufrieden ist er nach Hause gegangen, um sich auf das Gespräch vorzubereiten.",
+        "items": [
+          {
+            "id": "srcs_q1",
+            "question_text": "Warum ist Omar in den Copyshop gegangen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt die Bewerbungsunterlagen.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "srcs_q1_a1",
+                "answer_text": "Für Kopien seiner Bewerbungsunterlagen",
+                "is_correct": true
+              },
+              {
+                "id": "srcs_q1_a2",
+                "answer_text": "Um ein Foto machen zu lassen",
+                "is_correct": false
+              },
+              {
+                "id": "srcs_q1_a3",
+                "answer_text": "Um einen Computer zu kaufen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srcs_q2",
+            "question_text": "Was hat er der Mitarbeiterin gegeben?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt einen USB-Stick.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "srcs_q2_a1",
+                "answer_text": "Einen USB-Stick",
+                "is_correct": true
+              },
+              {
+                "id": "srcs_q2_a2",
+                "answer_text": "Ein Buch",
+                "is_correct": false
+              },
+              {
+                "id": "srcs_q2_a3",
+                "answer_text": "Eine Speicherkarte",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srcs_q3",
+            "question_text": "Wie oft sollten die Dokumente gedruckt werden?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt dreimal.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "srcs_q3_a1",
+                "answer_text": "Dreimal",
+                "is_correct": true
+              },
+              {
+                "id": "srcs_q3_a2",
+                "answer_text": "Einmal",
+                "is_correct": false
+              },
+              {
+                "id": "srcs_q3_a3",
+                "answer_text": "Fünfmal",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srcs_q4",
+            "question_text": "Omar lehnt das Angebot ab, die Dokumente zu binden.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er findet die Idee gut und entscheidet sich dafür.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "srcs_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "srcs_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "srcs_q5",
+            "question_text": "Wie lange hat der ganze Vorgang gedauert?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Text nennt zehn Minuten.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "srcs_q5_a1",
+                "answer_text": "Zehn Minuten",
+                "is_correct": true
+              },
+              {
+                "id": "srcs_q5_a2",
+                "answer_text": "Eine Stunde",
+                "is_correct": false
+              },
+              {
+                "id": "srcs_q5_a3",
+                "answer_text": "Dreißig Minuten",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "srcs_q6",
+            "question_text": "Omar hat mehr bezahlt, als er erwartet hatte.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er hat weniger bezahlt, als er erwartet hatte.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "srcs_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "srcs_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_listening_taxi": {
+    "sections": [
+      {
+        "key": "listening1",
+        "name": "استماع سريع",
+        "type": "listening",
+        "official_duration_minutes": null,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص الحوار كما لو كنت تسمعه، ثم أجب عن الأسئلة.",
+        "passage": "Im Taxi:\n\"Guten Abend, wohin möchten Sie?\nGuten Abend, zum Hauptbahnhof bitte, ich muss einen Zug um neun Uhr erreichen.\nKein Problem, das dauert normalerweise fünfzehn Minuten, aber heute ist etwas mehr Verkehr.\nWird das ein Problem sein? Ich habe nicht mehr so viel Zeit.\nIch nehme eine andere Straße, dann sollten wir es rechtzeitig schaffen.\nDanke, das beruhigt mich.\nSind Sie zum ersten Mal in der Stadt?\nNein, ich wohne hier, aber ich fahre selten mit dem Taxi.\nAlles klar, wir sind gleich da.\"",
+        "audio_url": "/audio/test_skill_listening_taxi__listening1.mp3",
+        "items": [
+          {
+            "id": "slt_q1",
+            "question_text": "Wohin möchte der Fahrgast?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Fahrgast nennt den Hauptbahnhof.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "slt_q1_a1",
+                "answer_text": "Zum Hauptbahnhof",
+                "is_correct": true
+              },
+              {
+                "id": "slt_q1_a2",
+                "answer_text": "Zum Flughafen",
+                "is_correct": false
+              },
+              {
+                "id": "slt_q1_a3",
+                "answer_text": "Zu einem Hotel",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slt_q2",
+            "question_text": "Warum hat der Fahrgast es eilig?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Fahrgast nennt genau diesen Grund.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "slt_q2_a1",
+                "answer_text": "Er muss einen Zug um neun Uhr erreichen",
+                "is_correct": true
+              },
+              {
+                "id": "slt_q2_a2",
+                "answer_text": "Er hat ein Meeting",
+                "is_correct": false
+              },
+              {
+                "id": "slt_q2_a3",
+                "answer_text": "Er hat einen Arzttermin",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slt_q3",
+            "question_text": "Die Fahrt dauert normalerweise fünfzehn Minuten.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Fahrer sagt das genau so.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "slt_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "slt_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slt_q4",
+            "question_text": "Warum könnte die Fahrt heute länger dauern?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Fahrer nennt mehr Verkehr als Grund.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "slt_q4_a1",
+                "answer_text": "Es ist mehr Verkehr als sonst",
+                "is_correct": true
+              },
+              {
+                "id": "slt_q4_a2",
+                "answer_text": "Das Taxi hat eine Panne",
+                "is_correct": false
+              },
+              {
+                "id": "slt_q4_a3",
+                "answer_text": "Die Straße ist gesperrt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slt_q5",
+            "question_text": "Was macht der Fahrer, um pünktlich anzukommen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Fahrer sagt, er nimmt eine andere Straße.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "slt_q5_a1",
+                "answer_text": "Er nimmt eine andere Straße",
+                "is_correct": true
+              },
+              {
+                "id": "slt_q5_a2",
+                "answer_text": "Er fährt schneller",
+                "is_correct": false
+              },
+              {
+                "id": "slt_q5_a3",
+                "answer_text": "Er ruft einen Kollegen an",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slt_q6",
+            "question_text": "Der Fahrgast ist zum ersten Mal in der Stadt.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er wohnt dort, fährt aber selten mit dem Taxi.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "slt_q6_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "slt_q6_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_listening_flight_announcement": {
+    "sections": [
+      {
+        "key": "listening1",
+        "name": "استماع سريع",
+        "type": "listening",
+        "official_duration_minutes": null,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص الإعلان كما لو كنت تسمعه، ثم أجب عن الأسئلة.",
+        "passage": "Sehr geehrte Fluggäste, wir bitten alle Passagiere des Fluges nach Frankfurt, sich jetzt zum Gate 14 zu begeben, da das Boarding in wenigen Minuten beginnt. Bitte halten Sie Ihre Bordkarte und Ihren Reisepass bereit. Passagiere mit Kindern oder eingeschränkter Mobilität können bereits jetzt einsteigen. Wir weisen darauf hin, dass Handgepäck nur ein Stück pro Person sein darf. Der Flug ist aktuell voll besetzt, deshalb bitten wir um pünktliches Erscheinen am Gate. Bei Fragen wenden Sie sich bitte an das Personal am Gate. Wir wünschen Ihnen einen angenehmen Flug.",
+        "audio_url": "/audio/test_skill_listening_flight_announcement__listening1.mp3",
+        "items": [
+          {
+            "id": "slfa_q1",
+            "question_text": "Wohin fliegt dieser Flug?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Durchsage nennt Frankfurt.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "slfa_q1_a1",
+                "answer_text": "Nach Frankfurt",
+                "is_correct": true
+              },
+              {
+                "id": "slfa_q1_a2",
+                "answer_text": "Nach Berlin",
+                "is_correct": false
+              },
+              {
+                "id": "slfa_q1_a3",
+                "answer_text": "Nach München",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slfa_q2",
+            "question_text": "Zu welchem Gate sollen sich die Passagiere begeben?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Durchsage nennt Gate 14.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "slfa_q2_a1",
+                "answer_text": "Gate 14",
+                "is_correct": true
+              },
+              {
+                "id": "slfa_q2_a2",
+                "answer_text": "Gate 4",
+                "is_correct": false
+              },
+              {
+                "id": "slfa_q2_a3",
+                "answer_text": "Gate 40",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slfa_q3",
+            "question_text": "Passagiere mit Kindern dürfen zuerst einsteigen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Durchsage sagt das genau so.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "slfa_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "slfa_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slfa_q4",
+            "question_text": "Wie viele Handgepäckstücke sind pro Person erlaubt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Durchsage nennt ein Stück pro Person.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "slfa_q4_a1",
+                "answer_text": "Nur eins",
+                "is_correct": true
+              },
+              {
+                "id": "slfa_q4_a2",
+                "answer_text": "Zwei",
+                "is_correct": false
+              },
+              {
+                "id": "slfa_q4_a3",
+                "answer_text": "Drei",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slfa_q5",
+            "question_text": "Warum wird um pünktliches Erscheinen gebeten?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Durchsage nennt den vollen Flug als Grund.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "slfa_q5_a1",
+                "answer_text": "Der Flug ist voll besetzt",
+                "is_correct": true
+              },
+              {
+                "id": "slfa_q5_a2",
+                "answer_text": "Es gibt technische Probleme",
+                "is_correct": false
+              },
+              {
+                "id": "slfa_q5_a3",
+                "answer_text": "Das Wetter ist schlecht",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slfa_q6",
+            "question_text": "An wen sollen sich Passagiere mit Fragen wenden?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Durchsage nennt das Personal am Gate.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "slfa_q6_a1",
+                "answer_text": "An das Personal am Gate",
+                "is_correct": true
+              },
+              {
+                "id": "slfa_q6_a2",
+                "answer_text": "An den Piloten",
+                "is_correct": false
+              },
+              {
+                "id": "slfa_q6_a3",
+                "answer_text": "An die Information in der Halle",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_listening_car_repair": {
+    "sections": [
+      {
+        "key": "listening1",
+        "name": "استماع سريع",
+        "type": "listening",
+        "official_duration_minutes": null,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص المكالمة كما لو كنت تسمعها، ثم أجب عن الأسئلة.",
+        "passage": "Autowerkstatt Müller, guten Tag.\nGuten Tag, mein Auto macht seit gestern ein komisches Geräusch, wenn ich bremse.\nDas sollten wir uns ansehen. Können Sie das Auto heute noch vorbeibringen?\nJa, das würde gehen. Um wie viel Uhr passt es Ihnen?\nAm besten so gegen vierzehn Uhr, dann haben wir noch Zeit für eine Untersuchung.\nGut, dann komme ich um vierzehn Uhr.\nBringen Sie bitte auch die Fahrzeugpapiere mit. Falls die Bremsen erneuert werden müssen, rufen wir Sie vorher an.\nAlles klar, vielen Dank für die Information.\nGerne, bis später.\"",
+        "audio_url": "/audio/test_skill_listening_car_repair__listening1.mp3",
+        "items": [
+          {
+            "id": "slcr_q1",
+            "question_text": "Was ist das Problem mit dem Auto?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Anrufer nennt ein Geräusch beim Bremsen.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "slcr_q1_a1",
+                "answer_text": "Ein komisches Geräusch beim Bremsen",
+                "is_correct": true
+              },
+              {
+                "id": "slcr_q1_a2",
+                "answer_text": "Das Auto startet nicht",
+                "is_correct": false
+              },
+              {
+                "id": "slcr_q1_a3",
+                "answer_text": "Ein Ölverlust",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slcr_q2",
+            "question_text": "Seit wann macht das Auto das Geräusch?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Anrufer nennt seit gestern.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "slcr_q2_a1",
+                "answer_text": "Seit gestern",
+                "is_correct": true
+              },
+              {
+                "id": "slcr_q2_a2",
+                "answer_text": "Seit einer Woche",
+                "is_correct": false
+              },
+              {
+                "id": "slcr_q2_a3",
+                "answer_text": "Seit heute Morgen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slcr_q3",
+            "question_text": "Um wie viel Uhr soll der Kunde vorbeikommen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie einigen sich auf vierzehn Uhr.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "slcr_q3_a1",
+                "answer_text": "Um vierzehn Uhr",
+                "is_correct": true
+              },
+              {
+                "id": "slcr_q3_a2",
+                "answer_text": "Um zehn Uhr",
+                "is_correct": false
+              },
+              {
+                "id": "slcr_q3_a3",
+                "answer_text": "Um achtzehn Uhr",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slcr_q4",
+            "question_text": "Der Kunde soll die Fahrzeugpapiere mitbringen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die Werkstatt bittet genau darum.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "slcr_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "slcr_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slcr_q5",
+            "question_text": "Was passiert, wenn die Bremsen erneuert werden müssen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Werkstatt sagt, sie ruft vorher an.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "slcr_q5_a1",
+                "answer_text": "Die Werkstatt ruft vorher an",
+                "is_correct": true
+              },
+              {
+                "id": "slcr_q5_a2",
+                "answer_text": "Sie machen es ohne Rückfrage",
+                "is_correct": false
+              },
+              {
+                "id": "slcr_q5_a3",
+                "answer_text": "Der Kunde muss es selbst reparieren",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slcr_q6",
+            "question_text": "Wofür wird noch Zeit sein, wenn der Kunde um vierzehn Uhr kommt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Werkstatt nennt eine Untersuchung.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "slcr_q6_a1",
+                "answer_text": "Für eine Untersuchung",
+                "is_correct": true
+              },
+              {
+                "id": "slcr_q6_a2",
+                "answer_text": "Für eine Probefahrt",
+                "is_correct": false
+              },
+              {
+                "id": "slcr_q6_a3",
+                "answer_text": "Für ein Ersatzauto",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_listening_radio_news": {
+    "sections": [
+      {
+        "key": "listening1",
+        "name": "استماع سريع",
+        "type": "listening",
+        "official_duration_minutes": null,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص النشرة كما لو كنت تسمعها، ثم أجب عن الأسئلة.",
+        "passage": "Und hier die Nachrichten. In der Innenstadt beginnen ab morgen Bauarbeiten an der Hauptstraße, die voraussichtlich drei Wochen dauern werden. Autofahrer sollten während dieser Zeit eine andere Strecke wählen, da die Straße für den Verkehr gesperrt wird. Busse fahren weiterhin, allerdings über eine Umleitung, die etwa zehn Minuten länger dauert. Die Stadtverwaltung entschuldigt sich für die entstehenden Unannehmlichkeiten und bittet um Verständnis. Weitere Informationen zur Umleitung finden Sie auf der Webseite der Stadt. Nun zum Wetter für morgen...",
+        "audio_url": "/audio/test_skill_listening_radio_news__listening1.mp3",
+        "items": [
+          {
+            "id": "slrn_q1",
+            "question_text": "Was beginnt ab morgen in der Innenstadt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Nachricht nennt Bauarbeiten.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "slrn_q1_a1",
+                "answer_text": "Bauarbeiten an der Hauptstraße",
+                "is_correct": true
+              },
+              {
+                "id": "slrn_q1_a2",
+                "answer_text": "Ein Straßenfest",
+                "is_correct": false
+              },
+              {
+                "id": "slrn_q1_a3",
+                "answer_text": "Eine Demonstration",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slrn_q2",
+            "question_text": "Wie lange werden die Bauarbeiten voraussichtlich dauern?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Nachricht nennt drei Wochen.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "slrn_q2_a1",
+                "answer_text": "Drei Wochen",
+                "is_correct": true
+              },
+              {
+                "id": "slrn_q2_a2",
+                "answer_text": "Eine Woche",
+                "is_correct": false
+              },
+              {
+                "id": "slrn_q2_a3",
+                "answer_text": "Zwei Monate",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slrn_q3",
+            "question_text": "Die Hauptstraße bleibt für den Verkehr offen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Sie wird für den Verkehr gesperrt.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "slrn_q3_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "slrn_q3_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "slrn_q4",
+            "question_text": "Was passiert mit den Bussen während der Bauarbeiten?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Nachricht nennt eine Umleitung für Busse.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "slrn_q4_a1",
+                "answer_text": "Sie fahren über eine Umleitung",
+                "is_correct": true
+              },
+              {
+                "id": "slrn_q4_a2",
+                "answer_text": "Sie fahren gar nicht mehr",
+                "is_correct": false
+              },
+              {
+                "id": "slrn_q4_a3",
+                "answer_text": "Sie fahren häufiger",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slrn_q5",
+            "question_text": "Wie viel länger dauert die Umleitung ungefähr?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Nachricht nennt etwa zehn Minuten.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "slrn_q5_a1",
+                "answer_text": "Etwa zehn Minuten",
+                "is_correct": true
+              },
+              {
+                "id": "slrn_q5_a2",
+                "answer_text": "Etwa eine Stunde",
+                "is_correct": false
+              },
+              {
+                "id": "slrn_q5_a3",
+                "answer_text": "Etwa zwei Minuten",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slrn_q6",
+            "question_text": "Wo finden Bürger weitere Informationen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Nachricht nennt die Webseite der Stadt.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "slrn_q6_a1",
+                "answer_text": "Auf der Webseite der Stadt",
+                "is_correct": true
+              },
+              {
+                "id": "slrn_q6_a2",
+                "answer_text": "In der Zeitung",
+                "is_correct": false
+              },
+              {
+                "id": "slrn_q6_a3",
+                "answer_text": "Beim Busfahrer",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_listening_apartment_ad": {
+    "sections": [
+      {
+        "key": "listening1",
+        "name": "استماع سريع",
+        "type": "listening",
+        "official_duration_minutes": null,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص المكالمة كما لو كنت تسمعها، ثم أجب عن الأسئلة.",
+        "passage": "Guten Tag, ich rufe wegen der Wohnungsanzeige an, die Sie online veröffentlicht haben.\nGuten Tag, ja, die Wohnung ist noch frei. Möchten Sie mehr darüber wissen?\nJa gerne, wie viele Zimmer hat die Wohnung genau?\nEs sind zwei Zimmer, plus Küche und Bad, insgesamt etwa fünfundfünfzig Quadratmeter.\nUnd ist ein Balkon dabei? In der Anzeige stand das nicht so klar.\nJa, es gibt einen kleinen Balkon zum Innenhof.\nDas klingt gut. Wäre eine Besichtigung diese Woche möglich?\nJa, am Donnerstagnachmittag hätte ich Zeit. Passt Ihnen sechzehn Uhr?\nJa, das passt mir sehr gut. Vielen Dank.\"",
+        "audio_url": "/audio/test_skill_listening_apartment_ad__listening1.mp3",
+        "items": [
+          {
+            "id": "slaa_q1",
+            "question_text": "Warum ruft die Person an?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Anruferin nennt eine Wohnungsanzeige.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "slaa_q1_a1",
+                "answer_text": "Wegen einer Wohnungsanzeige",
+                "is_correct": true
+              },
+              {
+                "id": "slaa_q1_a2",
+                "answer_text": "Wegen eines Jobangebots",
+                "is_correct": false
+              },
+              {
+                "id": "slaa_q1_a3",
+                "answer_text": "Wegen eines Autoverkaufs",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slaa_q2",
+            "question_text": "Wie viele Zimmer hat die Wohnung?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Vermieter nennt zwei Zimmer.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "slaa_q2_a1",
+                "answer_text": "Zwei Zimmer",
+                "is_correct": true
+              },
+              {
+                "id": "slaa_q2_a2",
+                "answer_text": "Ein Zimmer",
+                "is_correct": false
+              },
+              {
+                "id": "slaa_q2_a3",
+                "answer_text": "Drei Zimmer",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slaa_q3",
+            "question_text": "Wie groß ist die Wohnung ungefähr?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Vermieter nennt etwa fünfundfünfzig Quadratmeter.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "slaa_q3_a1",
+                "answer_text": "Etwa fünfundfünfzig Quadratmeter",
+                "is_correct": true
+              },
+              {
+                "id": "slaa_q3_a2",
+                "answer_text": "Etwa dreißig Quadratmeter",
+                "is_correct": false
+              },
+              {
+                "id": "slaa_q3_a3",
+                "answer_text": "Etwa hundert Quadratmeter",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slaa_q4",
+            "question_text": "Die Wohnung hat keinen Balkon.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Es gibt einen kleinen Balkon zum Innenhof.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "slaa_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "slaa_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "slaa_q5",
+            "question_text": "Wann ist die Besichtigung geplant?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Sie einigen sich auf Donnerstagnachmittag.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "slaa_q5_a1",
+                "answer_text": "Donnerstagnachmittag",
+                "is_correct": true
+              },
+              {
+                "id": "slaa_q5_a2",
+                "answer_text": "Montagvormittag",
+                "is_correct": false
+              },
+              {
+                "id": "slaa_q5_a3",
+                "answer_text": "Samstagabend",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slaa_q6",
+            "question_text": "Um wie viel Uhr ist die Besichtigung?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Vermieter nennt sechzehn Uhr.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "slaa_q6_a1",
+                "answer_text": "Um sechzehn Uhr",
+                "is_correct": true
+              },
+              {
+                "id": "slaa_q6_a2",
+                "answer_text": "Um zehn Uhr",
+                "is_correct": false
+              },
+              {
+                "id": "slaa_q6_a3",
+                "answer_text": "Um zwanzig Uhr",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_listening_food_delivery": {
+    "sections": [
+      {
+        "key": "listening1",
+        "name": "استماع سريع",
+        "type": "listening",
+        "official_duration_minutes": null,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص المكالمة كما لو كنت تسمعها، ثم أجب عن الأسئلة.",
+        "passage": "Pizzeria Roma, guten Abend.\nGuten Abend, ich möchte gerne etwas bestellen, wenn das noch möglich ist.\nJa klar, was hätten Sie gerne?\nEinmal eine Pizza Margherita und einmal einen Salat mit Hähnchen, bitte.\nMöchten Sie dazu auch ein Getränk?\nJa, eine Flasche Wasser bitte.\nAlles klar, das macht dann zusammen achtzehn Euro fünfzig. Zahlen Sie bar oder mit Karte bei Lieferung?\nMit Karte, wenn das geht.\nKein Problem. Die Lieferung dauert ungefähr vierzig Minuten.\nGut, vielen Dank.\"",
+        "audio_url": "/audio/test_skill_listening_food_delivery__listening1.mp3",
+        "items": [
+          {
+            "id": "slfd_q1",
+            "question_text": "Was bestellt der Kunde zuerst?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Kunde bestellt eine Pizza Margherita.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "slfd_q1_a1",
+                "answer_text": "Eine Pizza Margherita",
+                "is_correct": true
+              },
+              {
+                "id": "slfd_q1_a2",
+                "answer_text": "Eine Pizza Salami",
+                "is_correct": false
+              },
+              {
+                "id": "slfd_q1_a3",
+                "answer_text": "Eine Lasagne",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slfd_q2",
+            "question_text": "Was bestellt der Kunde außerdem?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Kunde nennt einen Salat mit Hähnchen.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "slfd_q2_a1",
+                "answer_text": "Einen Salat mit Hähnchen",
+                "is_correct": true
+              },
+              {
+                "id": "slfd_q2_a2",
+                "answer_text": "Eine Suppe",
+                "is_correct": false
+              },
+              {
+                "id": "slfd_q2_a3",
+                "answer_text": "Ein Dessert",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slfd_q3",
+            "question_text": "Welches Getränk bestellt der Kunde?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Kunde nennt eine Flasche Wasser.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "slfd_q3_a1",
+                "answer_text": "Eine Flasche Wasser",
+                "is_correct": true
+              },
+              {
+                "id": "slfd_q3_a2",
+                "answer_text": "Eine Cola",
+                "is_correct": false
+              },
+              {
+                "id": "slfd_q3_a3",
+                "answer_text": "Einen Saft",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slfd_q4",
+            "question_text": "Wie viel kostet die Bestellung insgesamt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Mitarbeiterin nennt achtzehn Euro fünfzig.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "slfd_q4_a1",
+                "answer_text": "Achtzehn Euro fünfzig",
+                "is_correct": true
+              },
+              {
+                "id": "slfd_q4_a2",
+                "answer_text": "Zwölf Euro",
+                "is_correct": false
+              },
+              {
+                "id": "slfd_q4_a3",
+                "answer_text": "Fünfundzwanzig Euro",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "slfd_q5",
+            "question_text": "Der Kunde möchte bar bezahlen.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Er möchte mit Karte bezahlen.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "slfd_q5_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "slfd_q5_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "slfd_q6",
+            "question_text": "Wie lange dauert die Lieferung ungefähr?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Mitarbeiterin nennt ungefähr vierzig Minuten.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "slfd_q6_a1",
+                "answer_text": "Ungefähr vierzig Minuten",
+                "is_correct": true
+              },
+              {
+                "id": "slfd_q6_a2",
+                "answer_text": "Ungefähr zehn Minuten",
+                "is_correct": false
+              },
+              {
+                "id": "slfd_q6_a3",
+                "answer_text": "Ungefähr zwei Stunden",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_listening_dentist_booking": {
+    "sections": [
+      {
+        "key": "listening1",
+        "name": "استماع سريع",
+        "type": "listening",
+        "official_duration_minutes": null,
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص المكالمة كما لو كنت تسمعها، ثم أجب عن الأسئلة.",
+        "passage": "Zahnarztpraxis Dr. Weber, guten Tag.\nGuten Tag, ich hätte gerne einen Termin, ich habe seit zwei Tagen Zahnschmerzen.\nDas tut mir leid zu hören. Wir haben morgen Nachmittag noch einen freien Termin, würde das passen?\nJa, das wäre super. Um wie viel Uhr genau?\nUm fünfzehn Uhr dreißig. Waren Sie schon einmal bei uns?\nNein, das wäre mein erster Besuch hier.\nDann bringen Sie bitte Ihre Versichertenkarte mit und kommen Sie zehn Minuten früher, damit wir ein paar Formulare ausfüllen können.\nAlles klar, vielen Dank, bis morgen.\"",
+        "audio_url": "/audio/test_skill_listening_dentist_booking__listening1.mp3",
+        "items": [
+          {
+            "id": "sldb_q1",
+            "question_text": "Warum ruft die Person an?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Anruferin nennt Zahnschmerzen seit zwei Tagen.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "sldb_q1_a1",
+                "answer_text": "Sie hat seit zwei Tagen Zahnschmerzen",
+                "is_correct": true
+              },
+              {
+                "id": "sldb_q1_a2",
+                "answer_text": "Sie möchte eine Rechnung bezahlen",
+                "is_correct": false
+              },
+              {
+                "id": "sldb_q1_a3",
+                "answer_text": "Sie möchte einen Termin absagen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sldb_q2",
+            "question_text": "Wann ist der nächste freie Termin?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Praxis nennt morgen Nachmittag.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "sldb_q2_a1",
+                "answer_text": "Morgen Nachmittag",
+                "is_correct": true
+              },
+              {
+                "id": "sldb_q2_a2",
+                "answer_text": "Heute Abend",
+                "is_correct": false
+              },
+              {
+                "id": "sldb_q2_a3",
+                "answer_text": "Nächste Woche",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sldb_q3",
+            "question_text": "Um wie viel Uhr genau ist der Termin?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Praxis nennt fünfzehn Uhr dreißig.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "sldb_q3_a1",
+                "answer_text": "Um fünfzehn Uhr dreißig",
+                "is_correct": true
+              },
+              {
+                "id": "sldb_q3_a2",
+                "answer_text": "Um neun Uhr",
+                "is_correct": false
+              },
+              {
+                "id": "sldb_q3_a3",
+                "answer_text": "Um achtzehn Uhr",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sldb_q4",
+            "question_text": "Die Anruferin war schon einmal in dieser Praxis.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Es wäre ihr erster Besuch dort.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "sldb_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "sldb_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "sldb_q5",
+            "question_text": "Was soll die Anruferin mitbringen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Praxis nennt die Versichertenkarte.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "sldb_q5_a1",
+                "answer_text": "Ihre Versichertenkarte",
+                "is_correct": true
+              },
+              {
+                "id": "sldb_q5_a2",
+                "answer_text": "Einen Ausweis mit Foto",
+                "is_correct": false
+              },
+              {
+                "id": "sldb_q5_a3",
+                "answer_text": "Eine Überweisung",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "sldb_q6",
+            "question_text": "Wie viel früher soll sie kommen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die Praxis nennt zehn Minuten früher.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "sldb_q6_a1",
+                "answer_text": "Zehn Minuten früher",
+                "is_correct": true
+              },
+              {
+                "id": "sldb_q6_a2",
+                "answer_text": "Eine Stunde früher",
+                "is_correct": false
+              },
+              {
+                "id": "sldb_q6_a3",
+                "answer_text": "Fünf Minuten früher",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": null
+  },
+  "test_skill_writing_prepositions": {
+    "sections": [
+      {
+        "key": "language1",
+        "name": "حروف الجر",
+        "type": "language",
+        "official_duration_minutes": null,
+        "instructions": "اختر حرف الجر الصحيح في كل جملة.",
+        "passage": null,
+        "items": [
+          {
+            "id": "swp_q1",
+            "question_text": "Ich warte schon eine halbe Stunde ___ den Bus.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"warten auf\" + Akkusativ ist die feste Verbindung.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "swp_q1_a1",
+                "answer_text": "auf",
+                "is_correct": true
+              },
+              {
+                "id": "swp_q1_a2",
+                "answer_text": "mit",
+                "is_correct": false
+              },
+              {
+                "id": "swp_q1_a3",
+                "answer_text": "bei",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swp_q2",
+            "question_text": "Er wohnt zurzeit ___ seiner Schwester.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"wohnen bei\" (jemandem) + Dativ.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "swp_q2_a1",
+                "answer_text": "bei",
+                "is_correct": true
+              },
+              {
+                "id": "swp_q2_a2",
+                "answer_text": "auf",
+                "is_correct": false
+              },
+              {
+                "id": "swp_q2_a3",
+                "answer_text": "zu",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swp_q3",
+            "question_text": "Wir fahren nächste Woche ___ Hamburg.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Bei Städten ohne Artikel verwendet man \"nach\".",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "swp_q3_a1",
+                "answer_text": "nach",
+                "is_correct": true
+              },
+              {
+                "id": "swp_q3_a2",
+                "answer_text": "in",
+                "is_correct": false
+              },
+              {
+                "id": "swp_q3_a3",
+                "answer_text": "zu",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swp_q4",
+            "question_text": "Dieses Geschenk ist ___ dich.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"für\" + Akkusativ drückt aus, für wen etwas bestimmt ist.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "swp_q4_a1",
+                "answer_text": "für",
+                "is_correct": true
+              },
+              {
+                "id": "swp_q4_a2",
+                "answer_text": "auf",
+                "is_correct": false
+              },
+              {
+                "id": "swp_q4_a3",
+                "answer_text": "bei",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swp_q5",
+            "question_text": "Sie kommt gerade ___ der Arbeit nach Hause.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"von der Arbeit kommen\" ist die übliche Wendung.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "swp_q5_a1",
+                "answer_text": "von",
+                "is_correct": true
+              },
+              {
+                "id": "swp_q5_a2",
+                "answer_text": "aus",
+                "is_correct": false
+              },
+              {
+                "id": "swp_q5_a3",
+                "answer_text": "mit",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swp_q6",
+            "question_text": "Ich interessiere mich sehr ___ klassische Musik.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"sich interessieren für\" + Akkusativ ist die feste Verbindung.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "swp_q6_a1",
+                "answer_text": "für",
+                "is_correct": true
+              },
+              {
+                "id": "swp_q6_a2",
+                "answer_text": "an",
+                "is_correct": false
+              },
+              {
+                "id": "swp_q6_a3",
+                "answer_text": "mit",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": {
+      "name": "رسالة شكوى",
+      "official_duration_minutes": 15,
+      "instructions": "اكتب رسالة من 80 إلى 100 كلمة تقريبًا.",
+      "prompt": "اكتب رسالة شكوى إلى متجر إلكتروني اشتريت منه منتجًا وصل تالفًا. اذكر ماذا طلبت، ومتى وصل الطلب، وما هي المشكلة بالضبط، وماذا تريد من المتجر أن يفعل (استرجاع المال أو استبدال المنتج).",
+      "sample_answer": "Sehr geehrte Damen und Herren,\n\nam 3. Juni habe ich bei Ihnen eine Kaffeemaschine bestellt, die gestern bei mir angekommen ist. Leider war der Karton beim Öffnen bereits beschädigt, und die Maschine selbst funktioniert nicht richtig - sie schaltet sich nach wenigen Sekunden von selbst aus.\n\nIch bitte Sie daher um einen Umtausch gegen ein neues Gerät. Falls das nicht möglich ist, möchte ich mein Geld zurückerstattet bekommen.\n\nIch würde mich über eine schnelle Rückmeldung freuen.\n\nMit freundlichen Grüßen,\nLina Berrada"
+    }
+  },
+  "test_skill_writing_past_tense": {
+    "sections": [
+      {
+        "key": "language1",
+        "name": "صيغ الماضي",
+        "type": "language",
+        "official_duration_minutes": null,
+        "instructions": "اختر الصيغة الصحيحة في كل جملة.",
+        "passage": null,
+        "items": [
+          {
+            "id": "swpt_q1",
+            "question_text": "Ich ___ gestern Abend ins Kino gegangen.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Verben der Bewegung bilden das Perfekt mit \"sein\".",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "swpt_q1_a1",
+                "answer_text": "bin",
+                "is_correct": true
+              },
+              {
+                "id": "swpt_q1_a2",
+                "answer_text": "habe",
+                "is_correct": false
+              },
+              {
+                "id": "swpt_q1_a3",
+                "answer_text": "war",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swpt_q2",
+            "question_text": "Er ___ das ganze Buch in einem Tag gelesen.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"lesen\" bildet das Perfekt mit \"haben\".",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "swpt_q2_a1",
+                "answer_text": "hat",
+                "is_correct": true
+              },
+              {
+                "id": "swpt_q2_a2",
+                "answer_text": "ist",
+                "is_correct": false
+              },
+              {
+                "id": "swpt_q2_a3",
+                "answer_text": "war",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swpt_q3",
+            "question_text": "In der gesprochenen Sprache verwendet man meistens...",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Im mündlichen Erzählen wird meist das Perfekt bevorzugt.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "swpt_q3_a1",
+                "answer_text": "das Perfekt",
+                "is_correct": true
+              },
+              {
+                "id": "swpt_q3_a2",
+                "answer_text": "das Präteritum",
+                "is_correct": false
+              },
+              {
+                "id": "swpt_q3_a3",
+                "answer_text": "den Konjunktiv",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swpt_q4",
+            "question_text": "Sie ___ letztes Jahr in Berlin. (Präteritum von \"sein\")",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"war\" ist das Präteritum von \"sein\", auch mündlich sehr gebräuchlich.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "swpt_q4_a1",
+                "answer_text": "war",
+                "is_correct": true
+              },
+              {
+                "id": "swpt_q4_a2",
+                "answer_text": "ist gewesen",
+                "is_correct": false
+              },
+              {
+                "id": "swpt_q4_a3",
+                "answer_text": "hatte",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swpt_q5",
+            "question_text": "Wie lautet das Partizip II von \"fahren\"?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"fahren\" ist ein unregelmäßiges Verb: gefahren.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "swpt_q5_a1",
+                "answer_text": "gefahren",
+                "is_correct": true
+              },
+              {
+                "id": "swpt_q5_a2",
+                "answer_text": "gefahrt",
+                "is_correct": false
+              },
+              {
+                "id": "swpt_q5_a3",
+                "answer_text": "fahrte",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swpt_q6",
+            "question_text": "Wir ___ damals keine Zeit für Urlaub. (Präteritum von \"haben\")",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"hatten\" ist das Präteritum von \"haben\", auch mündlich üblich.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "swpt_q6_a1",
+                "answer_text": "hatten",
+                "is_correct": true
+              },
+              {
+                "id": "swpt_q6_a2",
+                "answer_text": "haben gehabt",
+                "is_correct": false
+              },
+              {
+                "id": "swpt_q6_a3",
+                "answer_text": "sind gewesen",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": {
+      "name": "سرد تجربة",
+      "official_duration_minutes": 15,
+      "instructions": "اكتب نصًا من 80 إلى 100 كلمة تقريبًا.",
+      "prompt": "احك عن تجربة سافرت فيها لأول مرة إلى مكان جديد. اذكر إلى أين ذهبت، ومع من، وماذا حدث، وكيف شعرت في تلك الرحلة.",
+      "sample_answer": "Vor zwei Jahren bin ich zum ersten Mal alleine nach Deutschland gereist. Ich war sehr aufgeregt, weil ich noch nie so weit von zu Hause weg gewesen war. Am Flughafen habe ich eine nette Frau kennengelernt, die mir bei der Passkontrolle geholfen hat. In Berlin habe ich bei einer Gastfamilie gewohnt, die mich sehr herzlich empfangen hat. Wir haben zusammen gekocht und viel geredet. Am Anfang hatte ich Angst, dass ich nicht genug Deutsch verstehen würde, aber es ging besser, als ich gedacht hatte. Diese Reise war eine der schönsten Erfahrungen meines Lebens."
+    }
+  },
+  "test_skill_writing_modal_verbs": {
+    "sections": [
+      {
+        "key": "language1",
+        "name": "الأفعال الشرطية",
+        "type": "language",
+        "official_duration_minutes": null,
+        "instructions": "اختر الفعل الشرطي الصحيح في كل جملة.",
+        "passage": null,
+        "items": [
+          {
+            "id": "swmv_q1",
+            "question_text": "Du ___ mehr Wasser trinken, das ist gut für die Gesundheit.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"solltest\" (Konjunktiv II von sollen) drückt eine Empfehlung aus.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "swmv_q1_a1",
+                "answer_text": "solltest",
+                "is_correct": true
+              },
+              {
+                "id": "swmv_q1_a2",
+                "answer_text": "darfst",
+                "is_correct": false
+              },
+              {
+                "id": "swmv_q1_a3",
+                "answer_text": "kannst",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swmv_q2",
+            "question_text": "Er ___ früher ins Bett gehen, wenn er müde ist.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"sollte\" ist die höfliche Form für einen Ratschlag.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "swmv_q2_a1",
+                "answer_text": "sollte",
+                "is_correct": true
+              },
+              {
+                "id": "swmv_q2_a2",
+                "answer_text": "muss",
+                "is_correct": false
+              },
+              {
+                "id": "swmv_q2_a3",
+                "answer_text": "darf",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swmv_q3",
+            "question_text": "Wie lautet die richtige Form von \"können\" für \"ich\"?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Die 1. Person Singular von \"können\" ist \"kann\".",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "swmv_q3_a1",
+                "answer_text": "kann",
+                "is_correct": true
+              },
+              {
+                "id": "swmv_q3_a2",
+                "answer_text": "kannst",
+                "is_correct": false
+              },
+              {
+                "id": "swmv_q3_a3",
+                "answer_text": "könnt",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swmv_q4",
+            "question_text": "Sie ___ das nicht so ernst nehmen, es ist nicht so wichtig.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"sollte\" passt hier als sanfter Ratschlag.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "swmv_q4_a1",
+                "answer_text": "sollte",
+                "is_correct": true
+              },
+              {
+                "id": "swmv_q4_a2",
+                "answer_text": "muss",
+                "is_correct": false
+              },
+              {
+                "id": "swmv_q4_a3",
+                "answer_text": "will",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swmv_q5",
+            "question_text": "Welches Modalverb drückt eine Möglichkeit aus?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"können\" drückt Fähigkeit oder Möglichkeit aus.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "swmv_q5_a1",
+                "answer_text": "können",
+                "is_correct": true
+              },
+              {
+                "id": "swmv_q5_a2",
+                "answer_text": "müssen",
+                "is_correct": false
+              },
+              {
+                "id": "swmv_q5_a3",
+                "answer_text": "sollen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swmv_q6",
+            "question_text": "Ich ___ dir gerne bei den Hausaufgaben helfen.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"kann\" drückt hier ein Angebot/eine Fähigkeit aus.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "swmv_q6_a1",
+                "answer_text": "kann",
+                "is_correct": true
+              },
+              {
+                "id": "swmv_q6_a2",
+                "answer_text": "soll",
+                "is_correct": false
+              },
+              {
+                "id": "swmv_q6_a3",
+                "answer_text": "darf",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": {
+      "name": "تقديم نصيحة",
+      "official_duration_minutes": 15,
+      "instructions": "اكتب نصًا من 80 إلى 100 كلمة تقريبًا.",
+      "prompt": "صديقك يشعر بالتوتر الشديد بسبب اختبار مهم قادم ويطلب نصيحتك. اكتب رسالة تقدم له فيها ثلاث نصائح على الأقل لمساعدته على التحضير والتعامل مع التوتر.",
+      "sample_answer": "Liebe Amina,\n\ndas tut mir leid, dass du dich so gestresst fühlst. Hier sind ein paar Tipps, die dir vielleicht helfen können.\n\nDu solltest dir einen klaren Lernplan machen und jeden Tag nur kleine Abschnitte lernen, statt alles auf einmal. Du könntest auch regelmäßige Pausen einplanen, damit dein Kopf sich erholen kann. Außerdem solltest du in der Nacht vor der Prüfung genug schlafen, statt bis spät zu lernen.\n\nDu musst nicht perfekt sein - du kannst nur dein Bestes geben. Ich bin sicher, dass du das schaffst!\n\nLiebe Grüße,\nSelma"
+    }
+  },
+  "test_skill_writing_adjective_endings": {
+    "sections": [
+      {
+        "key": "language1",
+        "name": "نهايات الصفات",
+        "type": "language",
+        "official_duration_minutes": null,
+        "instructions": "اختر نهاية الصفة الصحيحة في كل جملة.",
+        "passage": null,
+        "items": [
+          {
+            "id": "swae_q1",
+            "question_text": "Das ist ein sehr gut___ Produkt.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Nominativ, Neutrum, unbestimmter Artikel: \"gutes\".",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "swae_q1_a1",
+                "answer_text": "es",
+                "is_correct": true
+              },
+              {
+                "id": "swae_q1_a2",
+                "answer_text": "e",
+                "is_correct": false
+              },
+              {
+                "id": "swae_q1_a3",
+                "answer_text": "en",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swae_q2",
+            "question_text": "Ich kaufe die neu___ Tasche.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Akkusativ, Femininum, bestimmter Artikel: \"neue\".",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "swae_q2_a1",
+                "answer_text": "e",
+                "is_correct": true
+              },
+              {
+                "id": "swae_q2_a2",
+                "answer_text": "es",
+                "is_correct": false
+              },
+              {
+                "id": "swae_q2_a3",
+                "answer_text": "en",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swae_q3",
+            "question_text": "Er trägt einen schwarz___ Anzug.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Akkusativ, Maskulinum, unbestimmter Artikel: \"schwarzen\".",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "swae_q3_a1",
+                "answer_text": "en",
+                "is_correct": true
+              },
+              {
+                "id": "swae_q3_a2",
+                "answer_text": "e",
+                "is_correct": false
+              },
+              {
+                "id": "swae_q3_a3",
+                "answer_text": "es",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swae_q4",
+            "question_text": "Der neu___ Laptop ist sehr leicht. (Nominativ, Maskulinum, bestimmter Artikel)",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Nach dem bestimmten Artikel im Nominativ Maskulinum: \"neue\".",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "swae_q4_a1",
+                "answer_text": "e",
+                "is_correct": true
+              },
+              {
+                "id": "swae_q4_a2",
+                "answer_text": "en",
+                "is_correct": false
+              },
+              {
+                "id": "swae_q4_a3",
+                "answer_text": "es",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swae_q5",
+            "question_text": "Mit dem neu___ Auto fahren wir in den Urlaub.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Dativ, Neutrum, bestimmter Artikel: \"neuen\".",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "swae_q5_a1",
+                "answer_text": "en",
+                "is_correct": true
+              },
+              {
+                "id": "swae_q5_a2",
+                "answer_text": "e",
+                "is_correct": false
+              },
+              {
+                "id": "swae_q5_a3",
+                "answer_text": "es",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swae_q6",
+            "question_text": "Das sind schön___ Blumen. (Nominativ, Plural, ohne Artikel)",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Ohne Artikel im Nominativ Plural: \"schöne\".",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "swae_q6_a1",
+                "answer_text": "e",
+                "is_correct": true
+              },
+              {
+                "id": "swae_q6_a2",
+                "answer_text": "en",
+                "is_correct": false
+              },
+              {
+                "id": "swae_q6_a3",
+                "answer_text": "es",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": {
+      "name": "وصف منتج",
+      "official_duration_minutes": 15,
+      "instructions": "اكتب نصًا من 80 إلى 100 كلمة تقريبًا.",
+      "prompt": "صف منتجًا اشتريته مؤخرًا وأعجبك كثيرًا. اذكر ما هو المنتج، ولماذا اشتريته، وما هي مميزاته التي أعجبتك، وهل توصي به لغيرك.",
+      "sample_answer": "Vor zwei Wochen habe ich mir eine neue Kaffeemaschine gekauft, weil meine alte kaputt gegangen war. Die neue Maschine ist sehr modern und hat ein praktisches Design. Sie macht in wenigen Minuten einen leckeren, starken Kaffee, ohne dass man viel einstellen muss. Besonders gut gefällt mir, dass sie sehr leise ist und nicht viel Platz auf der Küchentheke braucht. Der einzige Nachteil ist der etwas hohe Preis. Trotzdem würde ich das Produkt jedem empfehlen, der Wert auf guten Kaffee am Morgen legt."
+    }
+  },
+  "test_skill_writing_connectors_advanced": {
+    "sections": [
+      {
+        "key": "language1",
+        "name": "أدوات الربط",
+        "type": "language",
+        "official_duration_minutes": null,
+        "instructions": "اختر أداة الربط الصحيحة في كل جملة.",
+        "passage": null,
+        "items": [
+          {
+            "id": "swca_q1",
+            "question_text": "Ich bleibe heute zu Hause, ___ es den ganzen Tag regnet.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"weil\" leitet einen Grund ein.",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "swca_q1_a1",
+                "answer_text": "weil",
+                "is_correct": true
+              },
+              {
+                "id": "swca_q1_a2",
+                "answer_text": "obwohl",
+                "is_correct": false
+              },
+              {
+                "id": "swca_q1_a3",
+                "answer_text": "trotzdem",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swca_q2",
+            "question_text": "___ er sehr müde war, ist er noch spazieren gegangen.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"obwohl\" drückt einen Gegensatz aus (Konzession).",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "swca_q2_a1",
+                "answer_text": "Obwohl",
+                "is_correct": true
+              },
+              {
+                "id": "swca_q2_a2",
+                "answer_text": "Weil",
+                "is_correct": false
+              },
+              {
+                "id": "swca_q2_a3",
+                "answer_text": "Deshalb",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swca_q3",
+            "question_text": "Nach \"weil\" steht das konjugierte Verb...",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "In Nebensätzen mit \"weil\" steht das Verb am Ende.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "swca_q3_a1",
+                "answer_text": "am Satzende",
+                "is_correct": true
+              },
+              {
+                "id": "swca_q3_a2",
+                "answer_text": "an zweiter Stelle",
+                "is_correct": false
+              },
+              {
+                "id": "swca_q3_a3",
+                "answer_text": "am Satzanfang",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swca_q4",
+            "question_text": "Er hat viel gelernt, ___ hat er die Prüfung bestanden.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"deshalb\" leitet eine Folge ein (Hauptsatz-Konnektor).",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "swca_q4_a1",
+                "answer_text": "deshalb",
+                "is_correct": true
+              },
+              {
+                "id": "swca_q4_a2",
+                "answer_text": "obwohl",
+                "is_correct": false
+              },
+              {
+                "id": "swca_q4_a3",
+                "answer_text": "weil",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swca_q5",
+            "question_text": "Welches Wort bedeutet \"obwohl\" auf Arabisch am besten?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"obwohl\" entspricht \"على الرغم من\" im Sinne eines Gegensatzes.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "swca_q5_a1",
+                "answer_text": "على الرغم من",
+                "is_correct": true
+              },
+              {
+                "id": "swca_q5_a2",
+                "answer_text": "لأن",
+                "is_correct": false
+              },
+              {
+                "id": "swca_q5_a3",
+                "answer_text": "لذلك",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swca_q6",
+            "question_text": "Sie ist sehr müde, ___ arbeitet sie noch bis spät in die Nacht.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"trotzdem\" drückt einen Gegensatz im Hauptsatz aus.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "swca_q6_a1",
+                "answer_text": "trotzdem",
+                "is_correct": true
+              },
+              {
+                "id": "swca_q6_a2",
+                "answer_text": "weil",
+                "is_correct": false
+              },
+              {
+                "id": "swca_q6_a3",
+                "answer_text": "damit",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": {
+      "name": "التعبير عن رأي",
+      "official_duration_minutes": 15,
+      "instructions": "اكتب نصًا من 80 إلى 100 كلمة تقريبًا.",
+      "prompt": "ما رأيك في العمل من المنزل مقارنة بالعمل في المكتب؟ اذكر رأيك بوضوح، مع ذكر سببين على الأقل يدعمان رأيك، مستخدمًا أدوات ربط مثل weil وobwohl وtrotzdem.",
+      "sample_answer": "Meiner Meinung nach ist Arbeiten von zu Hause aus besser als im Büro zu arbeiten. Ich spare viel Zeit, weil ich nicht jeden Tag zur Arbeit fahren muss. Außerdem kann ich meine Zeit flexibler einteilen und trotzdem produktiv sein. Obwohl man im Büro direkten Kontakt zu Kollegen hat, finde ich, dass Videoanrufe für die meisten Gespräche völlig ausreichen. Natürlich fehlt manchmal der persönliche Austausch, trotzdem überwiegen für mich die Vorteile der Arbeit von zu Hause aus deutlich."
+    }
+  },
+  "test_skill_writing_passive_voice": {
+    "sections": [
+      {
+        "key": "language1",
+        "name": "المبني للمجهول",
+        "type": "language",
+        "official_duration_minutes": null,
+        "instructions": "اختر الصيغة الصحيحة في كل جملة.",
+        "passage": null,
+        "items": [
+          {
+            "id": "swpv_q1",
+            "question_text": "\"Der Chef unterschreibt den Vertrag.\" Wie lautet der Satz im Passiv?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Im Passiv wird das Akkusativobjekt zum Subjekt: \"Der Vertrag wird...unterschrieben\".",
+            "order_index": 0,
+            "answers": [
+              {
+                "id": "swpv_q1_a1",
+                "answer_text": "Der Vertrag wird vom Chef unterschrieben.",
+                "is_correct": true
+              },
+              {
+                "id": "swpv_q1_a2",
+                "answer_text": "Der Vertrag hat den Chef unterschrieben.",
+                "is_correct": false
+              },
+              {
+                "id": "swpv_q1_a3",
+                "answer_text": "Der Chef wird unterschrieben.",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swpv_q2",
+            "question_text": "Welches Hilfsverb bildet das Passiv im Präsens?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Das Passiv wird mit \"werden\" + Partizip II gebildet.",
+            "order_index": 1,
+            "answers": [
+              {
+                "id": "swpv_q2_a1",
+                "answer_text": "werden",
+                "is_correct": true
+              },
+              {
+                "id": "swpv_q2_a2",
+                "answer_text": "haben",
+                "is_correct": false
+              },
+              {
+                "id": "swpv_q2_a3",
+                "answer_text": "sein",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swpv_q3",
+            "question_text": "Das Formular ___ von der Mitarbeiterin ausgefüllt.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Präsens Passiv: \"wird...ausgefüllt\".",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "swpv_q3_a1",
+                "answer_text": "wird",
+                "is_correct": true
+              },
+              {
+                "id": "swpv_q3_a2",
+                "answer_text": "hat",
+                "is_correct": false
+              },
+              {
+                "id": "swpv_q3_a3",
+                "answer_text": "ist",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swpv_q4",
+            "question_text": "Im Passiv steht das Verb in der Form...",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Das Passiv braucht immer das Partizip II des Hauptverbs.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "swpv_q4_a1",
+                "answer_text": "Partizip II",
+                "is_correct": true
+              },
+              {
+                "id": "swpv_q4_a2",
+                "answer_text": "Infinitiv",
+                "is_correct": false
+              },
+              {
+                "id": "swpv_q4_a3",
+                "answer_text": "Präteritum",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swpv_q5",
+            "question_text": "Die Pakete ___ morgen geliefert.",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Präsens Passiv, 3. Person Plural: \"werden...geliefert\".",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "swpv_q5_a1",
+                "answer_text": "werden",
+                "is_correct": true
+              },
+              {
+                "id": "swpv_q5_a2",
+                "answer_text": "sind",
+                "is_correct": false
+              },
+              {
+                "id": "swpv_q5_a3",
+                "answer_text": "haben",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "swpv_q6",
+            "question_text": "Wie lautet \"werden\" im Präteritum für \"es\" (Passiv Präteritum)?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Präteritum Passiv: \"wurde...gemacht\" usw.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "swpv_q6_a1",
+                "answer_text": "wurde",
+                "is_correct": true
+              },
+              {
+                "id": "swpv_q6_a2",
+                "answer_text": "wird",
+                "is_correct": false
+              },
+              {
+                "id": "swpv_q6_a3",
+                "answer_text": "worden",
+                "is_correct": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "writing": {
+      "name": "وصف إجراء",
+      "official_duration_minutes": 15,
+      "instructions": "اكتب نصًا من 80 إلى 100 كلمة تقريبًا.",
+      "prompt": "صف خطوات إجراء عمل بسيط تعرفه جيدًا (مثل كيفية تقديم طلب في مكان عملك أو كيفية تحضير وجبة بسيطة)، مستخدمًا صيغة المبني للمجهول (Passiv) قدر الإمكان.",
+      "sample_answer": "In unserem Büro wird jeder neue Antrag zuerst am Empfang entgegengenommen. Danach wird er an die zuständige Abteilung weitergeleitet. Dort werden alle Dokumente sorgfältig geprüft. Wenn etwas fehlt, wird der Antragsteller telefonisch kontaktiert. Sobald alle Unterlagen vollständig sind, wird der Antrag bearbeitet und innerhalb von fünf Werktagen wird eine Antwort verschickt. Am Ende wird das Ergebnis auch in der internen Datenbank gespeichert."
     }
   }
 };
