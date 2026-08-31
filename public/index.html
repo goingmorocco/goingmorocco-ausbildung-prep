@@ -111,6 +111,14 @@
                 }
             }
             this.loadLatestPosts();
+
+            if (!this.user && new URLSearchParams(window.location.search).get('signup') === '1') {
+                this.$nextTick(() => {
+                    this.showModal = true;
+                    this.modalTitle = 'إنشاء حساب';
+                    this.modalContent = this.$refs['register-form'].innerHTML;
+                });
+            }
         },
         async loadLatestPosts() {
             try {
@@ -230,6 +238,7 @@
                         <a href="#how-it-works" class="hover:text-flag-red transition-colors">كيف يعمل الموقع</a>
                         <a href="#available-tests" class="hover:text-flag-red transition-colors">الاختبارات</a>
                         <a href="#pricing" class="hover:text-flag-red transition-colors">الأسعار</a>
+                        <a href="blog.html" class="hover:text-flag-red transition-colors">المدونة</a>
                         <a href="#faq" class="hover:text-flag-red transition-colors">الأسئلة الشائعة</a>
                     </nav>
 
@@ -275,6 +284,7 @@
                         <a href="#how-it-works" @click="showMobileMenu=false" class="block text-flag-ink/70 hover:text-flag-red py-1">كيف يعمل الموقع</a>
                         <a href="#available-tests" @click="showMobileMenu=false" class="block text-flag-ink/70 hover:text-flag-red py-1">الاختبارات</a>
                         <a href="#pricing" @click="showMobileMenu=false" class="block text-flag-ink/70 hover:text-flag-red py-1">الأسعار</a>
+                        <a href="blog.html" class="block text-flag-ink/70 hover:text-flag-red py-1">المدونة</a>
                         <a href="#faq" @click="showMobileMenu=false" class="block text-flag-ink/70 hover:text-flag-red py-1">الأسئلة الشائعة</a>
                         <div class="pt-3 border-t border-black/10">
                             <template x-if="!user">
@@ -823,7 +833,9 @@
             <div class="grid md:grid-cols-3 gap-10">
                 <div>
                     <div class="flex items-center gap-2 mb-4">
-                        <img src="images/lisantest-logo.png" alt="LisanTest" class="h-9 w-auto">
+                        <div class="h-9 w-9 bg-white rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+                            <img src="images/lisantest-logo.png" alt="LisanTest" class="h-6 w-auto">
+                        </div>
                         <h3 class="font-display font-semibold">LisanTest<span class="text-flag-red">.com</span></h3>
                     </div>
                     <p class="text-sm text-white/60 mb-5">منصة شاملة للتحضير لاختبارات اللغة الألمانية المطلوبة لبرامج Ausbildung في ألمانيا</p>
@@ -843,6 +855,7 @@
                         <li><a href="#how-it-works" class="hover:text-flag-gold transition-colors">كيف يعمل الموقع</a></li>
                         <li><a href="#available-tests" class="hover:text-flag-gold transition-colors">الاختبارات المتاحة</a></li>
                         <li><a href="#pricing" class="hover:text-flag-gold transition-colors">الباقات والأسعار</a></li>
+                        <li><a href="blog.html" class="hover:text-flag-gold transition-colors">المدونة</a></li>
                         <li><a href="#faq" class="hover:text-flag-gold transition-colors">الأسئلة الشائعة</a></li>
                     </ul>
                 </div>
@@ -850,8 +863,8 @@
                 <div>
                     <h3 class="font-display font-semibold mb-4">اتصل بنا</h3>
                     <p class="text-sm text-white/60 mb-2"><i class="fas fa-map-marker-alt me-2"></i> الدار البيضاء، المغرب</p>
-                    <p class="text-sm text-white/60 mb-2"><i class="fas fa-phone me-2"></i> +212 5XX XXX XXX</p>
-                    <p class="text-sm text-white/60 mb-5"><i class="fas fa-envelope me-2"></i> info@ausbildung-test-prep.com</p>
+                    <p class="text-sm text-white/60 mb-2"><i class="fas fa-phone me-2"></i> +212680901375</p>
+                    <p class="text-sm text-white/60 mb-5"><i class="fas fa-envelope me-2"></i> hello@lisantest.com</p>
 
                     <form class="space-y-3" @submit.prevent>
                         <input type="email" placeholder="بريدك الإلكتروني للنشرة الإخبارية"
