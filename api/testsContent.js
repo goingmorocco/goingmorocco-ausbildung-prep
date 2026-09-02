@@ -8,26 +8,44 @@
 // until you run `node scripts/generate-audio.js` (see that file for setup).
 // Until then the frontend gracefully falls back to the transcript.
 //
-// `is_skill_practice: true` marks the short single-skill drills (as
-// opposed to the long realistic exams). `skill` groups them (reading/
-// listening/writing/speaking); `level` is an honest CEFR estimate (A2/
-// B1/B2) based on actual sentence complexity, vocabulary range, and
-// register -- NOT a default. Every skill-practice test's level was
-// reviewed and reassigned in one pass rather than inheriting a uniform
-// 'B1' placeholder from creation. Full-exam levels (Goethe/telc/OSD B1
-// or B2) are a different thing entirely -- they name which real exam
-// format the test represents, not a calibration claim; whether their
-// actual difficulty matches a real exam at that level is a separate,
-// larger, not-yet-done review.
+// `is_skill_practice: true` marks the short single-skill drills. `level`
+// on skill-practice tests is an honest CEFR estimate (A2/B1/B2), reviewed
+// per test rather than defaulted.
+//
+// ALL SIX full exams have had a structural pass against REAL, verified
+// exam formats (source-checked, not assumed). Content-quality depth
+// varies:
+//
+// test_telc_b1_beruf, test_telc_b2_beruf, test_goethe_b1, test_goethe_b2,
+//   test_osd_b1 -- FULLY REBUILT/AUDITED, including critical read-throughs
+//   for genuine inference vs direct-lookup quality.
+//
+// test_osd_b2 -- structural pass done, THEN a deep content-quality audit
+//   completed. Lesen was reviewed and found genuinely strong (lesen1 has
+//   real inversion/absolute-claim traps; lesen3 has a degree-inversion
+//   trap "kaum" vs "stark"; lesen4's direct-lookup style was judged
+//   acceptable for its rules-text genre) -- no fixes needed there.
+//   Hoeren2 (the economist interview) was found to be EXCELLENT on
+//   review -- multiple genuine inversion traps, a role-confusion trap,
+//   and two facts each deliberately tested twice from opposite angles,
+//   arguably better-constructed than several other sections in this
+//   whole rebuild. No fix needed.
+//   Hoeren1 had a REAL BUG, not a difficulty concern: 8 of its 20
+//   questions (originally meant to test false statements) verbatim
+//   restated what their corresponding announcement actually said, yet
+//   were marked "Falsch" -- an actively wrong answer key that would
+//   have marked a correctly-reasoning student incorrect, not just an
+//   easy question. All 8 were rewritten into genuine contradictions of
+//   their announcements (e.g. "once-off fee" -> falsely claimed
+//   "monthly fee"; "not taking place" -> falsely claimed "taking place
+//   as planned"), verified with a systematic check confirming zero
+//   remaining instances of the pattern.
 //
 // `content_kind` distinguishes a multiple-choice quiz ('quiz', default)
-// from a pure AI-graded essay prompt ('essay', no sections at all) from
-// a "mixed" test (content_kind='quiz' but WITH a test_writing_prompts
-// row attached -- same shape full exams have always used). public/
-// schreiben.html's quiz flow offers to continue into the essay-grading
-// flow after the MC portion when a writing prompt is attached.
+// from a pure AI-graded essay prompt ('essay') from a "mixed" test
+// (content_kind='quiz' with a test_writing_prompts row attached).
 //
-// NOTE: content can now also be created/edited live from the admin
+// NOTE: content can also be created/edited live from the admin
 // dashboard's test builder (public/admin.html, "الاختبارات" تبويب), backed
 // by the admin-tests Edge Function. Tests added via the admin UI live
 // only in the database, not in this file. Running the seed script again
@@ -42,7 +60,7 @@ const mockTests = [
     "test_type": "goethe_b1",
     "level": "B1",
     "duration_minutes": 165,
-    "total_questions": 60,
+    "total_questions": 59,
     "passing_score": 60,
     "is_active": true,
     "is_skill_practice": false,
@@ -55,7 +73,7 @@ const mockTests = [
     "test_type": "goethe_b2",
     "level": "B2",
     "duration_minutes": 180,
-    "total_questions": 60,
+    "total_questions": 62,
     "passing_score": 60,
     "is_active": true,
     "is_skill_practice": false,
@@ -68,7 +86,7 @@ const mockTests = [
     "test_type": "telc_b1_beruf",
     "level": "B1",
     "duration_minutes": 150,
-    "total_questions": 60,
+    "total_questions": 55,
     "passing_score": 60,
     "is_active": true,
     "is_skill_practice": false,
@@ -81,7 +99,7 @@ const mockTests = [
     "test_type": "telc_b2_beruf",
     "level": "B2",
     "duration_minutes": 150,
-    "total_questions": 60,
+    "total_questions": 55,
     "passing_score": 60,
     "is_active": true,
     "is_skill_practice": false,
@@ -94,7 +112,7 @@ const mockTests = [
     "test_type": "osd_b1",
     "level": "B1",
     "duration_minutes": 160,
-    "total_questions": 60,
+    "total_questions": 58,
     "passing_score": 60,
     "is_active": true,
     "is_skill_practice": false,
@@ -888,245 +906,185 @@ const mockContent = {
         "type": "reading",
         "official_duration_minutes": 65,
         "instructions": "Lesen Sie die Situationen 1–6 und wählen Sie die passende Anzeige (A–F).",
-        "passage": "Situationen:\n1. Eine Familie sucht eine günstige Wohnung in Zentrumsnähe.\n2. Ein Student sucht einen Deutschkurs am Abend.\n3. Eine Frau möchte gebrauchte Möbel kaufen.\n4. Ein Mann sucht eine Arbeit als Fahrer.\n5. Jemand möchte sein Fahrrad reparieren lassen.\n6. Eine Studentin sucht eine Nachhilfelehrerin für Mathematik.\n\nAnzeigen:\nA) 3-Zimmer-Wohnung, Nähe Stadtzentrum, 750€/Monat, ab sofort frei.\nB) Abendkurs Deutsch B1, montags und mittwochs, 18–20 Uhr, Volkshochschule.\nC) Second-Hand-Möbel: Sofa, Tisch, Stühle — günstig abzugeben.\nD) Gesucht: Lieferfahrer mit Führerschein Klasse B, Vollzeit.\nE) Fahrradwerkstatt: Reparaturen aller Art, auch am Wochenende geöffnet.\nF) Mathe-Nachhilfe für Schüler und Studierende, erste Stunde kostenlos.",
+        "passage": "Situationen:\n1. Eine Familie sucht eine günstige Wohnung in Zentrumsnähe.\n2. Ein Student sucht einen Deutschkurs am Abend.\n3. Eine Frau möchte gebrauchte Möbel kaufen.\n4. Ein Mann sucht eine Arbeit als Fahrer.\n5. Jemand möchte sein Fahrrad reparieren lassen.\n6. Eine Studentin sucht eine Nachhilfelehrerin für Mathematik.\n\nAnzeigen:\nA) 3-Zimmer-Wohnung, Nähe Stadtzentrum, 750€/Monat, ab sofort frei.\nB) Abendkurs Deutsch B1, montags und mittwochs, 18–20 Uhr, Volkshochschule.\nC) Second-Hand-Möbel: Sofa, Tisch, Stühle — günstig abzugeben.\nD) Gesucht: Lieferfahrer mit Führerschein Klasse B, Vollzeit.\nE) Fahrradwerkstatt: Reparaturen aller Art, auch am Wochenende geöffnet.\nF) Mathe-Nachhilfe für Schüler und Studierende, erste Stunde kostenlos.\nG) Yogakurs für Anfänger, samstags 10 Uhr, erste Probestunde gratis.\nH) 1-Zimmer-Wohnung am Stadtrand, 450€/Monat, ruhige Lage.\nI) Gebrauchtwagen zu verkaufen, guter Zustand, VB 3000€.",
         "items": [
           {
-            "id": "gb1_l2_q1",
-            "question_text": "Welche Anzeige passt zu Situation 1 (Eine...)?",
+            "id": "gb1l2_q1",
+            "question_text": "Welche Anzeige passt zu Situation 1 (Familie sucht günstige Wohnung in Zentrumsnähe)?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Anzeige A passt zu: Eine Familie sucht eine günstige Wohnung in Zentrumsnähe.",
+            "explanation": "Anzeige A ist in Zentrumsnähe, genau wie gesucht -- Anzeige H liegt am Stadtrand, das passt nicht.",
             "order_index": 0,
             "answers": [
               {
-                "id": "gb1_l2_q1_a1",
+                "id": "gb1l2_q1_a1",
                 "answer_text": "A) 3-Zimmer-Wohnung, Nähe Stadtzentrum, 750€/Monat, ab sofort frei.",
                 "is_correct": true
               },
               {
-                "id": "gb1_l2_q1_a2",
-                "answer_text": "B) Abendkurs Deutsch B1, montags und mittwochs, 18–20 Uhr, Volkshochschule.",
+                "id": "gb1l2_q1_a2",
+                "answer_text": "H) 1-Zimmer-Wohnung am Stadtrand, 450€/Monat, ruhige Lage.",
                 "is_correct": false
               },
               {
-                "id": "gb1_l2_q1_a3",
-                "answer_text": "C) Second-Hand-Möbel: Sofa, Tisch, Stühle — günstig abzugeben.",
+                "id": "gb1l2_q1_a3",
+                "answer_text": "G) Yogakurs für Anfänger, samstags 10 Uhr, erste Probestunde gratis.",
                 "is_correct": false
               },
               {
-                "id": "gb1_l2_q1_a4",
-                "answer_text": "D) Gesucht: Lieferfahrer mit Führerschein Klasse B, Vollzeit.",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_l2_q1_a5",
-                "answer_text": "E) Fahrradwerkstatt: Reparaturen aller Art, auch am Wochenende geöffnet.",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_l2_q1_a6",
-                "answer_text": "F) Mathe-Nachhilfe für Schüler und Studierende, erste Stunde kostenlos.",
+                "id": "gb1l2_q1_a4",
+                "answer_text": "I) Gebrauchtwagen zu verkaufen, guter Zustand, VB 3000€.",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "gb1_l2_q2",
-            "question_text": "Welche Anzeige passt zu Situation 2 (Ein...)?",
+            "id": "gb1l2_q2",
+            "question_text": "Welche Anzeige passt zu Situation 2 (Student sucht Abendkurs Deutsch)?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Anzeige B passt zu: Ein Student sucht einen Deutschkurs am Abend.",
+            "explanation": "Anzeige B ist genau der gesuchte Abendkurs Deutsch.",
             "order_index": 1,
             "answers": [
               {
-                "id": "gb1_l2_q2_a1",
-                "answer_text": "A) 3-Zimmer-Wohnung, Nähe Stadtzentrum, 750€/Monat, ab sofort frei.",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_l2_q2_a2",
+                "id": "gb1l2_q2_a1",
                 "answer_text": "B) Abendkurs Deutsch B1, montags und mittwochs, 18–20 Uhr, Volkshochschule.",
                 "is_correct": true
               },
               {
-                "id": "gb1_l2_q2_a3",
-                "answer_text": "C) Second-Hand-Möbel: Sofa, Tisch, Stühle — günstig abzugeben.",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_l2_q2_a4",
-                "answer_text": "D) Gesucht: Lieferfahrer mit Führerschein Klasse B, Vollzeit.",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_l2_q2_a5",
-                "answer_text": "E) Fahrradwerkstatt: Reparaturen aller Art, auch am Wochenende geöffnet.",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_l2_q2_a6",
+                "id": "gb1l2_q2_a2",
                 "answer_text": "F) Mathe-Nachhilfe für Schüler und Studierende, erste Stunde kostenlos.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1l2_q2_a3",
+                "answer_text": "G) Yogakurs für Anfänger, samstags 10 Uhr, erste Probestunde gratis.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1l2_q2_a4",
+                "answer_text": "E) Fahrradwerkstatt: Reparaturen aller Art, auch am Wochenende geöffnet.",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "gb1_l2_q3",
-            "question_text": "Welche Anzeige passt zu Situation 3 (Eine...)?",
+            "id": "gb1l2_q3",
+            "question_text": "Welche Anzeige passt zu Situation 3 (Frau möchte gebrauchte Möbel kaufen)?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Anzeige C passt zu: Eine Frau möchte gebrauchte Möbel kaufen.",
+            "explanation": "Anzeige C bietet gebrauchte Möbel an.",
             "order_index": 2,
             "answers": [
               {
-                "id": "gb1_l2_q3_a1",
-                "answer_text": "A) 3-Zimmer-Wohnung, Nähe Stadtzentrum, 750€/Monat, ab sofort frei.",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_l2_q3_a2",
-                "answer_text": "B) Abendkurs Deutsch B1, montags und mittwochs, 18–20 Uhr, Volkshochschule.",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_l2_q3_a3",
+                "id": "gb1l2_q3_a1",
                 "answer_text": "C) Second-Hand-Möbel: Sofa, Tisch, Stühle — günstig abzugeben.",
                 "is_correct": true
               },
               {
-                "id": "gb1_l2_q3_a4",
-                "answer_text": "D) Gesucht: Lieferfahrer mit Führerschein Klasse B, Vollzeit.",
+                "id": "gb1l2_q3_a2",
+                "answer_text": "I) Gebrauchtwagen zu verkaufen, guter Zustand, VB 3000€.",
                 "is_correct": false
               },
               {
-                "id": "gb1_l2_q3_a5",
-                "answer_text": "E) Fahrradwerkstatt: Reparaturen aller Art, auch am Wochenende geöffnet.",
+                "id": "gb1l2_q3_a3",
+                "answer_text": "A) 3-Zimmer-Wohnung, Nähe Stadtzentrum, 750€/Monat, ab sofort frei.",
                 "is_correct": false
               },
               {
-                "id": "gb1_l2_q3_a6",
-                "answer_text": "F) Mathe-Nachhilfe für Schüler und Studierende, erste Stunde kostenlos.",
+                "id": "gb1l2_q3_a4",
+                "answer_text": "B) Abendkurs Deutsch B1, montags und mittwochs, 18–20 Uhr, Volkshochschule.",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "gb1_l2_q4",
-            "question_text": "Welche Anzeige passt zu Situation 4 (Ein...)?",
+            "id": "gb1l2_q4",
+            "question_text": "Welche Anzeige passt zu Situation 4 (Mann sucht Arbeit als Fahrer)?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Anzeige D passt zu: Ein Mann sucht eine Arbeit als Fahrer.",
+            "explanation": "Anzeige D sucht genau einen Lieferfahrer.",
             "order_index": 3,
             "answers": [
               {
-                "id": "gb1_l2_q4_a1",
-                "answer_text": "A) 3-Zimmer-Wohnung, Nähe Stadtzentrum, 750€/Monat, ab sofort frei.",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_l2_q4_a2",
-                "answer_text": "B) Abendkurs Deutsch B1, montags und mittwochs, 18–20 Uhr, Volkshochschule.",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_l2_q4_a3",
-                "answer_text": "C) Second-Hand-Möbel: Sofa, Tisch, Stühle — günstig abzugeben.",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_l2_q4_a4",
+                "id": "gb1l2_q4_a1",
                 "answer_text": "D) Gesucht: Lieferfahrer mit Führerschein Klasse B, Vollzeit.",
                 "is_correct": true
               },
               {
-                "id": "gb1_l2_q4_a5",
-                "answer_text": "E) Fahrradwerkstatt: Reparaturen aller Art, auch am Wochenende geöffnet.",
+                "id": "gb1l2_q4_a2",
+                "answer_text": "F) Mathe-Nachhilfe für Schüler und Studierende, erste Stunde kostenlos.",
                 "is_correct": false
               },
               {
-                "id": "gb1_l2_q4_a6",
-                "answer_text": "F) Mathe-Nachhilfe für Schüler und Studierende, erste Stunde kostenlos.",
+                "id": "gb1l2_q4_a3",
+                "answer_text": "G) Yogakurs für Anfänger, samstags 10 Uhr, erste Probestunde gratis.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1l2_q4_a4",
+                "answer_text": "C) Second-Hand-Möbel: Sofa, Tisch, Stühle — günstig abzugeben.",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "gb1_l2_q5",
-            "question_text": "Welche Anzeige passt zu Situation 5 (Jemand...)?",
+            "id": "gb1l2_q5",
+            "question_text": "Welche Anzeige passt zu Situation 5 (jemand möchte Fahrrad reparieren lassen)?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Anzeige E passt zu: Jemand möchte sein Fahrrad reparieren lassen.",
+            "explanation": "Anzeige E ist die Fahrradwerkstatt für Reparaturen.",
             "order_index": 4,
             "answers": [
               {
-                "id": "gb1_l2_q5_a1",
-                "answer_text": "A) 3-Zimmer-Wohnung, Nähe Stadtzentrum, 750€/Monat, ab sofort frei.",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_l2_q5_a2",
-                "answer_text": "B) Abendkurs Deutsch B1, montags und mittwochs, 18–20 Uhr, Volkshochschule.",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_l2_q5_a3",
-                "answer_text": "C) Second-Hand-Möbel: Sofa, Tisch, Stühle — günstig abzugeben.",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_l2_q5_a4",
-                "answer_text": "D) Gesucht: Lieferfahrer mit Führerschein Klasse B, Vollzeit.",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_l2_q5_a5",
+                "id": "gb1l2_q5_a1",
                 "answer_text": "E) Fahrradwerkstatt: Reparaturen aller Art, auch am Wochenende geöffnet.",
                 "is_correct": true
               },
               {
-                "id": "gb1_l2_q5_a6",
-                "answer_text": "F) Mathe-Nachhilfe für Schüler und Studierende, erste Stunde kostenlos.",
+                "id": "gb1l2_q5_a2",
+                "answer_text": "I) Gebrauchtwagen zu verkaufen, guter Zustand, VB 3000€.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1l2_q5_a3",
+                "answer_text": "H) 1-Zimmer-Wohnung am Stadtrand, 450€/Monat, ruhige Lage.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1l2_q5_a4",
+                "answer_text": "D) Gesucht: Lieferfahrer mit Führerschein Klasse B, Vollzeit.",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "gb1_l2_q6",
-            "question_text": "Welche Anzeige passt zu Situation 6 (Eine...)?",
+            "id": "gb1l2_q6",
+            "question_text": "Welche Anzeige passt zu Situation 6 (Studentin sucht Nachhilfe Mathematik)?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Anzeige F passt zu: Eine Studentin sucht eine Nachhilfelehrerin für Mathematik.",
+            "explanation": "Anzeige F bietet genau Mathe-Nachhilfe an.",
             "order_index": 5,
             "answers": [
               {
-                "id": "gb1_l2_q6_a1",
-                "answer_text": "A) 3-Zimmer-Wohnung, Nähe Stadtzentrum, 750€/Monat, ab sofort frei.",
-                "is_correct": false
+                "id": "gb1l2_q6_a1",
+                "answer_text": "F) Mathe-Nachhilfe für Schüler und Studierende, erste Stunde kostenlos.",
+                "is_correct": true
               },
               {
-                "id": "gb1_l2_q6_a2",
+                "id": "gb1l2_q6_a2",
                 "answer_text": "B) Abendkurs Deutsch B1, montags und mittwochs, 18–20 Uhr, Volkshochschule.",
                 "is_correct": false
               },
               {
-                "id": "gb1_l2_q6_a3",
-                "answer_text": "C) Second-Hand-Möbel: Sofa, Tisch, Stühle — günstig abzugeben.",
+                "id": "gb1l2_q6_a3",
+                "answer_text": "G) Yogakurs für Anfänger, samstags 10 Uhr, erste Probestunde gratis.",
                 "is_correct": false
               },
               {
-                "id": "gb1_l2_q6_a4",
-                "answer_text": "D) Gesucht: Lieferfahrer mit Führerschein Klasse B, Vollzeit.",
+                "id": "gb1l2_q6_a4",
+                "answer_text": "A) 3-Zimmer-Wohnung, Nähe Stadtzentrum, 750€/Monat, ab sofort frei.",
                 "is_correct": false
-              },
-              {
-                "id": "gb1_l2_q6_a5",
-                "answer_text": "E) Fahrradwerkstatt: Reparaturen aller Art, auch am Wochenende geöffnet.",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_l2_q6_a6",
-                "answer_text": "F) Mathe-Nachhilfe für Schüler und Studierende, erste Stunde kostenlos.",
-                "is_correct": true
               }
             ]
           }
@@ -1138,139 +1096,129 @@ const mockContent = {
         "type": "reading",
         "official_duration_minutes": 65,
         "instructions": "Lesen Sie den Text und beantworten Sie die Fragen.",
-        "passage": "Öffnungszeiten der Stadtbibliothek\n\nDie Stadtbibliothek München ist von Montag bis Freitag von 9 bis 20 Uhr geöffnet, samstags von 10 bis 16 Uhr. Sonntags bleibt sie geschlossen. Die Ausleihe von Büchern ist für Mitglieder kostenlos, eine Jahresmitgliedschaft kostet 20 Euro für Erwachsene und ist für Kinder und Jugendliche unter 18 Jahren kostenlos. Wer ein Buch zu spät zurückbringt, zahlt eine Gebühr von 50 Cent pro Tag und Buch. Im zweiten Stock gibt es einen ruhigen Lesesaal mit kostenlosem WLAN, der auch für Gruppenarbeit genutzt werden kann.",
+        "passage": "Im Gespräch: Warum ich meinen Beruf gewechselt habe\n\nHerr Baumann, Sie haben vor zwei Jahren Ihren Job als Bankangestellter aufgegeben und arbeiten jetzt als Gärtner. Was war der Grund für diese Entscheidung?\n\nEhrlich gesagt, ich war einfach nicht mehr glücklich in meinem alten Beruf. Ich habe zehn Jahre lang in einem Büro gearbeitet, meistens am Computer, und mir hat die Bewegung an der frischen Luft gefehlt. Als Kind habe ich schon gerne im Garten meiner Großeltern geholfen, und dieser Wunsch ist nie ganz verschwunden.\n\nWar es schwierig, diese Entscheidung zu treffen?\n\nAm Anfang schon. Ich hatte ein sicheres Gehalt und musste erst eine Ausbildung zum Gärtner machen, die zwei Jahre gedauert hat. Meine Familie war zunächst skeptisch, aber sie hat mich am Ende sehr unterstützt.\n\nWürden Sie anderen Menschen auch raten, ihren Beruf zu wechseln?\n\nNur wenn sie wirklich unglücklich sind. Ein Berufswechsel bedeutet oft finanzielle Unsicherheit für eine gewisse Zeit. Aber wenn man jeden Tag mit Freude zur Arbeit geht, ist das für mich mehr wert als ein hohes Gehalt.",
         "items": [
           {
-            "id": "gb1_l3_q1",
-            "question_text": "Wann ist die Bibliothek samstags geöffnet?",
+            "id": "gb1l3_q1",
+            "question_text": "Was hat Herr Baumann früher gemacht?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Der Text nennt 10 bis 16 Uhr für Samstag.",
+            "explanation": "Er war Bankangestellter, bevor er Gärtner wurde.",
             "order_index": 0,
             "answers": [
               {
-                "id": "gb1_l3_q1_a1",
-                "answer_text": "Von 10 bis 16 Uhr",
+                "id": "gb1l3_q1_a1",
+                "answer_text": "Er hat in einer Bank gearbeitet.",
                 "is_correct": true
               },
               {
-                "id": "gb1_l3_q1_a2",
-                "answer_text": "Von 9 bis 20 Uhr",
+                "id": "gb1l3_q1_a2",
+                "answer_text": "Er war Gärtner.",
                 "is_correct": false
               },
               {
-                "id": "gb1_l3_q1_a3",
-                "answer_text": "Sie ist samstags geschlossen",
+                "id": "gb1l3_q1_a3",
+                "answer_text": "Er hat als Lehrer gearbeitet.",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "gb1_l3_q2",
-            "question_text": "Die Bibliothek ist sonntags geöffnet.",
-            "question_type": "true_false",
+            "id": "gb1l3_q2",
+            "question_text": "Warum wollte er seinen Beruf wechseln?",
+            "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Sonntags bleibt sie geschlossen.",
+            "explanation": "Er sagt, ihm hat die Bewegung an der frischen Luft gefehlt.",
             "order_index": 1,
             "answers": [
               {
-                "id": "gb1_l3_q2_r",
-                "answer_text": "Richtig",
+                "id": "gb1l3_q2_a1",
+                "answer_text": "Ihm fehlte die Bewegung an der frischen Luft.",
+                "is_correct": true
+              },
+              {
+                "id": "gb1l3_q2_a2",
+                "answer_text": "Er hat seinen Job verloren.",
                 "is_correct": false
               },
               {
-                "id": "gb1_l3_q2_f",
-                "answer_text": "Falsch",
-                "is_correct": true
+                "id": "gb1l3_q2_a3",
+                "answer_text": "Sein Gehalt war zu niedrig.",
+                "is_correct": false
               }
             ]
           },
           {
-            "id": "gb1_l3_q3",
-            "question_text": "Wie viel kostet die Jahresmitgliedschaft für Erwachsene?",
+            "id": "gb1l3_q3",
+            "question_text": "Wie lange hat die Ausbildung zum Gärtner gedauert?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Der Text nennt 20 Euro für Erwachsene.",
+            "explanation": "Der Text nennt zwei Jahre.",
             "order_index": 2,
             "answers": [
               {
-                "id": "gb1_l3_q3_a1",
-                "answer_text": "20 Euro",
+                "id": "gb1l3_q3_a1",
+                "answer_text": "Zwei Jahre",
                 "is_correct": true
               },
               {
-                "id": "gb1_l3_q3_a2",
-                "answer_text": "10 Euro",
+                "id": "gb1l3_q3_a2",
+                "answer_text": "Ein Jahr",
                 "is_correct": false
               },
               {
-                "id": "gb1_l3_q3_a3",
-                "answer_text": "Sie ist kostenlos",
+                "id": "gb1l3_q3_a3",
+                "answer_text": "Fünf Jahre",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "gb1_l3_q4",
-            "question_text": "Für Kinder unter 18 Jahren ist die Mitgliedschaft kostenlos.",
-            "question_type": "true_false",
+            "id": "gb1l3_q4",
+            "question_text": "Wie hat seine Familie am Anfang reagiert?",
+            "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Der Text sagt das ausdrücklich.",
+            "explanation": "Der Text sagt, die Familie war zunächst skeptisch, hat ihn aber am Ende unterstützt.",
             "order_index": 3,
             "answers": [
               {
-                "id": "gb1_l3_q4_r",
-                "answer_text": "Richtig",
+                "id": "gb1l3_q4_a1",
+                "answer_text": "Sie war zunächst skeptisch.",
                 "is_correct": true
               },
               {
-                "id": "gb1_l3_q4_f",
-                "answer_text": "Falsch",
+                "id": "gb1l3_q4_a2",
+                "answer_text": "Sie war sofort begeistert.",
+                "is_correct": false
+              },
+              {
+                "id": "gb1l3_q4_a3",
+                "answer_text": "Sie hat ihm nicht geholfen.",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "gb1_l3_q5",
-            "question_text": "Wie viel zahlt man, wenn man ein Buch zu spät zurückbringt?",
+            "id": "gb1l3_q5",
+            "question_text": "Was rät Herr Baumann anderen Menschen?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Der Text nennt eine Gebühr von 50 Cent pro Tag.",
+            "explanation": "Er sagt, nur wenn jemand wirklich unglücklich ist.",
             "order_index": 4,
             "answers": [
               {
-                "id": "gb1_l3_q5_a1",
-                "answer_text": "50 Cent pro Tag",
+                "id": "gb1l3_q5_a1",
+                "answer_text": "Nur wechseln, wenn man wirklich unglücklich ist.",
                 "is_correct": true
               },
               {
-                "id": "gb1_l3_q5_a2",
-                "answer_text": "1 Euro pro Tag",
+                "id": "gb1l3_q5_a2",
+                "answer_text": "Jeder sollte seinen Beruf wechseln.",
                 "is_correct": false
               },
               {
-                "id": "gb1_l3_q5_a3",
-                "answer_text": "Nichts",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "gb1_l3_q6",
-            "question_text": "Im Lesesaal gibt es kostenloses WLAN.",
-            "question_type": "true_false",
-            "points": 1,
-            "explanation": "Der Text erwähnt kostenloses WLAN im Lesesaal.",
-            "order_index": 5,
-            "answers": [
-              {
-                "id": "gb1_l3_q6_r",
-                "answer_text": "Richtig",
-                "is_correct": true
-              },
-              {
-                "id": "gb1_l3_q6_f",
-                "answer_text": "Falsch",
+                "id": "gb1l3_q5_a3",
+                "answer_text": "Man sollte nie den Beruf wechseln.",
                 "is_correct": false
               }
             ]
@@ -1672,266 +1620,6 @@ const mockContent = {
                 "id": "gb1_l5_q6_f",
                 "answer_text": "Falsch",
                 "is_correct": true
-              }
-            ]
-          }
-        ]
-      },
-      {
-        "key": "sprachbausteine",
-        "name": "Sprachbausteine (تدريب إضافي)",
-        "type": "language",
-        "official_duration_minutes": null,
-        "instructions": "تدريب إضافي على القواعد والمفردات (غير جزء رسمي من اختبار Goethe، لكنه مفيد للتحضير).",
-        "passage": null,
-        "items": [
-          {
-            "id": "gb1_sb_q1",
-            "question_text": "Ich ___ seit drei Jahren in Deutschland.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Mit \"Ich\" verwendet man \"wohne\".",
-            "order_index": 0,
-            "answers": [
-              {
-                "id": "gb1_sb_q1_a1",
-                "answer_text": "wohne",
-                "is_correct": true
-              },
-              {
-                "id": "gb1_sb_q1_a2",
-                "answer_text": "wohnst",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_sb_q1_a3",
-                "answer_text": "wohnen",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "gb1_sb_q2",
-            "question_text": "Wir freuen uns ___ deinen Besuch.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"sich freuen auf\" + Akkusativ.",
-            "order_index": 1,
-            "answers": [
-              {
-                "id": "gb1_sb_q2_a1",
-                "answer_text": "auf",
-                "is_correct": true
-              },
-              {
-                "id": "gb1_sb_q2_a2",
-                "answer_text": "für",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_sb_q2_a3",
-                "answer_text": "mit",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "gb1_sb_q3",
-            "question_text": "___ du mir bitte helfen?",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Mit \"du\" verwendet man \"kannst\".",
-            "order_index": 2,
-            "answers": [
-              {
-                "id": "gb1_sb_q3_a1",
-                "answer_text": "Kannst",
-                "is_correct": true
-              },
-              {
-                "id": "gb1_sb_q3_a2",
-                "answer_text": "Kann",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_sb_q3_a3",
-                "answer_text": "Können",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "gb1_sb_q4",
-            "question_text": "Er ist ___ als sein Bruder.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Vergleich zwischen zwei Personen braucht den Komparativ.",
-            "order_index": 3,
-            "answers": [
-              {
-                "id": "gb1_sb_q4_a1",
-                "answer_text": "größer",
-                "is_correct": true
-              },
-              {
-                "id": "gb1_sb_q4_a2",
-                "answer_text": "groß",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_sb_q4_a3",
-                "answer_text": "am größten",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "gb1_sb_q5",
-            "question_text": "Ich rufe dich an, ___ ich zu Hause bin.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"wenn\" drückt eine Bedingung/einen Zeitpunkt aus.",
-            "order_index": 4,
-            "answers": [
-              {
-                "id": "gb1_sb_q5_a1",
-                "answer_text": "wenn",
-                "is_correct": true
-              },
-              {
-                "id": "gb1_sb_q5_a2",
-                "answer_text": "obwohl",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_sb_q5_a3",
-                "answer_text": "damit",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "gb1_sb_q6",
-            "question_text": "Das ist die Frau, ___ mir geholfen hat.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Relativpronomen für feminines Subjekt: \"die\".",
-            "order_index": 5,
-            "answers": [
-              {
-                "id": "gb1_sb_q6_a1",
-                "answer_text": "die",
-                "is_correct": true
-              },
-              {
-                "id": "gb1_sb_q6_a2",
-                "answer_text": "der",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_sb_q6_a3",
-                "answer_text": "das",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "gb1_sb_q7",
-            "question_text": "Ich habe das Buch schon ___.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Perfekt: \"habe\" + Partizip II \"gelesen\".",
-            "order_index": 6,
-            "answers": [
-              {
-                "id": "gb1_sb_q7_a1",
-                "answer_text": "gelesen",
-                "is_correct": true
-              },
-              {
-                "id": "gb1_sb_q7_a2",
-                "answer_text": "lesen",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_sb_q7_a3",
-                "answer_text": "las",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "gb1_sb_q8",
-            "question_text": "Sie interessiert sich sehr ___ Musik.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"sich interessieren für\" + Akkusativ.",
-            "order_index": 7,
-            "answers": [
-              {
-                "id": "gb1_sb_q8_a1",
-                "answer_text": "für",
-                "is_correct": true
-              },
-              {
-                "id": "gb1_sb_q8_a2",
-                "answer_text": "an",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_sb_q8_a3",
-                "answer_text": "mit",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "gb1_sb_q9",
-            "question_text": "Nach der Arbeit gehe ich ___ Hause.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"nach Hause gehen\" ist eine feste Wendung.",
-            "order_index": 8,
-            "answers": [
-              {
-                "id": "gb1_sb_q9_a1",
-                "answer_text": "nach",
-                "is_correct": true
-              },
-              {
-                "id": "gb1_sb_q9_a2",
-                "answer_text": "zu",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_sb_q9_a3",
-                "answer_text": "in",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "gb1_sb_q10",
-            "question_text": "Er hat mir geholfen, ___ das Formular auszufüllen.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"um...zu\" drückt einen Zweck aus.",
-            "order_index": 9,
-            "answers": [
-              {
-                "id": "gb1_sb_q10_a1",
-                "answer_text": "um",
-                "is_correct": true
-              },
-              {
-                "id": "gb1_sb_q10_a2",
-                "answer_text": "damit",
-                "is_correct": false
-              },
-              {
-                "id": "gb1_sb_q10_a3",
-                "answer_text": "weil",
-                "is_correct": false
               }
             ]
           }
@@ -2700,9 +2388,9 @@ const mockContent = {
     "writing": {
       "name": "Schreiben (تدريب غير مُقيَّم)",
       "official_duration_minutes": 60,
-      "instructions": "في الاختبار الرسمي، تكتب رسالتين إلكترونيتين ومساهمة نقاش. هذا تدريب ذاتي غير مُقيَّم آليًا — اكتب إجابتك ثم قارنها بالنموذج.",
-      "prompt": "Schreiben Sie eine informelle E-Mail an einen Freund / eine Freundin (ca. 40–50 Wörter). Gehen Sie auf folgende Punkte ein:\n- Erzählen Sie, warum Sie nicht zu seiner/ihrer Geburtstagsfeier kommen konnten.\n- Entschuldigen Sie sich.\n- Schlagen Sie ein Treffen für nächste Woche vor.",
-      "sample_answer": "Liebe Sara,\n\nes tut mir sehr leid, dass ich nicht zu deiner Geburtstagsfeier kommen konnte. Ich war leider krank und musste zu Hause bleiben. Ich hoffe, du kannst mir verzeihen!\n\nHättest du nächste Woche Zeit? Ich würde dich gerne zum Kaffee einladen, um deinen Geburtstag nachzufeiern.\n\nLiebe Grüße\nAhmed"
+      "instructions": "في الاختبار الرسمي، تكتب ثلاثة نصوص: بريدًا إلكترونيًا غير رسمي، مساهمة في منتدى، وبريدًا إلكترونيًا رسميًا. اكتب النصوص الثلاثة معًا في إجابة واحدة، بنفس الترتيب. هذا تدريب ذاتي غير مُقيَّم آليًا.",
+      "prompt": "Teil 1 — Informelle E-Mail (ca. 40–50 Wörter):\nSchreiben Sie eine informelle E-Mail an einen Freund / eine Freundin. Gehen Sie auf folgende Punkte ein:\n- Erzählen Sie, warum Sie nicht zu seiner/ihrer Geburtstagsfeier kommen konnten.\n- Entschuldigen Sie sich.\n- Schlagen Sie ein Treffen für nächste Woche vor.\n\nTeil 2 — Forumsbeitrag (ca. 60–80 Wörter):\nSchreiben Sie einen Beitrag für ein Forum zum Thema: \"Ist es besser, in der Stadt oder auf dem Land zu wohnen?\" Sagen Sie Ihre Meinung und nennen Sie mindestens einen Grund.\n\nTeil 3 — Formelle E-Mail (ca. 50–70 Wörter):\nSchreiben Sie eine formelle E-Mail an ein Fitnessstudio, in dem Sie Mitglied sind. Sie möchten Ihre Mitgliedschaft kündigen. Nennen Sie den Grund und fragen Sie nach den nächsten Schritten.",
+      "sample_answer": "Teil 1:\nLiebe Sara,\n\nes tut mir sehr leid, dass ich nicht zu deiner Geburtstagsfeier kommen konnte. Ich war leider krank und musste zu Hause bleiben. Ich hoffe, du kannst mir verzeihen!\n\nHättest du nächste Woche Zeit? Ich würde dich gerne zum Kaffee einladen, um deinen Geburtstag nachzufeiern.\n\nLiebe Grüße\nAhmed\n\nTeil 2:\nMeiner Meinung nach ist das Leben in der Stadt praktischer. Man hat viele Geschäfte, Ärzte und öffentliche Verkehrsmittel in der Nähe, und man muss nicht lange fahren, um etwas zu erledigen. Auf dem Land ist es zwar ruhiger, aber oft gibt es weniger Möglichkeiten für Freizeit und Arbeit. Deshalb würde ich immer die Stadt wählen, auch wenn es dort manchmal lauter ist.\n\nTeil 3:\nSehr geehrte Damen und Herren,\n\nhiermit möchte ich meine Mitgliedschaft in Ihrem Fitnessstudio zum Ende des Monats kündigen, da ich in eine andere Stadt umziehe.\n\nKönnten Sie mir bitte mitteilen, welche Schritte ich dafür unternehmen muss und ob es eine Kündigungsfrist gibt?\n\nMit freundlichen Grüßen\nOmar Haddad"
     }
   },
   "test_goethe_b2": {
@@ -3160,18 +2848,18 @@ const mockContent = {
             "question_text": "Wer findet Minimalismus übertrieben?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Katja nennt es übertrieben wegen des emotionalen Werts von Dingen.",
+            "explanation": "Katja findet Minimalismus übertrieben.",
             "order_index": 1,
             "answers": [
               {
                 "id": "gb2_l3_q2_a1",
-                "answer_text": "Jonas",
-                "is_correct": false
+                "answer_text": "Katja",
+                "is_correct": true
               },
               {
                 "id": "gb2_l3_q2_a2",
-                "answer_text": "Katja",
-                "is_correct": true
+                "answer_text": "Jonas",
+                "is_correct": false
               },
               {
                 "id": "gb2_l3_q2_a3",
@@ -3200,23 +2888,23 @@ const mockContent = {
             "question_text": "Für wen ist es vor allem eine finanzielle Entscheidung?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Luca nennt finanzielle Gründe.",
+            "explanation": "Luca nennt es eine finanzielle Entscheidung.",
             "order_index": 2,
             "answers": [
               {
                 "id": "gb2_l3_q3_a1",
+                "answer_text": "Luca",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l3_q3_a2",
                 "answer_text": "Jonas",
                 "is_correct": false
               },
               {
-                "id": "gb2_l3_q3_a2",
+                "id": "gb2_l3_q3_a3",
                 "answer_text": "Katja",
                 "is_correct": false
-              },
-              {
-                "id": "gb2_l3_q3_a3",
-                "answer_text": "Luca",
-                "is_correct": true
               },
               {
                 "id": "gb2_l3_q3_a4",
@@ -3245,23 +2933,23 @@ const mockContent = {
             "answers": [
               {
                 "id": "gb2_l3_q4_a1",
+                "answer_text": "Mona",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l3_q4_a2",
                 "answer_text": "Jonas",
                 "is_correct": false
               },
               {
-                "id": "gb2_l3_q4_a2",
+                "id": "gb2_l3_q4_a3",
                 "answer_text": "Katja",
                 "is_correct": false
               },
               {
-                "id": "gb2_l3_q4_a3",
+                "id": "gb2_l3_q4_a4",
                 "answer_text": "Luca",
                 "is_correct": false
-              },
-              {
-                "id": "gb2_l3_q4_a4",
-                "answer_text": "Mona",
-                "is_correct": true
               },
               {
                 "id": "gb2_l3_q4_a5",
@@ -3285,28 +2973,28 @@ const mockContent = {
             "answers": [
               {
                 "id": "gb2_l3_q5_a1",
+                "answer_text": "Noah",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l3_q5_a2",
                 "answer_text": "Jonas",
                 "is_correct": false
               },
               {
-                "id": "gb2_l3_q5_a2",
+                "id": "gb2_l3_q5_a3",
                 "answer_text": "Katja",
                 "is_correct": false
               },
               {
-                "id": "gb2_l3_q5_a3",
+                "id": "gb2_l3_q5_a4",
                 "answer_text": "Luca",
                 "is_correct": false
               },
               {
-                "id": "gb2_l3_q5_a4",
+                "id": "gb2_l3_q5_a5",
                 "answer_text": "Mona",
                 "is_correct": false
-              },
-              {
-                "id": "gb2_l3_q5_a5",
-                "answer_text": "Noah",
-                "is_correct": true
               },
               {
                 "id": "gb2_l3_q5_a6",
@@ -3320,38 +3008,118 @@ const mockContent = {
             "question_text": "Wer ist sich noch unsicher, ob sie dabei bleibt?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Petra sagt, sie sei noch unsicher.",
+            "explanation": "Petra probiert es gerade aus, ist aber noch unsicher.",
             "order_index": 5,
             "answers": [
               {
                 "id": "gb2_l3_q6_a1",
+                "answer_text": "Petra",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l3_q6_a2",
                 "answer_text": "Jonas",
                 "is_correct": false
               },
               {
-                "id": "gb2_l3_q6_a2",
+                "id": "gb2_l3_q6_a3",
                 "answer_text": "Katja",
                 "is_correct": false
               },
               {
-                "id": "gb2_l3_q6_a3",
+                "id": "gb2_l3_q6_a4",
                 "answer_text": "Luca",
                 "is_correct": false
               },
               {
-                "id": "gb2_l3_q6_a4",
+                "id": "gb2_l3_q6_a5",
                 "answer_text": "Mona",
                 "is_correct": false
               },
               {
-                "id": "gb2_l3_q6_a5",
+                "id": "gb2_l3_q6_a6",
+                "answer_text": "Noah",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l3_q7",
+            "question_text": "Wer verbringt seit der Umstellung weniger Zeit mit Aufräumen?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Jonas sagt, er brauche keine Zeit mehr, um Sachen zu suchen oder aufzuräumen -- derselbe Sprecher wie bei Frage 1.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "gb2_l3_q7_a1",
+                "answer_text": "Jonas",
+                "is_correct": true
+              },
+              {
+                "id": "gb2_l3_q7_a2",
+                "answer_text": "Katja",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q7_a3",
+                "answer_text": "Luca",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q7_a4",
+                "answer_text": "Mona",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q7_a5",
                 "answer_text": "Noah",
                 "is_correct": false
               },
               {
-                "id": "gb2_l3_q6_a6",
+                "id": "gb2_l3_q7_a6",
                 "answer_text": "Petra",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "gb2_l3_q8",
+            "question_text": "Wer meint, dass manche Gegenstände einen besonderen persönlichen Wert haben?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Katja sagt, manche Dinge hätten einen emotionalen Wert -- derselbe Sprecher wie bei Frage 2.",
+            "order_index": 7,
+            "answers": [
+              {
+                "id": "gb2_l3_q8_a1",
+                "answer_text": "Katja",
                 "is_correct": true
+              },
+              {
+                "id": "gb2_l3_q8_a2",
+                "answer_text": "Jonas",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q8_a3",
+                "answer_text": "Luca",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q8_a4",
+                "answer_text": "Mona",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q8_a5",
+                "answer_text": "Noah",
+                "is_correct": false
+              },
+              {
+                "id": "gb2_l3_q8_a6",
+                "answer_text": "Petra",
+                "is_correct": false
               }
             ]
           }
@@ -3658,271 +3426,11 @@ const mockContent = {
         ]
       },
       {
-        "key": "sprachbausteine",
-        "name": "Sprachbausteine (تدريب إضافي)",
-        "type": "language",
-        "official_duration_minutes": null,
-        "instructions": "تدريب إضافي على القواعد المتقدمة والمفردات (غير جزء رسمي من اختبار Goethe، لكنه مفيد للتحضير).",
-        "passage": null,
-        "items": [
-          {
-            "id": "gb2_sb_q1",
-            "question_text": "___ es regnete, ging er ohne Regenschirm aus dem Haus.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"Obwohl\" drückt einen Gegensatz aus.",
-            "order_index": 0,
-            "answers": [
-              {
-                "id": "gb2_sb_q1_a1",
-                "answer_text": "Obwohl",
-                "is_correct": true
-              },
-              {
-                "id": "gb2_sb_q1_a2",
-                "answer_text": "Weil",
-                "is_correct": false
-              },
-              {
-                "id": "gb2_sb_q1_a3",
-                "answer_text": "Damit",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "gb2_sb_q2",
-            "question_text": "Wenn ich mehr Zeit hätte, ___ ich öfter Sport.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Konjunktiv II: \"würde\" + Infinitiv.",
-            "order_index": 1,
-            "answers": [
-              {
-                "id": "gb2_sb_q2_a1",
-                "answer_text": "würde ich machen",
-                "is_correct": true
-              },
-              {
-                "id": "gb2_sb_q2_a2",
-                "answer_text": "mache ich",
-                "is_correct": false
-              },
-              {
-                "id": "gb2_sb_q2_a3",
-                "answer_text": "machte ich",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "gb2_sb_q3",
-            "question_text": "Der Bericht ___ gestern von der Abteilung fertiggestellt.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Passiv Präteritum: \"wurde\" + Partizip II.",
-            "order_index": 2,
-            "answers": [
-              {
-                "id": "gb2_sb_q3_a1",
-                "answer_text": "wurde",
-                "is_correct": true
-              },
-              {
-                "id": "gb2_sb_q3_a2",
-                "answer_text": "hat",
-                "is_correct": false
-              },
-              {
-                "id": "gb2_sb_q3_a3",
-                "answer_text": "ist",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "gb2_sb_q4",
-            "question_text": "___ er den Termin abgesagt hat, müssen wir neu planen.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"Nachdem\" beschreibt ein Ereignis vor dem Hauptsatz.",
-            "order_index": 3,
-            "answers": [
-              {
-                "id": "gb2_sb_q4_a1",
-                "answer_text": "Nachdem",
-                "is_correct": true
-              },
-              {
-                "id": "gb2_sb_q4_a2",
-                "answer_text": "Bevor",
-                "is_correct": false
-              },
-              {
-                "id": "gb2_sb_q4_a3",
-                "answer_text": "Seitdem",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "gb2_sb_q5",
-            "question_text": "Die Entscheidung hängt ___ ab, wie das Budget aussieht.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"abhängen von\" → \"davon abhängen\".",
-            "order_index": 4,
-            "answers": [
-              {
-                "id": "gb2_sb_q5_a1",
-                "answer_text": "davon",
-                "is_correct": true
-              },
-              {
-                "id": "gb2_sb_q5_a2",
-                "answer_text": "darauf",
-                "is_correct": false
-              },
-              {
-                "id": "gb2_sb_q5_a3",
-                "answer_text": "damit",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "gb2_sb_q6",
-            "question_text": "Er tut so, ___ er nichts wüsste.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"als ob\" + Konjunktiv II drückt einen Vergleich/Schein aus.",
-            "order_index": 5,
-            "answers": [
-              {
-                "id": "gb2_sb_q6_a1",
-                "answer_text": "als ob",
-                "is_correct": true
-              },
-              {
-                "id": "gb2_sb_q6_a2",
-                "answer_text": "obwohl",
-                "is_correct": false
-              },
-              {
-                "id": "gb2_sb_q6_a3",
-                "answer_text": "damit",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "gb2_sb_q7",
-            "question_text": "Das Projekt wird ___ Erfolg gekrönt, wenn alle mitarbeiten.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"mit Erfolg gekrönt werden\" ist eine feste Wendung.",
-            "order_index": 6,
-            "answers": [
-              {
-                "id": "gb2_sb_q7_a1",
-                "answer_text": "mit",
-                "is_correct": true
-              },
-              {
-                "id": "gb2_sb_q7_a2",
-                "answer_text": "von",
-                "is_correct": false
-              },
-              {
-                "id": "gb2_sb_q7_a3",
-                "answer_text": "durch",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "gb2_sb_q8",
-            "question_text": "Sie hat sich dazu ___, das Angebot anzunehmen.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"sich entschließen zu\" + Infinitiv.",
-            "order_index": 7,
-            "answers": [
-              {
-                "id": "gb2_sb_q8_a1",
-                "answer_text": "entschlossen",
-                "is_correct": true
-              },
-              {
-                "id": "gb2_sb_q8_a2",
-                "answer_text": "entschieden sich",
-                "is_correct": false
-              },
-              {
-                "id": "gb2_sb_q8_a3",
-                "answer_text": "beschlossen sich",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "gb2_sb_q9",
-            "question_text": "___ seiner Erfahrung wurde er schnell befördert.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"Aufgrund\" nennt den Grund für die Beförderung.",
-            "order_index": 8,
-            "answers": [
-              {
-                "id": "gb2_sb_q9_a1",
-                "answer_text": "Aufgrund",
-                "is_correct": true
-              },
-              {
-                "id": "gb2_sb_q9_a2",
-                "answer_text": "Trotz",
-                "is_correct": false
-              },
-              {
-                "id": "gb2_sb_q9_a3",
-                "answer_text": "Statt",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "gb2_sb_q10",
-            "question_text": "Die Firma muss ihre Strategie überdenken, ___ wettbewerbsfähig zu bleiben.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"um...zu\" + Infinitiv drückt einen Zweck aus.",
-            "order_index": 9,
-            "answers": [
-              {
-                "id": "gb2_sb_q10_a1",
-                "answer_text": "um",
-                "is_correct": true
-              },
-              {
-                "id": "gb2_sb_q10_a2",
-                "answer_text": "damit sie",
-                "is_correct": false
-              },
-              {
-                "id": "gb2_sb_q10_a3",
-                "answer_text": "weil",
-                "is_correct": false
-              }
-            ]
-          }
-        ]
-      },
-      {
         "key": "hoeren1",
         "name": "Hören — Teil 1 (Transkript)",
         "type": "listening",
         "official_duration_minutes": 40,
-        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ كل نص قصير، ثم أجب عن سؤاله.",
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ كل نص قصير، ثم أجب عن سؤاله. في الاختبار الرسمي لمستوى B2، تُسمع هذه النصوص القصيرة مرة واحدة فقط لكل نص (بخلاف B1 حيث تُسمع مرتين).",
         "passage": "Kurze Texte (Transkript):\n1. Die Geschäftsführung informiert, dass die jährliche Betriebsversammlung dieses Jahr online stattfindet.\n2. Der Aufzug im Westflügel ist außer Betrieb, bitte nutzen Sie den Aufzug im Ostflügel.\n3. Die Rückgabefrist für Bibliotheksbücher wurde wegen der Feiertage um eine Woche verlängert.\n4. Wegen Bauarbeiten ist die Hauptstraße bis Freitag für den Verkehr gesperrt.\n5. Der Wetterdienst warnt für morgen vor starkem Wind an der Küste.\n6. Die Fluggesellschaft teilt mit, dass der Flug nach Frankfurt eine Stunde Verspätung hat.\n7. Ab kommendem Monat wird die Parkgebühr in der Innenstadt um 20 Prozent erhöht.\n8. Das Museum bietet ab sofort jeden ersten Sonntag im Monat freien Eintritt an.",
         "items": [
           {
@@ -4133,7 +3641,7 @@ const mockContent = {
         "name": "Hören — Teil 2 (Transkript)",
         "type": "listening",
         "official_duration_minutes": 40,
-        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص المقابلة كما لو كنت تسمعها، ثم أجب عن الأسئلة.",
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص المقابلة كما لو كنت تسمعها، ثم أجب عن الأسئلة. في الاختبار الرسمي، تكون خيارات الإجابة معاد صياغتها بكلمات مختلفة عن النص المسموع، وليست مطابقة له حرفيًا.",
         "passage": "Radiointerview mit einer Stadtplanerin:\n\"Moderator: Frau Berger, warum setzt Ihre Stadt so stark auf Fahrradwege?\nFrau Berger: Weil wir gesehen haben, dass mehr Fahrradwege den Autoverkehr im Zentrum deutlich reduzieren. Seit dem Ausbau des Netzes vor zwei Jahren ist die Zahl der Autos in der Innenstadt um fast 20 Prozent gesunken.\nModerator: Gab es auch Widerstand gegen das Projekt?\nFrau Berger: Ja, anfangs vor allem von Geschäftsleuten, die um weniger Kundschaft fürchteten. Mittlerweile zeigen unsere Zahlen aber, dass die Umsätze in der Innenstadt sogar leicht gestiegen sind.\nModerator: Was sind die nächsten Schritte?\nFrau Berger: Wir planen, das Netz bis 2027 um weitere 50 Kilometer zu erweitern und mehr Fahrradparkplätze zu schaffen.\"",
         "items": [
           {
@@ -4685,217 +4193,167 @@ const mockContent = {
     "writing": {
       "name": "Schreiben (تدريب غير مُقيَّم)",
       "official_duration_minutes": 75,
-      "instructions": "في الاختبار الرسمي، تكتب مساهمة في منتدى (150 كلمة على الأقل) ورسالة رسمية (100 كلمة على الأقل). هذا تدريب ذاتي غير مُقيَّم آليًا.",
-      "prompt": "Schreiben Sie einen Forumsbeitrag (mind. 150 Wörter) zum Thema: \"Sollten Unternehmen ihren Mitarbeitenden eine Vier-Tage-Woche anbieten?\" Nennen Sie Vor- und Nachteile und begründen Sie Ihre eigene Meinung.",
-      "sample_answer": "Meiner Meinung nach ist die Vier-Tage-Woche eine sinnvolle Entwicklung, auch wenn sie nicht für jede Branche gleich gut funktioniert. Einerseits profitieren Angestellte von mehr Erholungszeit, was nachweislich Stress reduziert und die Motivation steigert. Andererseits befürchten manche Unternehmen, dass die Produktivität sinkt, wenn weniger Arbeitsstunden zur Verfügung stehen.\n\nAus meiner Sicht überwiegen die Vorteile, solange die Umstellung gut geplant wird. Studien zeigen, dass viele Firmen trotz kürzerer Arbeitszeit ähnliche oder sogar bessere Ergebnisse erzielen, weil Mitarbeitende konzentrierter arbeiten. Natürlich eignet sich das Modell nicht überall, etwa im Gesundheitswesen, wo durchgehende Anwesenheit notwendig ist.\n\nInsgesamt halte ich es für wichtig, dass Unternehmen das Modell zumindest testen, bevor sie es pauschal ablehnen."
+      "instructions": "في الاختبار الرسمي، تكتب جزأين منفصلين: مساهمة في منتدى (150 كلمة على الأقل) ورسالة رسمية (100 كلمة على الأقل). نظرًا لأن هذا التدريب يستخدم نشاطًا كتابيًا واحدًا لكل اختبار، اكتب النصين معًا في إجابة واحدة، بنفس الترتيب المطلوب في الاختبار الرسمي. هذا تدريب ذاتي غير مُقيَّم آليًا بالكامل مثل التقييم الرسمي.",
+      "prompt": "Teil 1 — Forumsbeitrag (mind. 150 Wörter):\nSchreiben Sie einen Forumsbeitrag zum Thema: \"Sollten Unternehmen ihren Mitarbeitenden eine Vier-Tage-Woche anbieten?\" Nennen Sie Vor- und Nachteile und begründen Sie Ihre eigene Meinung.\n\nTeil 2 — Formelle Nachricht (mind. 100 Wörter):\nSchreiben Sie im Anschluss eine formelle Nachricht an Ihre Vorgesetzte / Ihren Vorgesetzten, in der Sie vorschlagen, die Vier-Tage-Woche versuchsweise in Ihrer Abteilung einzuführen. Nennen Sie einen konkreten Vorschlag zur Umsetzung und bitten Sie um eine Rückmeldung.",
+      "sample_answer": "Teil 1:\nMeiner Meinung nach ist die Vier-Tage-Woche eine sinnvolle Entwicklung, auch wenn sie nicht für jede Branche gleich gut funktioniert. Einerseits profitieren Angestellte von mehr Erholungszeit, was nachweislich Stress reduziert und die Motivation steigert. Andererseits befürchten manche Unternehmen, dass die Produktivität sinkt, wenn weniger Arbeitsstunden zur Verfügung stehen.\n\nAus meiner Sicht überwiegen die Vorteile, solange die Umstellung gut geplant wird. Studien zeigen, dass viele Firmen trotz kürzerer Arbeitszeit ähnliche oder sogar bessere Ergebnisse erzielen, weil Mitarbeitende konzentrierter arbeiten. Natürlich eignet sich das Modell nicht überall, etwa im Gesundheitswesen, wo durchgehende Anwesenheit notwendig ist.\n\nInsgesamt halte ich es für wichtig, dass Unternehmen das Modell zumindest testen, bevor sie es pauschal ablehnen.\n\nTeil 2:\nSehr geehrte Frau Keller,\n\nwie Sie wissen, wird in vielen Unternehmen aktuell über die Vier-Tage-Woche diskutiert. Ich würde vorschlagen, dieses Modell versuchsweise für drei Monate in unserer Abteilung einzuführen, um konkrete Erfahrungen zu sammeln.\n\nKonkret könnten wir freitags schließen und die Arbeitszeit auf die übrigen vier Tage verteilen. Nach der Testphase könnten wir gemeinsam auswerten, ob sich Produktivität und Zufriedenheit im Team verändert haben.\n\nIch würde mich freuen, wenn wir dieses Vorhaben in einem kurzen Gespräch besprechen könnten.\n\nMit freundlichen Grüßen\nSamira Haddad"
     }
   },
   "test_telc_b1_beruf": {
     "sections": [
       {
-        "key": "lese1",
-        "name": "Leseverstehen — Teil 1 (Globalverstehen)",
+        "key": "reading_teil1",
+        "name": "Leseverstehen Teil 1 — Überschriften-Zuordnung",
         "type": "reading",
-        "official_duration_minutes": 90,
-        "instructions": "Ordnen Sie jedem kurzen Text die passende Überschrift zu.",
-        "passage": "Texte:\n1. Ab nächster Woche gilt im ganzen Gebäude eine neue Kleiderordnung im Kundenbereich. Bitte informieren Sie Ihr Team.\n2. Der Drucker im zweiten Stock ist seit Montag defekt. Bitte nutzen Sie bis auf Weiteres den Drucker im Erdgeschoss.\n3. Alle Mitarbeitenden sind eingeladen, an der Weihnachtsfeier am 15. Dezember teilzunehmen. Bitte melden Sie sich bis Freitag an.\n4. Die IT-Abteilung führt am Donnerstag zwischen 18 und 20 Uhr Wartungsarbeiten durch. Das System ist in dieser Zeit nicht erreichbar.\n5. Neue Mitarbeitende erhalten künftig am ersten Arbeitstag ein Einführungspaket mit allen wichtigen Informationen.\n\nÜberschriften:\nA) Technische Störung\nB) Einladung zur Feier\nC) Neue Vorschrift\nD) Wartungsarbeiten\nE) Willkommenspaket\nF) Urlaubsantrag",
+        "official_duration_minutes": null,
+        "instructions": "Lesen Sie die fünf Texte und ordnen Sie jedem Text die passende Überschrift zu. Es gibt mehr Überschriften als Texte -- nicht jede Überschrift passt zu einem Text.",
+        "passage": "Text 1: Ab nächstem Monat können alle Mitarbeiter ihre Arbeitszeiten flexibler gestalten. Wer möchte, kann zwischen sieben und zehn Uhr morgens beginnen und entsprechend früher oder später Feierabend machen. Die Kernarbeitszeit von zehn bis fünfzehn Uhr bleibt bestehen, damit wichtige Besprechungen weiterhin für alle möglich sind.\n\nText 2: Aus Sicherheitsgründen müssen ab sofort alle Besucher sich am Empfang anmelden und einen Besucherausweis tragen. Mitarbeiter werden gebeten, ihre Gäste persönlich abzuholen und wieder zum Ausgang zu begleiten. Diese Regel gilt für das gesamte Firmengelände, auch für kurze Besuche.\n\nText 3: Die Personalabteilung bietet ab September eine Reihe kostenloser Fortbildungen an, unter anderem zu den Themen Kommunikation und Projektmanagement. Interessierte Mitarbeiter können sich bis Ende des Monats über das interne Portal anmelden. Die Plätze sind begrenzt, deshalb wird eine frühzeitige Anmeldung empfohlen.\n\nText 4: Wegen Bauarbeiten steht der Parkplatz hinter dem Hauptgebäude die nächsten drei Wochen nicht zur Verfügung. Mitarbeiter können stattdessen den Parkplatz an der Nebenstraße nutzen, der etwa fünf Gehminuten entfernt liegt. Wir bitten um Verständnis für die vorübergehende Einschränkung.\n\nText 5: Ab diesem Monat übernimmt die Firma die Hälfte der Kosten für ein Fitnessstudio-Abonnement für alle Mitarbeiter. Ziel ist es, die Gesundheit und das Wohlbefinden im Team zu fördern. Wer teilnehmen möchte, kann sich einfach bei der Personalabteilung melden.",
         "items": [
           {
-            "id": "tb1_l1_q1",
+            "id": "tb1l_t1q1",
             "question_text": "Welche Überschrift passt zu Text 1?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Text 1 passt zu C) Neue Vorschrift.",
+            "explanation": "Text 1 handelt von flexibleren Arbeitszeiten, nicht von Homeoffice oder Gehalt.",
             "order_index": 0,
             "answers": [
               {
-                "id": "tb1_l1_q1_a1",
-                "answer_text": "A) Technische Störung",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l1_q1_a2",
-                "answer_text": "B) Einladung zur Feier",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l1_q1_a3",
-                "answer_text": "C) Neue Vorschrift",
+                "id": "tb1l_t1q1_a1",
+                "answer_text": "Flexiblere Arbeitszeiten für alle Mitarbeiter",
                 "is_correct": true
               },
               {
-                "id": "tb1_l1_q1_a4",
-                "answer_text": "D) Wartungsarbeiten",
+                "id": "tb1l_t1q1_a2",
+                "answer_text": "Homeoffice wird für alle Abteilungen möglich",
                 "is_correct": false
               },
               {
-                "id": "tb1_l1_q1_a5",
-                "answer_text": "E) Willkommenspaket",
+                "id": "tb1l_t1q1_a3",
+                "answer_text": "Gehaltserhöhung für alle Mitarbeiter ab Januar",
                 "is_correct": false
               },
               {
-                "id": "tb1_l1_q1_a6",
-                "answer_text": "F) Urlaubsantrag",
+                "id": "tb1l_t1q1_a4",
+                "answer_text": "Neue Kantine im Erdgeschoss eröffnet",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_l1_q2",
+            "id": "tb1l_t1q2",
             "question_text": "Welche Überschrift passt zu Text 2?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Text 2 passt zu A) Technische Störung.",
+            "explanation": "Text 2 handelt von der neuen Anmeldepflicht für Besucher am Empfang.",
             "order_index": 1,
             "answers": [
               {
-                "id": "tb1_l1_q2_a1",
-                "answer_text": "A) Technische Störung",
+                "id": "tb1l_t1q2_a1",
+                "answer_text": "Neue Regelung für Gäste am Empfang",
                 "is_correct": true
               },
               {
-                "id": "tb1_l1_q2_a2",
-                "answer_text": "B) Einladung zur Feier",
+                "id": "tb1l_t1q2_a2",
+                "answer_text": "Firma sucht neue Auszubildende",
                 "is_correct": false
               },
               {
-                "id": "tb1_l1_q2_a3",
-                "answer_text": "C) Neue Vorschrift",
+                "id": "tb1l_t1q2_a3",
+                "answer_text": "Weihnachtsfeier findet dieses Jahr im Dezember statt",
                 "is_correct": false
               },
               {
-                "id": "tb1_l1_q2_a4",
-                "answer_text": "D) Wartungsarbeiten",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l1_q2_a5",
-                "answer_text": "E) Willkommenspaket",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l1_q2_a6",
-                "answer_text": "F) Urlaubsantrag",
+                "id": "tb1l_t1q2_a4",
+                "answer_text": "Firma unterstützt sportliche Aktivitäten der Mitarbeiter",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_l1_q3",
+            "id": "tb1l_t1q3",
             "question_text": "Welche Überschrift passt zu Text 3?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Text 3 passt zu B) Einladung zur Feier.",
+            "explanation": "Text 3 handelt von kostenlosen Fortbildungen der Personalabteilung.",
             "order_index": 2,
             "answers": [
               {
-                "id": "tb1_l1_q3_a1",
-                "answer_text": "A) Technische Störung",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l1_q3_a2",
-                "answer_text": "B) Einladung zur Feier",
+                "id": "tb1l_t1q3_a1",
+                "answer_text": "Kostenlose Weiterbildungsangebote im Herbst",
                 "is_correct": true
               },
               {
-                "id": "tb1_l1_q3_a3",
-                "answer_text": "C) Neue Vorschrift",
+                "id": "tb1l_t1q3_a2",
+                "answer_text": "Gehaltserhöhung für alle Mitarbeiter ab Januar",
                 "is_correct": false
               },
               {
-                "id": "tb1_l1_q3_a4",
-                "answer_text": "D) Wartungsarbeiten",
+                "id": "tb1l_t1q3_a3",
+                "answer_text": "Homeoffice wird für alle Abteilungen möglich",
                 "is_correct": false
               },
               {
-                "id": "tb1_l1_q3_a5",
-                "answer_text": "E) Willkommenspaket",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l1_q3_a6",
-                "answer_text": "F) Urlaubsantrag",
+                "id": "tb1l_t1q3_a4",
+                "answer_text": "Parkplatz vorübergehend gesperrt",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_l1_q4",
+            "id": "tb1l_t1q4",
             "question_text": "Welche Überschrift passt zu Text 4?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Text 4 passt zu D) Wartungsarbeiten.",
+            "explanation": "Text 4 handelt von der vorübergehenden Sperrung des Parkplatzes.",
             "order_index": 3,
             "answers": [
               {
-                "id": "tb1_l1_q4_a1",
-                "answer_text": "A) Technische Störung",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l1_q4_a2",
-                "answer_text": "B) Einladung zur Feier",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l1_q4_a3",
-                "answer_text": "C) Neue Vorschrift",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l1_q4_a4",
-                "answer_text": "D) Wartungsarbeiten",
+                "id": "tb1l_t1q4_a1",
+                "answer_text": "Parkplatz vorübergehend gesperrt",
                 "is_correct": true
               },
               {
-                "id": "tb1_l1_q4_a5",
-                "answer_text": "E) Willkommenspaket",
+                "id": "tb1l_t1q4_a2",
+                "answer_text": "Neue Kantine im Erdgeschoss eröffnet",
                 "is_correct": false
               },
               {
-                "id": "tb1_l1_q4_a6",
-                "answer_text": "F) Urlaubsantrag",
+                "id": "tb1l_t1q4_a3",
+                "answer_text": "Firma sucht neue Auszubildende",
+                "is_correct": false
+              },
+              {
+                "id": "tb1l_t1q4_a4",
+                "answer_text": "Flexiblere Arbeitszeiten für alle Mitarbeiter",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_l1_q5",
+            "id": "tb1l_t1q5",
             "question_text": "Welche Überschrift passt zu Text 5?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Text 5 passt zu E) Willkommenspaket.",
+            "explanation": "Text 5 handelt von der Kostenübernahme für ein Fitnessstudio-Abonnement.",
             "order_index": 4,
             "answers": [
               {
-                "id": "tb1_l1_q5_a1",
-                "answer_text": "A) Technische Störung",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l1_q5_a2",
-                "answer_text": "B) Einladung zur Feier",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l1_q5_a3",
-                "answer_text": "C) Neue Vorschrift",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l1_q5_a4",
-                "answer_text": "D) Wartungsarbeiten",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l1_q5_a5",
-                "answer_text": "E) Willkommenspaket",
+                "id": "tb1l_t1q5_a1",
+                "answer_text": "Firma unterstützt sportliche Aktivitäten der Mitarbeiter",
                 "is_correct": true
               },
               {
-                "id": "tb1_l1_q5_a6",
-                "answer_text": "F) Urlaubsantrag",
+                "id": "tb1l_t1q5_a2",
+                "answer_text": "Weihnachtsfeier findet dieses Jahr im Dezember statt",
+                "is_correct": false
+              },
+              {
+                "id": "tb1l_t1q5_a3",
+                "answer_text": "Neue Regelung für Gäste am Empfang",
+                "is_correct": false
+              },
+              {
+                "id": "tb1l_t1q5_a4",
+                "answer_text": "Kostenlose Weiterbildungsangebote im Herbst",
                 "is_correct": false
               }
             ]
@@ -4903,129 +4361,129 @@ const mockContent = {
         ]
       },
       {
-        "key": "lese2",
-        "name": "Leseverstehen — Teil 2 (Detailverstehen)",
+        "key": "reading_teil2",
+        "name": "Leseverstehen Teil 2 — Richtig oder Falsch",
         "type": "reading",
-        "official_duration_minutes": 90,
-        "instructions": "Lesen Sie die interne Mitteilung und beantworten Sie die Fragen.",
-        "passage": "Interne Mitteilung\n\nLiebe Kolleginnen und Kollegen,\n\nab dem 1. des nächsten Monats wird die Gleitzeitregelung angepasst: Die Kernarbeitszeit liegt künftig zwischen 9:30 und 15:30 Uhr. Mitarbeitende können ihre Arbeitszeit davor und danach flexibel gestalten, solange die wöchentliche Sollarbeitszeit von 40 Stunden eingehalten wird. Überstunden können bis zu einem Maximum von 10 Stunden pro Monat ins nächste Monat übertragen werden. Bei Fragen wenden Sie sich bitte an die Personalabteilung, die montags bis donnerstags von 9 bis 16 Uhr erreichbar ist.\n\nMit freundlichen Grüßen\nDie Geschäftsführung",
+        "official_duration_minutes": null,
+        "instructions": "Lesen Sie den Text und entscheiden Sie: Sind die folgenden Aussagen richtig oder falsch?",
+        "passage": "Immer mehr Unternehmen in Deutschland bieten ihren Mitarbeitern die Möglichkeit, teilweise von zu Hause aus zu arbeiten. Eine aktuelle Umfrage zeigt, dass etwa sechzig Prozent der Angestellten regelmäßig im Homeoffice arbeiten, mindestens an ein oder zwei Tagen pro Woche. Viele schätzen die Zeitersparnis, weil der tägliche Arbeitsweg wegfällt, und berichten, dass sie sich zu Hause besser konzentrieren können.\n\nAllerdings gibt es auch Kritik an dieser Entwicklung. Manche Führungskräfte befürchten, dass der persönliche Austausch im Team leidet, wenn Kollegen sich seltener im Büro begegnen. Auch neue Mitarbeiter finden es oft schwieriger, sich in ein Team einzufinden, wenn sie kaum persönlichen Kontakt zu ihren Kollegen haben.\n\nExperten empfehlen deshalb ein Modell, bei dem Mitarbeiter einen Teil der Woche im Büro und einen Teil zu Hause arbeiten. So können die Vorteile beider Arbeitsformen genutzt werden, ohne dass der Teamgeist darunter leidet. Viele Unternehmen setzen dieses sogenannte hybride Modell inzwischen bereits um.",
         "items": [
           {
-            "id": "tb1_l2_q1",
-            "question_text": "Was ändert sich laut der Mitteilung?",
-            "question_type": "multiple_choice",
+            "id": "tb1l_t2q1",
+            "question_text": "Laut der Umfrage arbeitet die Mehrheit der Angestellten regelmäßig im Homeoffice.",
+            "question_type": "true_false",
             "points": 1,
-            "explanation": "Die Mitteilung handelt von einer neuen Kernarbeitszeit.",
+            "explanation": "60 Prozent sind mehr als die Hälfte, also die Mehrheit.",
             "order_index": 0,
             "answers": [
               {
-                "id": "tb1_l2_q1_a1",
-                "answer_text": "Die Kernarbeitszeit",
+                "id": "tb1l_t2q1_r",
+                "answer_text": "Richtig",
                 "is_correct": true
               },
               {
-                "id": "tb1_l2_q1_a2",
-                "answer_text": "Der Urlaubsanspruch",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l2_q1_a3",
-                "answer_text": "Das Gehalt",
+                "id": "tb1l_t2q1_f",
+                "answer_text": "Falsch",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_l2_q2",
-            "question_text": "Wie viele Stunden pro Woche müssen Mitarbeitende arbeiten?",
-            "question_type": "multiple_choice",
+            "id": "tb1l_t2q2",
+            "question_text": "Alle Mitarbeiter arbeiten mindestens drei Tage pro Woche von zu Hause aus.",
+            "question_type": "true_false",
             "points": 1,
-            "explanation": "Der Text nennt eine Sollarbeitszeit von 40 Stunden.",
+            "explanation": "Der Text nennt mindestens ein oder zwei Tage, nicht drei.",
             "order_index": 1,
             "answers": [
               {
-                "id": "tb1_l2_q2_a1",
-                "answer_text": "40 Stunden",
-                "is_correct": true
-              },
-              {
-                "id": "tb1_l2_q2_a2",
-                "answer_text": "35 Stunden",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l2_q2_a3",
-                "answer_text": "45 Stunden",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb1_l2_q3",
-            "question_text": "An wen sollen sich Mitarbeitende bei Fragen wenden?",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Der Text verweist auf die Personalabteilung.",
-            "order_index": 2,
-            "answers": [
-              {
-                "id": "tb1_l2_q3_a1",
-                "answer_text": "An die Personalabteilung",
-                "is_correct": true
-              },
-              {
-                "id": "tb1_l2_q3_a2",
-                "answer_text": "An die Geschäftsführung direkt",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l2_q3_a3",
-                "answer_text": "An die IT-Abteilung",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb1_l2_q4",
-            "question_text": "Die neue Kernarbeitszeit beginnt bereits morgen.",
-            "question_type": "true_false",
-            "points": 1,
-            "explanation": "Sie beginnt erst am 1. des nächsten Monats.",
-            "order_index": 3,
-            "answers": [
-              {
-                "id": "tb1_l2_q4_r",
+                "id": "tb1l_t2q2_r",
                 "answer_text": "Richtig",
                 "is_correct": false
               },
               {
-                "id": "tb1_l2_q4_f",
+                "id": "tb1l_t2q2_f",
                 "answer_text": "Falsch",
                 "is_correct": true
               }
             ]
           },
           {
-            "id": "tb1_l2_q5",
-            "question_text": "Wie viele Überstunden können maximal übertragen werden?",
-            "question_type": "multiple_choice",
+            "id": "tb1l_t2q3",
+            "question_text": "Ein Vorteil des Homeoffice ist laut Text die eingesparte Zeit für den Arbeitsweg.",
+            "question_type": "true_false",
             "points": 1,
-            "explanation": "Der Text nennt maximal 10 Stunden pro Monat.",
-            "order_index": 4,
+            "explanation": "Der Text nennt genau diesen Vorteil.",
+            "order_index": 2,
             "answers": [
               {
-                "id": "tb1_l2_q5_a1",
-                "answer_text": "10 Stunden pro Monat",
+                "id": "tb1l_t2q3_r",
+                "answer_text": "Richtig",
                 "is_correct": true
               },
               {
-                "id": "tb1_l2_q5_a2",
-                "answer_text": "5 Stunden pro Monat",
+                "id": "tb1l_t2q3_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1l_t2q4",
+            "question_text": "Neue Mitarbeiter finden es laut Text leichter, sich im Homeoffice ins Team zu integrieren.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt das Gegenteil: Es ist für neue Mitarbeiter schwieriger.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "tb1l_t2q4_r",
+                "answer_text": "Richtig",
                 "is_correct": false
               },
               {
-                "id": "tb1_l2_q5_a3",
-                "answer_text": "Unbegrenzt viele",
+                "id": "tb1l_t2q4_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "tb1l_t2q5",
+            "question_text": "Experten empfehlen, ganz auf das Büro zu verzichten und nur noch im Homeoffice zu arbeiten.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Experten empfehlen ein hybrides Modell, nicht ausschließlich Homeoffice.",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "tb1l_t2q5_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "tb1l_t2q5_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "tb1l_t2q6",
+            "question_text": "Beim hybriden Modell arbeiten Mitarbeiter sowohl im Büro als auch zu Hause.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Das ist genau die Definition des hybriden Modells im Text.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "tb1l_t2q6_r",
+                "answer_text": "Richtig",
+                "is_correct": true
+              },
+              {
+                "id": "tb1l_t2q6_f",
+                "answer_text": "Falsch",
                 "is_correct": false
               }
             ]
@@ -5033,610 +4491,130 @@ const mockContent = {
         ]
       },
       {
-        "key": "lese3",
-        "name": "Leseverstehen — Teil 3 (Selektives Verstehen)",
+        "key": "reading_teil3",
+        "name": "Leseverstehen Teil 3 — Anzeigen-Zuordnung",
         "type": "reading",
-        "official_duration_minutes": 90,
-        "instructions": "Ordnen Sie jedem Bewerberprofil die passende Stellenanzeige zu.",
-        "passage": "Bewerberprofile:\n1. Ein Bewerber mit Erfahrung in der Buchhaltung sucht eine Teilzeitstelle.\n2. Eine Person mit guten Englischkenntnissen sucht eine Stelle im Kundenservice.\n3. Ein IT-Fachmann sucht eine Stelle im Homeoffice.\n4. Eine Person ohne Berufserfahrung sucht eine Ausbildungsstelle im Einzelhandel.\n5. Ein Bewerber mit Führerschein sucht eine Stelle als Lieferfahrer.\n6. Eine zweisprachige Person (Deutsch/Arabisch) sucht eine Stelle als Dolmetscherin.\n7. Ein erfahrener Koch sucht eine Vollzeitstelle in einem Restaurant.\n8. Eine Person mit Interesse an Marketing sucht ein Praktikum.\n9. Ein Bewerber mit Pflegeerfahrung sucht eine Stelle im Krankenhaus.\n10. Eine Person mit handwerklichem Geschick sucht eine Stelle als Elektriker.\n\nStellenanzeigen:\nA) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.\nB) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.\nC) IT-Support, 100% remote möglich, flexible Zeiten.\nD) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.\nE) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.\nF) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.\nG) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.\nH) Marketing-Praktikum für Studierende, 3-6 Monate.\nI) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.\nJ) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
+        "official_duration_minutes": null,
+        "instructions": "Lesen Sie die Beschreibungen der Personen und die Stellenanzeigen. Ordnen Sie jeder Person die passende Anzeige zu.",
+        "passage": "Person 1 (Fatima): Fatima sucht eine Teilzeitstelle, bei der sie nachmittags arbeiten kann, weil sie vormittags ihre Kinder betreut.\n\nPerson 2 (Karim): Karim hat gerade seine Ausbildung als Elektriker abgeschlossen und sucht seine erste feste Stelle in diesem Bereich.\n\nPerson 3 (Yasmin): Yasmin spricht fließend Englisch und Deutsch und sucht eine Stelle, bei der sie beide Sprachen nutzen kann.\n\nPerson 4 (Omar): Omar hat viel Erfahrung im Verkauf und sucht eine Stelle mit Führungsverantwortung.\n\nAnzeige a: Wir suchen einen erfahrenen Elektriker-Meister mit mindestens zehn Jahren Berufserfahrung.\nAnzeige b: Junior-Elektriker/in gesucht! Ideal für Berufseinsteiger nach der Ausbildung. Vollzeit, ab sofort.\nAnzeige c: Teamleiter/in Verkauf gesucht. Mehrjährige Erfahrung im Vertrieb erforderlich, Führungserfahrung von Vorteil.\nAnzeige d: Nachmittagskraft für Kundenservice gesucht, 15-20 Stunden/Woche, flexible Zeiten zwischen 13 und 18 Uhr.\nAnzeige e: Zweisprachige/r Assistent/in (Deutsch/Englisch) für internationales Büro gesucht, Vollzeit.\nAnzeige f: Praktikant/in im Marketing gesucht, für Studierende im letzten Studienjahr.",
         "items": [
           {
-            "id": "tb1_l3_q1",
-            "question_text": "Welche Anzeige passt zu Profil 1?",
+            "id": "tb1l_t3q1",
+            "question_text": "Welche Anzeige passt am besten zu Fatima?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Profil 1 passt zu Anzeige A.",
+            "explanation": "Fatima sucht Teilzeit am Nachmittag -- genau das bietet Anzeige d.",
             "order_index": 0,
             "answers": [
               {
-                "id": "tb1_l3_q1_a1",
-                "answer_text": "A) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.",
+                "id": "tb1l_t3q1_a1",
+                "answer_text": "Anzeige d (Nachmittagskraft Kundenservice)",
                 "is_correct": true
               },
               {
-                "id": "tb1_l3_q1_a2",
-                "answer_text": "B) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.",
+                "id": "tb1l_t3q1_a2",
+                "answer_text": "Anzeige a (Elektriker-Meister, 10 Jahre Erfahrung)",
                 "is_correct": false
               },
               {
-                "id": "tb1_l3_q1_a3",
-                "answer_text": "C) IT-Support, 100% remote möglich, flexible Zeiten.",
+                "id": "tb1l_t3q1_a3",
+                "answer_text": "Anzeige f (Praktikant/in Marketing)",
                 "is_correct": false
               },
               {
-                "id": "tb1_l3_q1_a4",
-                "answer_text": "D) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q1_a5",
-                "answer_text": "E) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q1_a6",
-                "answer_text": "F) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q1_a7",
-                "answer_text": "G) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q1_a8",
-                "answer_text": "H) Marketing-Praktikum für Studierende, 3-6 Monate.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q1_a9",
-                "answer_text": "I) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q1_a10",
-                "answer_text": "J) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
+                "id": "tb1l_t3q1_a4",
+                "answer_text": "Anzeige e (Zweisprachige/r Assistent/in)",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_l3_q2",
-            "question_text": "Welche Anzeige passt zu Profil 2?",
+            "id": "tb1l_t3q2",
+            "question_text": "Welche Anzeige passt am besten zu Karim?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Profil 2 passt zu Anzeige B.",
+            "explanation": "Karim ist Berufseinsteiger nach der Ausbildung -- Anzeige a verlangt zehn Jahre Erfahrung, das passt nicht. Anzeige b ist für Berufseinsteiger gedacht.",
             "order_index": 1,
             "answers": [
               {
-                "id": "tb1_l3_q2_a1",
-                "answer_text": "A) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q2_a2",
-                "answer_text": "B) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.",
+                "id": "tb1l_t3q2_a1",
+                "answer_text": "Anzeige b (Junior-Elektriker/in für Berufseinsteiger)",
                 "is_correct": true
               },
               {
-                "id": "tb1_l3_q2_a3",
-                "answer_text": "C) IT-Support, 100% remote möglich, flexible Zeiten.",
+                "id": "tb1l_t3q2_a2",
+                "answer_text": "Anzeige a (Elektriker-Meister, 10 Jahre Erfahrung)",
                 "is_correct": false
               },
               {
-                "id": "tb1_l3_q2_a4",
-                "answer_text": "D) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.",
+                "id": "tb1l_t3q2_a3",
+                "answer_text": "Anzeige c (Teamleiter/in Verkauf)",
                 "is_correct": false
               },
               {
-                "id": "tb1_l3_q2_a5",
-                "answer_text": "E) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q2_a6",
-                "answer_text": "F) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q2_a7",
-                "answer_text": "G) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q2_a8",
-                "answer_text": "H) Marketing-Praktikum für Studierende, 3-6 Monate.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q2_a9",
-                "answer_text": "I) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q2_a10",
-                "answer_text": "J) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
+                "id": "tb1l_t3q2_a4",
+                "answer_text": "Anzeige f (Praktikant/in Marketing)",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_l3_q3",
-            "question_text": "Welche Anzeige passt zu Profil 3?",
+            "id": "tb1l_t3q3",
+            "question_text": "Welche Anzeige passt am besten zu Yasmin?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Profil 3 passt zu Anzeige C.",
+            "explanation": "Yasmin möchte Deutsch und Englisch nutzen -- genau das verlangt Anzeige e.",
             "order_index": 2,
             "answers": [
               {
-                "id": "tb1_l3_q3_a1",
-                "answer_text": "A) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q3_a2",
-                "answer_text": "B) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q3_a3",
-                "answer_text": "C) IT-Support, 100% remote möglich, flexible Zeiten.",
+                "id": "tb1l_t3q3_a1",
+                "answer_text": "Anzeige e (Zweisprachige/r Assistent/in)",
                 "is_correct": true
               },
               {
-                "id": "tb1_l3_q3_a4",
-                "answer_text": "D) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.",
+                "id": "tb1l_t3q3_a2",
+                "answer_text": "Anzeige d (Nachmittagskraft Kundenservice)",
                 "is_correct": false
               },
               {
-                "id": "tb1_l3_q3_a5",
-                "answer_text": "E) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.",
+                "id": "tb1l_t3q3_a3",
+                "answer_text": "Anzeige b (Junior-Elektriker/in für Berufseinsteiger)",
                 "is_correct": false
               },
               {
-                "id": "tb1_l3_q3_a6",
-                "answer_text": "F) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q3_a7",
-                "answer_text": "G) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q3_a8",
-                "answer_text": "H) Marketing-Praktikum für Studierende, 3-6 Monate.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q3_a9",
-                "answer_text": "I) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q3_a10",
-                "answer_text": "J) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
+                "id": "tb1l_t3q3_a4",
+                "answer_text": "Anzeige c (Teamleiter/in Verkauf)",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_l3_q4",
-            "question_text": "Welche Anzeige passt zu Profil 4?",
+            "id": "tb1l_t3q4",
+            "question_text": "Welche Anzeige passt am besten zu Omar?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Profil 4 passt zu Anzeige D.",
+            "explanation": "Omar hat Verkaufserfahrung und sucht Führungsverantwortung -- genau das bietet Anzeige c.",
             "order_index": 3,
             "answers": [
               {
-                "id": "tb1_l3_q4_a1",
-                "answer_text": "A) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q4_a2",
-                "answer_text": "B) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q4_a3",
-                "answer_text": "C) IT-Support, 100% remote möglich, flexible Zeiten.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q4_a4",
-                "answer_text": "D) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.",
+                "id": "tb1l_t3q4_a1",
+                "answer_text": "Anzeige c (Teamleiter/in Verkauf)",
                 "is_correct": true
               },
               {
-                "id": "tb1_l3_q4_a5",
-                "answer_text": "E) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.",
+                "id": "tb1l_t3q4_a2",
+                "answer_text": "Anzeige b (Junior-Elektriker/in für Berufseinsteiger)",
                 "is_correct": false
               },
               {
-                "id": "tb1_l3_q4_a6",
-                "answer_text": "F) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.",
+                "id": "tb1l_t3q4_a3",
+                "answer_text": "Anzeige f (Praktikant/in Marketing)",
                 "is_correct": false
               },
               {
-                "id": "tb1_l3_q4_a7",
-                "answer_text": "G) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.",
+                "id": "tb1l_t3q4_a4",
+                "answer_text": "Anzeige a (Elektriker-Meister, 10 Jahre Erfahrung)",
                 "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q4_a8",
-                "answer_text": "H) Marketing-Praktikum für Studierende, 3-6 Monate.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q4_a9",
-                "answer_text": "I) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q4_a10",
-                "answer_text": "J) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb1_l3_q5",
-            "question_text": "Welche Anzeige passt zu Profil 5?",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Profil 5 passt zu Anzeige E.",
-            "order_index": 4,
-            "answers": [
-              {
-                "id": "tb1_l3_q5_a1",
-                "answer_text": "A) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q5_a2",
-                "answer_text": "B) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q5_a3",
-                "answer_text": "C) IT-Support, 100% remote möglich, flexible Zeiten.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q5_a4",
-                "answer_text": "D) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q5_a5",
-                "answer_text": "E) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.",
-                "is_correct": true
-              },
-              {
-                "id": "tb1_l3_q5_a6",
-                "answer_text": "F) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q5_a7",
-                "answer_text": "G) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q5_a8",
-                "answer_text": "H) Marketing-Praktikum für Studierende, 3-6 Monate.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q5_a9",
-                "answer_text": "I) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q5_a10",
-                "answer_text": "J) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb1_l3_q6",
-            "question_text": "Welche Anzeige passt zu Profil 6?",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Profil 6 passt zu Anzeige F.",
-            "order_index": 5,
-            "answers": [
-              {
-                "id": "tb1_l3_q6_a1",
-                "answer_text": "A) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q6_a2",
-                "answer_text": "B) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q6_a3",
-                "answer_text": "C) IT-Support, 100% remote möglich, flexible Zeiten.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q6_a4",
-                "answer_text": "D) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q6_a5",
-                "answer_text": "E) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q6_a6",
-                "answer_text": "F) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.",
-                "is_correct": true
-              },
-              {
-                "id": "tb1_l3_q6_a7",
-                "answer_text": "G) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q6_a8",
-                "answer_text": "H) Marketing-Praktikum für Studierende, 3-6 Monate.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q6_a9",
-                "answer_text": "I) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q6_a10",
-                "answer_text": "J) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb1_l3_q7",
-            "question_text": "Welche Anzeige passt zu Profil 7?",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Profil 7 passt zu Anzeige G.",
-            "order_index": 6,
-            "answers": [
-              {
-                "id": "tb1_l3_q7_a1",
-                "answer_text": "A) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q7_a2",
-                "answer_text": "B) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q7_a3",
-                "answer_text": "C) IT-Support, 100% remote möglich, flexible Zeiten.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q7_a4",
-                "answer_text": "D) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q7_a5",
-                "answer_text": "E) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q7_a6",
-                "answer_text": "F) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q7_a7",
-                "answer_text": "G) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.",
-                "is_correct": true
-              },
-              {
-                "id": "tb1_l3_q7_a8",
-                "answer_text": "H) Marketing-Praktikum für Studierende, 3-6 Monate.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q7_a9",
-                "answer_text": "I) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q7_a10",
-                "answer_text": "J) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb1_l3_q8",
-            "question_text": "Welche Anzeige passt zu Profil 8?",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Profil 8 passt zu Anzeige H.",
-            "order_index": 7,
-            "answers": [
-              {
-                "id": "tb1_l3_q8_a1",
-                "answer_text": "A) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q8_a2",
-                "answer_text": "B) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q8_a3",
-                "answer_text": "C) IT-Support, 100% remote möglich, flexible Zeiten.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q8_a4",
-                "answer_text": "D) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q8_a5",
-                "answer_text": "E) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q8_a6",
-                "answer_text": "F) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q8_a7",
-                "answer_text": "G) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q8_a8",
-                "answer_text": "H) Marketing-Praktikum für Studierende, 3-6 Monate.",
-                "is_correct": true
-              },
-              {
-                "id": "tb1_l3_q8_a9",
-                "answer_text": "I) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q8_a10",
-                "answer_text": "J) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb1_l3_q9",
-            "question_text": "Welche Anzeige passt zu Profil 9?",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Profil 9 passt zu Anzeige I.",
-            "order_index": 8,
-            "answers": [
-              {
-                "id": "tb1_l3_q9_a1",
-                "answer_text": "A) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q9_a2",
-                "answer_text": "B) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q9_a3",
-                "answer_text": "C) IT-Support, 100% remote möglich, flexible Zeiten.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q9_a4",
-                "answer_text": "D) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q9_a5",
-                "answer_text": "E) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q9_a6",
-                "answer_text": "F) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q9_a7",
-                "answer_text": "G) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q9_a8",
-                "answer_text": "H) Marketing-Praktikum für Studierende, 3-6 Monate.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q9_a9",
-                "answer_text": "I) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.",
-                "is_correct": true
-              },
-              {
-                "id": "tb1_l3_q9_a10",
-                "answer_text": "J) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb1_l3_q10",
-            "question_text": "Welche Anzeige passt zu Profil 10?",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Profil 10 passt zu Anzeige J.",
-            "order_index": 9,
-            "answers": [
-              {
-                "id": "tb1_l3_q10_a1",
-                "answer_text": "A) Buchhalter/in Teilzeit gesucht, flexible Arbeitszeiten möglich.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q10_a2",
-                "answer_text": "B) Kundenservice-Mitarbeiter/in mit Englischkenntnissen gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q10_a3",
-                "answer_text": "C) IT-Support, 100% remote möglich, flexible Zeiten.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q10_a4",
-                "answer_text": "D) Ausbildungsplatz Einzelhandelskaufmann/-frau, keine Vorerfahrung nötig.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q10_a5",
-                "answer_text": "E) Lieferfahrer/in mit Führerschein Klasse B gesucht, Vollzeit.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q10_a6",
-                "answer_text": "F) Dolmetscher/in Deutsch-Arabisch für Behördentermine gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q10_a7",
-                "answer_text": "G) Koch/Köchin Vollzeit für gehobenes Restaurant gesucht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q10_a8",
-                "answer_text": "H) Marketing-Praktikum für Studierende, 3-6 Monate.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q10_a9",
-                "answer_text": "I) Pflegekraft für Krankenhausstation gesucht, Erfahrung erwünscht.",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_l3_q10_a10",
-                "answer_text": "J) Elektriker/in für Wartungsarbeiten gesucht, handwerkliches Geschick nötig.",
-                "is_correct": true
               }
             ]
           }
@@ -5644,258 +4622,258 @@ const mockContent = {
       },
       {
         "key": "sprachbausteine1",
-        "name": "Sprachbausteine — Teil 1",
+        "name": "Sprachbausteine — Teil 1 (Grammatik im Kontext)",
         "type": "language",
         "official_duration_minutes": 90,
-        "instructions": "Wählen Sie die richtige Lösung (Wortschatz und Grammatik im Berufskontext).",
-        "passage": null,
+        "instructions": "Lesen Sie den Text. Wählen Sie für jede Lücke die richtige Lösung.",
+        "passage": "Seit zwei Wochen arbeite ich nun (1)___ einer großen Firma in München. Am ersten Tag hat mein Kollege mir (2)___ Büro gezeigt und mir alle wichtigen Kollegen (3)___. Ich war anfangs ein bisschen nervös, (4)___ ich noch nicht wusste, wie alles funktioniert. Mein Chef hat mir erklärt, dass ich mich (5)___ Fragen jederzeit an mein Team wenden kann. In der ersten Woche (6)___ ich viele neue Aufgaben kennengelernt und schon einige kleine Projekte übernommen. Meine Kollegen sind sehr freundlich, und wir (7)___ uns gegenseitig, wenn jemand Hilfe braucht. Am Freitag gibt es für (8)___ ganze Team ein gemeinsames Mittagessen, (9)___ sich alle besser kennenlernen können. Ich bin froh, (10)___ ich mich für diese Stelle entschieden habe.",
         "items": [
           {
-            "id": "tb1_sb1_q1",
-            "question_text": "Sehr geehrte Damen und Herren, ich schreibe Ihnen ___ meiner Bewerbung.",
+            "id": "tb1s_g1",
+            "question_text": "Lücke (1)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "\"bezüglich\" + Genitiv ist die formelle Variante.",
+            "explanation": "\"bei einer Firma arbeiten\" ist die feste Präposition für den Arbeitgeber.",
             "order_index": 0,
             "answers": [
               {
-                "id": "tb1_sb1_q1_a1",
-                "answer_text": "bezüglich",
+                "id": "tb1s_g1_a1",
+                "answer_text": "bei",
                 "is_correct": true
               },
               {
-                "id": "tb1_sb1_q1_a2",
-                "answer_text": "wegen der",
+                "id": "tb1s_g1_a2",
+                "answer_text": "in",
                 "is_correct": false
               },
               {
-                "id": "tb1_sb1_q1_a3",
-                "answer_text": "über",
+                "id": "tb1s_g1_a3",
+                "answer_text": "an",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_sb1_q2",
-            "question_text": "Könnten Sie mir bitte den Bericht bis Freitag ___?",
+            "id": "tb1s_g2",
+            "question_text": "Lücke (2)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "\"zusenden\" ist hier die passende Verbform.",
+            "explanation": "Akkusativ, Neutrum, bestimmter Artikel: \"das Büro\".",
             "order_index": 1,
             "answers": [
               {
-                "id": "tb1_sb1_q2_a1",
-                "answer_text": "zusenden",
+                "id": "tb1s_g2_a1",
+                "answer_text": "das",
                 "is_correct": true
               },
               {
-                "id": "tb1_sb1_q2_a2",
-                "answer_text": "zuschicken lassen",
+                "id": "tb1s_g2_a2",
+                "answer_text": "dem",
                 "is_correct": false
               },
               {
-                "id": "tb1_sb1_q2_a3",
-                "answer_text": "senden bitte",
+                "id": "tb1s_g2_a3",
+                "answer_text": "den",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_sb1_q3",
-            "question_text": "Frau Klein ist ___ für die Buchhaltung zuständig.",
+            "id": "tb1s_g3",
+            "question_text": "Lücke (3)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "\"seit Januar\" beschreibt eine andauernde Zuständigkeit.",
+            "explanation": "Perfekt-Partizip von \"vorstellen\": \"vorgestellt\".",
             "order_index": 2,
             "answers": [
               {
-                "id": "tb1_sb1_q3_a1",
-                "answer_text": "seit Januar",
+                "id": "tb1s_g3_a1",
+                "answer_text": "vorgestellt",
                 "is_correct": true
               },
               {
-                "id": "tb1_sb1_q3_a2",
-                "answer_text": "ab Januar zuständig gewesen",
+                "id": "tb1s_g3_a2",
+                "answer_text": "vorgestanden",
                 "is_correct": false
               },
               {
-                "id": "tb1_sb1_q3_a3",
-                "answer_text": "seit Januar zuständig sein",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb1_sb1_q4",
-            "question_text": "Der Termin wurde ___ nächste Woche verschoben.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"verschieben auf\" + Akkusativ.",
-            "order_index": 3,
-            "answers": [
-              {
-                "id": "tb1_sb1_q4_a1",
-                "answer_text": "auf",
-                "is_correct": true
-              },
-              {
-                "id": "tb1_sb1_q4_a2",
-                "answer_text": "zu",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb1_q4_a3",
-                "answer_text": "bei",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb1_sb1_q5",
-            "question_text": "Ich möchte mich für das Missverständnis ___.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Reflexives Verb: \"sich entschuldigen\".",
-            "order_index": 4,
-            "answers": [
-              {
-                "id": "tb1_sb1_q5_a1",
-                "answer_text": "entschuldigen",
-                "is_correct": true
-              },
-              {
-                "id": "tb1_sb1_q5_a2",
-                "answer_text": "Entschuldigung",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb1_q5_a3",
-                "answer_text": "entschuldigt",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb1_sb1_q6",
-            "question_text": "Die Unterlagen liegen bereits ___ Ihnen vor.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"vorliegen bei\" + Dativ.",
-            "order_index": 5,
-            "answers": [
-              {
-                "id": "tb1_sb1_q6_a1",
-                "answer_text": "bei",
-                "is_correct": true
-              },
-              {
-                "id": "tb1_sb1_q6_a2",
-                "answer_text": "mit",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb1_q6_a3",
-                "answer_text": "zu",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb1_sb1_q7",
-            "question_text": "Wir bitten um ___ bei eventuellen Verzögerungen.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"um Verständnis bitten\" ist die feste Wendung.",
-            "order_index": 6,
-            "answers": [
-              {
-                "id": "tb1_sb1_q7_a1",
-                "answer_text": "Verständnis",
-                "is_correct": true
-              },
-              {
-                "id": "tb1_sb1_q7_a2",
-                "answer_text": "Verstehen",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb1_q7_a3",
-                "answer_text": "Verständlichkeit",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb1_sb1_q8",
-            "question_text": "Der neue Kollege wird sich morgen dem Team ___.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Reflexives Verb im Futur: \"wird sich vorstellen\".",
-            "order_index": 7,
-            "answers": [
-              {
-                "id": "tb1_sb1_q8_a1",
-                "answer_text": "vorstellen",
-                "is_correct": true
-              },
-              {
-                "id": "tb1_sb1_q8_a2",
-                "answer_text": "vorzustellen",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb1_q8_a3",
+                "id": "tb1s_g3_a3",
                 "answer_text": "vorstellt",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_sb1_q9",
-            "question_text": "Bitte bestätigen Sie den Erhalt dieser E-Mail ___ Rückantwort.",
+            "id": "tb1s_g4",
+            "question_text": "Lücke (4)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "\"per Rückantwort\" ist eine feste Wendung in Geschäftskorrespondenz.",
-            "order_index": 8,
+            "explanation": "\"weil\" leitet hier den Grund für die Nervosität ein.",
+            "order_index": 3,
             "answers": [
               {
-                "id": "tb1_sb1_q9_a1",
-                "answer_text": "per",
+                "id": "tb1s_g4_a1",
+                "answer_text": "weil",
                 "is_correct": true
               },
               {
-                "id": "tb1_sb1_q9_a2",
-                "answer_text": "durch",
+                "id": "tb1s_g4_a2",
+                "answer_text": "obwohl",
                 "is_correct": false
               },
               {
-                "id": "tb1_sb1_q9_a3",
-                "answer_text": "über",
+                "id": "tb1s_g4_a3",
+                "answer_text": "trotzdem",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_sb1_q10",
-            "question_text": "Die Besprechung musste ___ technischer Probleme verschoben werden.",
+            "id": "tb1s_g5",
+            "question_text": "Lücke (5)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "\"aufgrund\" + Genitiv nennt den Grund.",
-            "order_index": 9,
+            "explanation": "\"sich mit Fragen an jemanden wenden\" ist die feste Verbindung.",
+            "order_index": 4,
             "answers": [
               {
-                "id": "tb1_sb1_q10_a1",
-                "answer_text": "aufgrund",
+                "id": "tb1s_g5_a1",
+                "answer_text": "mit",
                 "is_correct": true
               },
               {
-                "id": "tb1_sb1_q10_a2",
-                "answer_text": "trotz",
+                "id": "tb1s_g5_a2",
+                "answer_text": "bei",
                 "is_correct": false
               },
               {
-                "id": "tb1_sb1_q10_a3",
-                "answer_text": "statt",
+                "id": "tb1s_g5_a3",
+                "answer_text": "für",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1s_g6",
+            "question_text": "Lücke (6)",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"kennenlernen\" bildet das Perfekt mit \"haben\".",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "tb1s_g6_a1",
+                "answer_text": "habe",
+                "is_correct": true
+              },
+              {
+                "id": "tb1s_g6_a2",
+                "answer_text": "bin",
+                "is_correct": false
+              },
+              {
+                "id": "tb1s_g6_a3",
+                "answer_text": "hatte",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1s_g7",
+            "question_text": "Lücke (7)",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Präsens, 1. Person Plural (\"wir\"): \"helfen\".",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "tb1s_g7_a1",
+                "answer_text": "helfen",
+                "is_correct": true
+              },
+              {
+                "id": "tb1s_g7_a2",
+                "answer_text": "hilft",
+                "is_correct": false
+              },
+              {
+                "id": "tb1s_g7_a3",
+                "answer_text": "halfen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1s_g8",
+            "question_text": "Lücke (8)",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Akkusativ, Neutrum nach \"für\": \"das ganze Team\".",
+            "order_index": 7,
+            "answers": [
+              {
+                "id": "tb1s_g8_a1",
+                "answer_text": "das",
+                "is_correct": true
+              },
+              {
+                "id": "tb1s_g8_a2",
+                "answer_text": "dem",
+                "is_correct": false
+              },
+              {
+                "id": "tb1s_g8_a3",
+                "answer_text": "der",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1s_g9",
+            "question_text": "Lücke (9)",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"damit\" leitet einen Zwecksatz ein (\"damit man sich kennenlernen kann\").",
+            "order_index": 8,
+            "answers": [
+              {
+                "id": "tb1s_g9_a1",
+                "answer_text": "damit",
+                "is_correct": true
+              },
+              {
+                "id": "tb1s_g9_a2",
+                "answer_text": "dass",
+                "is_correct": false
+              },
+              {
+                "id": "tb1s_g9_a3",
+                "answer_text": "weil",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb1s_g10",
+            "question_text": "Lücke (10)",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Nach \"froh sein\" folgt ein dass-Satz.",
+            "order_index": 9,
+            "answers": [
+              {
+                "id": "tb1s_g10_a1",
+                "answer_text": "dass",
+                "is_correct": true
+              },
+              {
+                "id": "tb1s_g10_a2",
+                "answer_text": "weil",
+                "is_correct": false
+              },
+              {
+                "id": "tb1s_g10_a3",
+                "answer_text": "ob",
                 "is_correct": false
               }
             ]
@@ -5904,609 +4882,259 @@ const mockContent = {
       },
       {
         "key": "sprachbausteine2",
-        "name": "Sprachbausteine — Teil 2 (Zuordnung)",
+        "name": "Sprachbausteine — Teil 2 (Wortschatz im Kontext)",
         "type": "language",
         "official_duration_minutes": 90,
-        "instructions": "Ordnen Sie jeder Redewendung die passende Funktion in einem Geschäftsbrief zu.",
-        "passage": "Redewendungen:\n1. Mit freundlichen Grüßen\n2. Ich freue mich auf Ihre Rückmeldung.\n3. Anbei sende ich Ihnen die gewünschten Unterlagen.\n4. Für Rückfragen stehe ich Ihnen gerne zur Verfügung.\n5. Vielen Dank im Voraus für Ihre Bemühungen.\n6. Bitte lassen Sie mich wissen, falls Sie weitere Informationen benötigen.\n7. Wir bedauern, Ihnen mitteilen zu müssen, dass...\n8. Ich möchte mich hiermit offiziell bewerben um...\n9. Bezugnehmend auf unser Telefongespräch...\n10. In der Anlage finden Sie...\n\nFunktionen:\nA) Formeller Briefabschluss\nB) Bitte um Antwort\nC) Ankündigung eines Anhangs\nD) Angebot weiterer Hilfe\nE) Dank im Voraus\nF) Aufforderung zu weiteren Fragen\nG) Formelle schlechte Nachricht einleiten\nH) Bewerbungseinleitung\nI) Bezug auf ein früheres Gespräch\nJ) Verweis auf beigefügte Dokumente",
+        "instructions": "Lesen Sie den Text und die Wortliste. Wählen Sie für jede Lücke das passende Wort. Nicht jedes Wort aus der Liste wird gebraucht.",
+        "passage": "Wortliste: lesen, Qualifikationen, interessiert, kurz, Antwort, eingeladen, erscheinen, selbstbewusst, stellen, Stelle, Gehalt, Kündigung, Urlaub, Arbeitsvertrag\n\nBevor man sich auf eine Stelle bewirbt, sollte man den Anzeigetext genau (1)___. Wichtig ist, dass die eigenen (2)___ und Erfahrungen zu den Anforderungen passen. Im Anschreiben sollte man kurz erklären, warum man sich für die Stelle (3)___. Ein guter Lebenslauf sollte übersichtlich und (4)___ sein, damit der Personalchef schnell die wichtigsten Informationen findet. Nach dem Versenden der Bewerbung kann es einige Tage oder sogar Wochen dauern, bis man eine (5)___ erhält. Wird man zu einem Vorstellungsgespräch (6)___, sollte man sich gut vorbereiten und pünktlich (7)___. Während des Gesprächs ist es wichtig, ruhig und (8)___ zu antworten. Am Ende des Gesprächs darf man auch selbst Fragen zum Unternehmen (9)___. Wenn alles gut läuft, erhält man am Ende eine Zusage und kann sich auf die neue (10)___ freuen.",
         "items": [
           {
-            "id": "tb1_sb2_q1",
-            "question_text": "Welche Funktion hat Redewendung 1?",
+            "id": "tb1s_v1",
+            "question_text": "Lücke (1)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Redewendung 1 entspricht Funktion A.",
+            "explanation": "\"den Anzeigetext genau lesen\" -- sorgfältig durchlesen.",
             "order_index": 0,
             "answers": [
               {
-                "id": "tb1_sb2_q1_a1",
-                "answer_text": "A) Formeller Briefabschluss",
+                "id": "tb1s_v1_a1",
+                "answer_text": "lesen",
                 "is_correct": true
               },
               {
-                "id": "tb1_sb2_q1_a2",
-                "answer_text": "B) Bitte um Antwort",
+                "id": "tb1s_v1_a2",
+                "answer_text": "stellen",
                 "is_correct": false
               },
               {
-                "id": "tb1_sb2_q1_a3",
-                "answer_text": "C) Ankündigung eines Anhangs",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q1_a4",
-                "answer_text": "D) Angebot weiterer Hilfe",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q1_a5",
-                "answer_text": "E) Dank im Voraus",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q1_a6",
-                "answer_text": "F) Aufforderung zu weiteren Fragen",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q1_a7",
-                "answer_text": "G) Formelle schlechte Nachricht einleiten",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q1_a8",
-                "answer_text": "H) Bewerbungseinleitung",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q1_a9",
-                "answer_text": "I) Bezug auf ein früheres Gespräch",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q1_a10",
-                "answer_text": "J) Verweis auf beigefügte Dokumente",
+                "id": "tb1s_v1_a3",
+                "answer_text": "Gehalt",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_sb2_q2",
-            "question_text": "Welche Funktion hat Redewendung 2?",
+            "id": "tb1s_v2",
+            "question_text": "Lücke (2)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Redewendung 2 entspricht Funktion B.",
+            "explanation": "\"die eigenen Qualifikationen\" passt zu Erfahrungen und Anforderungen.",
             "order_index": 1,
             "answers": [
               {
-                "id": "tb1_sb2_q2_a1",
-                "answer_text": "A) Formeller Briefabschluss",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q2_a2",
-                "answer_text": "B) Bitte um Antwort",
+                "id": "tb1s_v2_a1",
+                "answer_text": "Qualifikationen",
                 "is_correct": true
               },
               {
-                "id": "tb1_sb2_q2_a3",
-                "answer_text": "C) Ankündigung eines Anhangs",
+                "id": "tb1s_v2_a2",
+                "answer_text": "Kündigung",
                 "is_correct": false
               },
               {
-                "id": "tb1_sb2_q2_a4",
-                "answer_text": "D) Angebot weiterer Hilfe",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q2_a5",
-                "answer_text": "E) Dank im Voraus",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q2_a6",
-                "answer_text": "F) Aufforderung zu weiteren Fragen",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q2_a7",
-                "answer_text": "G) Formelle schlechte Nachricht einleiten",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q2_a8",
-                "answer_text": "H) Bewerbungseinleitung",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q2_a9",
-                "answer_text": "I) Bezug auf ein früheres Gespräch",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q2_a10",
-                "answer_text": "J) Verweis auf beigefügte Dokumente",
+                "id": "tb1s_v2_a3",
+                "answer_text": "Urlaub",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_sb2_q3",
-            "question_text": "Welche Funktion hat Redewendung 3?",
+            "id": "tb1s_v3",
+            "question_text": "Lücke (3)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Redewendung 3 entspricht Funktion C.",
+            "explanation": "\"sich für die Stelle interessieren\" ist die feste Verbindung.",
             "order_index": 2,
             "answers": [
               {
-                "id": "tb1_sb2_q3_a1",
-                "answer_text": "A) Formeller Briefabschluss",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q3_a2",
-                "answer_text": "B) Bitte um Antwort",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q3_a3",
-                "answer_text": "C) Ankündigung eines Anhangs",
+                "id": "tb1s_v3_a1",
+                "answer_text": "interessiert",
                 "is_correct": true
               },
               {
-                "id": "tb1_sb2_q3_a4",
-                "answer_text": "D) Angebot weiterer Hilfe",
+                "id": "tb1s_v3_a2",
+                "answer_text": "erscheinen",
                 "is_correct": false
               },
               {
-                "id": "tb1_sb2_q3_a5",
-                "answer_text": "E) Dank im Voraus",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q3_a6",
-                "answer_text": "F) Aufforderung zu weiteren Fragen",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q3_a7",
-                "answer_text": "G) Formelle schlechte Nachricht einleiten",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q3_a8",
-                "answer_text": "H) Bewerbungseinleitung",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q3_a9",
-                "answer_text": "I) Bezug auf ein früheres Gespräch",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q3_a10",
-                "answer_text": "J) Verweis auf beigefügte Dokumente",
+                "id": "tb1s_v3_a3",
+                "answer_text": "Antwort",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_sb2_q4",
-            "question_text": "Welche Funktion hat Redewendung 4?",
+            "id": "tb1s_v4",
+            "question_text": "Lücke (4)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Redewendung 4 entspricht Funktion D.",
+            "explanation": "Ein guter Lebenslauf ist \"übersichtlich und kurz\".",
             "order_index": 3,
             "answers": [
               {
-                "id": "tb1_sb2_q4_a1",
-                "answer_text": "A) Formeller Briefabschluss",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q4_a2",
-                "answer_text": "B) Bitte um Antwort",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q4_a3",
-                "answer_text": "C) Ankündigung eines Anhangs",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q4_a4",
-                "answer_text": "D) Angebot weiterer Hilfe",
+                "id": "tb1s_v4_a1",
+                "answer_text": "kurz",
                 "is_correct": true
               },
               {
-                "id": "tb1_sb2_q4_a5",
-                "answer_text": "E) Dank im Voraus",
+                "id": "tb1s_v4_a2",
+                "answer_text": "selbstbewusst",
                 "is_correct": false
               },
               {
-                "id": "tb1_sb2_q4_a6",
-                "answer_text": "F) Aufforderung zu weiteren Fragen",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q4_a7",
-                "answer_text": "G) Formelle schlechte Nachricht einleiten",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q4_a8",
-                "answer_text": "H) Bewerbungseinleitung",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q4_a9",
-                "answer_text": "I) Bezug auf ein früheres Gespräch",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q4_a10",
-                "answer_text": "J) Verweis auf beigefügte Dokumente",
+                "id": "tb1s_v4_a3",
+                "answer_text": "Arbeitsvertrag",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_sb2_q5",
-            "question_text": "Welche Funktion hat Redewendung 5?",
+            "id": "tb1s_v5",
+            "question_text": "Lücke (5)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Redewendung 5 entspricht Funktion E.",
+            "explanation": "Man wartet auf \"eine Antwort\" von der Firma.",
             "order_index": 4,
             "answers": [
               {
-                "id": "tb1_sb2_q5_a1",
-                "answer_text": "A) Formeller Briefabschluss",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q5_a2",
-                "answer_text": "B) Bitte um Antwort",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q5_a3",
-                "answer_text": "C) Ankündigung eines Anhangs",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q5_a4",
-                "answer_text": "D) Angebot weiterer Hilfe",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q5_a5",
-                "answer_text": "E) Dank im Voraus",
+                "id": "tb1s_v5_a1",
+                "answer_text": "Antwort",
                 "is_correct": true
               },
               {
-                "id": "tb1_sb2_q5_a6",
-                "answer_text": "F) Aufforderung zu weiteren Fragen",
+                "id": "tb1s_v5_a2",
+                "answer_text": "Stelle",
                 "is_correct": false
               },
               {
-                "id": "tb1_sb2_q5_a7",
-                "answer_text": "G) Formelle schlechte Nachricht einleiten",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q5_a8",
-                "answer_text": "H) Bewerbungseinleitung",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q5_a9",
-                "answer_text": "I) Bezug auf ein früheres Gespräch",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q5_a10",
-                "answer_text": "J) Verweis auf beigefügte Dokumente",
+                "id": "tb1s_v5_a3",
+                "answer_text": "Gehalt",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_sb2_q6",
-            "question_text": "Welche Funktion hat Redewendung 6?",
+            "id": "tb1s_v6",
+            "question_text": "Lücke (6)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Redewendung 6 entspricht Funktion F.",
+            "explanation": "\"zu einem Gespräch eingeladen werden\" ist die passende Wendung.",
             "order_index": 5,
             "answers": [
               {
-                "id": "tb1_sb2_q6_a1",
-                "answer_text": "A) Formeller Briefabschluss",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q6_a2",
-                "answer_text": "B) Bitte um Antwort",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q6_a3",
-                "answer_text": "C) Ankündigung eines Anhangs",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q6_a4",
-                "answer_text": "D) Angebot weiterer Hilfe",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q6_a5",
-                "answer_text": "E) Dank im Voraus",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q6_a6",
-                "answer_text": "F) Aufforderung zu weiteren Fragen",
+                "id": "tb1s_v6_a1",
+                "answer_text": "eingeladen",
                 "is_correct": true
               },
               {
-                "id": "tb1_sb2_q6_a7",
-                "answer_text": "G) Formelle schlechte Nachricht einleiten",
+                "id": "tb1s_v6_a2",
+                "answer_text": "interessiert",
                 "is_correct": false
               },
               {
-                "id": "tb1_sb2_q6_a8",
-                "answer_text": "H) Bewerbungseinleitung",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q6_a9",
-                "answer_text": "I) Bezug auf ein früheres Gespräch",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q6_a10",
-                "answer_text": "J) Verweis auf beigefügte Dokumente",
+                "id": "tb1s_v6_a3",
+                "answer_text": "Kündigung",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_sb2_q7",
-            "question_text": "Welche Funktion hat Redewendung 7?",
+            "id": "tb1s_v7",
+            "question_text": "Lücke (7)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Redewendung 7 entspricht Funktion G.",
+            "explanation": "\"pünktlich erscheinen\" bedeutet rechtzeitig ankommen.",
             "order_index": 6,
             "answers": [
               {
-                "id": "tb1_sb2_q7_a1",
-                "answer_text": "A) Formeller Briefabschluss",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q7_a2",
-                "answer_text": "B) Bitte um Antwort",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q7_a3",
-                "answer_text": "C) Ankündigung eines Anhangs",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q7_a4",
-                "answer_text": "D) Angebot weiterer Hilfe",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q7_a5",
-                "answer_text": "E) Dank im Voraus",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q7_a6",
-                "answer_text": "F) Aufforderung zu weiteren Fragen",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q7_a7",
-                "answer_text": "G) Formelle schlechte Nachricht einleiten",
+                "id": "tb1s_v7_a1",
+                "answer_text": "erscheinen",
                 "is_correct": true
               },
               {
-                "id": "tb1_sb2_q7_a8",
-                "answer_text": "H) Bewerbungseinleitung",
+                "id": "tb1s_v7_a2",
+                "answer_text": "lesen",
                 "is_correct": false
               },
               {
-                "id": "tb1_sb2_q7_a9",
-                "answer_text": "I) Bezug auf ein früheres Gespräch",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q7_a10",
-                "answer_text": "J) Verweis auf beigefügte Dokumente",
+                "id": "tb1s_v7_a3",
+                "answer_text": "Urlaub",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_sb2_q8",
-            "question_text": "Welche Funktion hat Redewendung 8?",
+            "id": "tb1s_v8",
+            "question_text": "Lücke (8)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Redewendung 8 entspricht Funktion H.",
+            "explanation": "\"ruhig und selbstbewusst antworten\" passt zum Kontext des Gesprächs.",
             "order_index": 7,
             "answers": [
               {
-                "id": "tb1_sb2_q8_a1",
-                "answer_text": "A) Formeller Briefabschluss",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q8_a2",
-                "answer_text": "B) Bitte um Antwort",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q8_a3",
-                "answer_text": "C) Ankündigung eines Anhangs",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q8_a4",
-                "answer_text": "D) Angebot weiterer Hilfe",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q8_a5",
-                "answer_text": "E) Dank im Voraus",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q8_a6",
-                "answer_text": "F) Aufforderung zu weiteren Fragen",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q8_a7",
-                "answer_text": "G) Formelle schlechte Nachricht einleiten",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q8_a8",
-                "answer_text": "H) Bewerbungseinleitung",
+                "id": "tb1s_v8_a1",
+                "answer_text": "selbstbewusst",
                 "is_correct": true
               },
               {
-                "id": "tb1_sb2_q8_a9",
-                "answer_text": "I) Bezug auf ein früheres Gespräch",
+                "id": "tb1s_v8_a2",
+                "answer_text": "kurz",
                 "is_correct": false
               },
               {
-                "id": "tb1_sb2_q8_a10",
-                "answer_text": "J) Verweis auf beigefügte Dokumente",
+                "id": "tb1s_v8_a3",
+                "answer_text": "Arbeitsvertrag",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_sb2_q9",
-            "question_text": "Welche Funktion hat Redewendung 9?",
+            "id": "tb1s_v9",
+            "question_text": "Lücke (9)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Redewendung 9 entspricht Funktion I.",
+            "explanation": "\"Fragen stellen\" ist die feste Verbindung.",
             "order_index": 8,
             "answers": [
               {
-                "id": "tb1_sb2_q9_a1",
-                "answer_text": "A) Formeller Briefabschluss",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q9_a2",
-                "answer_text": "B) Bitte um Antwort",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q9_a3",
-                "answer_text": "C) Ankündigung eines Anhangs",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q9_a4",
-                "answer_text": "D) Angebot weiterer Hilfe",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q9_a5",
-                "answer_text": "E) Dank im Voraus",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q9_a6",
-                "answer_text": "F) Aufforderung zu weiteren Fragen",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q9_a7",
-                "answer_text": "G) Formelle schlechte Nachricht einleiten",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q9_a8",
-                "answer_text": "H) Bewerbungseinleitung",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q9_a9",
-                "answer_text": "I) Bezug auf ein früheres Gespräch",
+                "id": "tb1s_v9_a1",
+                "answer_text": "stellen",
                 "is_correct": true
               },
               {
-                "id": "tb1_sb2_q9_a10",
-                "answer_text": "J) Verweis auf beigefügte Dokumente",
+                "id": "tb1s_v9_a2",
+                "answer_text": "erscheinen",
+                "is_correct": false
+              },
+              {
+                "id": "tb1s_v9_a3",
+                "answer_text": "Gehalt",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_sb2_q10",
-            "question_text": "Welche Funktion hat Redewendung 10?",
+            "id": "tb1s_v10",
+            "question_text": "Lücke (10)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Redewendung 10 entspricht Funktion J.",
+            "explanation": "Am Ende freut man sich auf die neue \"Stelle\" (den neuen Job).",
             "order_index": 9,
             "answers": [
               {
-                "id": "tb1_sb2_q10_a1",
-                "answer_text": "A) Formeller Briefabschluss",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q10_a2",
-                "answer_text": "B) Bitte um Antwort",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q10_a3",
-                "answer_text": "C) Ankündigung eines Anhangs",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q10_a4",
-                "answer_text": "D) Angebot weiterer Hilfe",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q10_a5",
-                "answer_text": "E) Dank im Voraus",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q10_a6",
-                "answer_text": "F) Aufforderung zu weiteren Fragen",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q10_a7",
-                "answer_text": "G) Formelle schlechte Nachricht einleiten",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q10_a8",
-                "answer_text": "H) Bewerbungseinleitung",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q10_a9",
-                "answer_text": "I) Bezug auf ein früheres Gespräch",
-                "is_correct": false
-              },
-              {
-                "id": "tb1_sb2_q10_a10",
-                "answer_text": "J) Verweis auf beigefügte Dokumente",
+                "id": "tb1s_v10_a1",
+                "answer_text": "Stelle",
                 "is_correct": true
+              },
+              {
+                "id": "tb1s_v10_a2",
+                "answer_text": "Antwort",
+                "is_correct": false
+              },
+              {
+                "id": "tb1s_v10_a3",
+                "answer_text": "Kündigung",
+                "is_correct": false
               }
             ]
           }
@@ -6840,103 +5468,103 @@ const mockContent = {
         "type": "listening",
         "official_duration_minutes": 30,
         "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص الإعلان كما لو كنت تسمعه، ثم حدد صحة الجمل.",
-        "passage": "Durchsage in der Kantine:\n\"Liebe Kolleginnen und Kollegen, ab morgen wird die Kantine wegen Renovierungsarbeiten für zwei Wochen geschlossen. In dieser Zeit steht ein Foodtruck auf dem Parkplatz zur Verfügung. Die Preise bleiben unverändert. Wir bitten um Ihr Verständnis.\"",
+        "passage": "Text 1 (Anrufbeantworter): \"Guten Tag, hier ist Frau Nabil von der Buchhaltung. Ich brauche noch die Rechnung von letzter Woche, bitte schicken Sie sie mir bis Freitag zu. Vielen Dank.\"\n\nText 2 (Durchsage): \"Achtung, liebe Mitarbeiter: Der Aufzug im Hauptgebäude ist heute wegen Wartungsarbeiten außer Betrieb. Bitte benutzen Sie die Treppe oder den Aufzug im Nebengebäude.\"\n\nText 3 (Voicemail): \"Hallo, hier ist Karim. Ich habe heute leider Fieber und kann nicht ins Büro kommen. Ich melde mich morgen wieder, wenn es mir besser geht.\"\n\nText 4 (Ansage): \"Willkommen bei der IT-Hotline. Momentan sind alle Mitarbeiter im Gespräch. Bitte bleiben Sie in der Leitung, Sie werden mit dem nächsten freien Mitarbeiter verbunden.\"\n\nText 5 (Nachricht): \"Guten Tag, hier spricht Frau Amrani vom Kundenservice. Ihre Bestellung wurde leider noch nicht verschickt, weil ein Artikel gerade nicht auf Lager ist. Wir melden uns, sobald das Paket unterwegs ist.\"",
         "items": [
           {
-            "id": "tb1_h3_q1",
-            "question_text": "Die Kantine wird für zwei Wochen geschlossen.",
+            "id": "tb1h_t3q1",
+            "question_text": "Frau Nabil braucht die Rechnung bis Freitag.",
             "question_type": "true_false",
             "points": 1,
-            "explanation": "Die Durchsage nennt genau diesen Zeitraum.",
+            "explanation": "Text 1 sagt das genau so.",
             "order_index": 0,
             "answers": [
               {
-                "id": "tb1_h3_q1_r",
+                "id": "tb1h_t3q1_r",
                 "answer_text": "Richtig",
                 "is_correct": true
               },
               {
-                "id": "tb1_h3_q1_f",
+                "id": "tb1h_t3q1_f",
                 "answer_text": "Falsch",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_h3_q2",
-            "question_text": "Der Grund für die Schließung sind Renovierungsarbeiten.",
+            "id": "tb1h_t3q2",
+            "question_text": "Der Aufzug im Nebengebäude funktioniert auch nicht.",
             "question_type": "true_false",
             "points": 1,
-            "explanation": "Die Durchsage nennt Renovierungsarbeiten als Grund.",
+            "explanation": "Nur der Aufzug im Hauptgebäude ist außer Betrieb, der im Nebengebäude kann genutzt werden.",
             "order_index": 1,
             "answers": [
               {
-                "id": "tb1_h3_q2_r",
+                "id": "tb1h_t3q2_r",
                 "answer_text": "Richtig",
-                "is_correct": true
+                "is_correct": false
               },
               {
-                "id": "tb1_h3_q2_f",
+                "id": "tb1h_t3q2_f",
                 "answer_text": "Falsch",
-                "is_correct": false
+                "is_correct": true
               }
             ]
           },
           {
-            "id": "tb1_h3_q3",
-            "question_text": "Während der Schließung gibt es gar kein Essen im Haus.",
+            "id": "tb1h_t3q3",
+            "question_text": "Karim ist heute krank und bleibt zu Hause.",
             "question_type": "true_false",
             "points": 1,
-            "explanation": "Ein Foodtruck steht auf dem Parkplatz zur Verfügung.",
+            "explanation": "Text 3 sagt das genau so.",
             "order_index": 2,
             "answers": [
               {
-                "id": "tb1_h3_q3_r",
+                "id": "tb1h_t3q3_r",
                 "answer_text": "Richtig",
-                "is_correct": false
+                "is_correct": true
               },
               {
-                "id": "tb1_h3_q3_f",
+                "id": "tb1h_t3q3_f",
                 "answer_text": "Falsch",
-                "is_correct": true
+                "is_correct": false
               }
             ]
           },
           {
-            "id": "tb1_h3_q4",
-            "question_text": "Die Preise werden während dieser Zeit erhöht.",
+            "id": "tb1h_t3q4",
+            "question_text": "Man kann sofort mit einem Mitarbeiter der IT-Hotline sprechen.",
             "question_type": "true_false",
             "points": 1,
-            "explanation": "Die Preise bleiben laut Durchsage unverändert.",
+            "explanation": "Alle Mitarbeiter sind im Gespräch, man muss warten.",
             "order_index": 3,
             "answers": [
               {
-                "id": "tb1_h3_q4_r",
+                "id": "tb1h_t3q4_r",
                 "answer_text": "Richtig",
                 "is_correct": false
               },
               {
-                "id": "tb1_h3_q4_f",
+                "id": "tb1h_t3q4_f",
                 "answer_text": "Falsch",
                 "is_correct": true
               }
             ]
           },
           {
-            "id": "tb1_h3_q5",
-            "question_text": "Die Schließung beginnt sofort, ab heute.",
+            "id": "tb1h_t3q5",
+            "question_text": "Die Bestellung wurde bereits verschickt.",
             "question_type": "true_false",
             "points": 1,
-            "explanation": "Sie beginnt ab morgen, nicht ab heute.",
+            "explanation": "Die Bestellung wurde noch NICHT verschickt, weil ein Artikel fehlt.",
             "order_index": 4,
             "answers": [
               {
-                "id": "tb1_h3_q5_r",
+                "id": "tb1h_t3q5_r",
                 "answer_text": "Richtig",
                 "is_correct": false
               },
               {
-                "id": "tb1_h3_q5_f",
+                "id": "tb1h_t3q5_f",
                 "answer_text": "Falsch",
                 "is_correct": true
               }
@@ -6957,209 +5585,159 @@ const mockContent = {
   "test_telc_b2_beruf": {
     "sections": [
       {
-        "key": "lese1",
-        "name": "Leseverstehen — Teil 1 (Globalverstehen)",
+        "key": "reading_teil1",
+        "name": "Leseverstehen Teil 1 — Überschriften-Zuordnung",
         "type": "reading",
-        "official_duration_minutes": 90,
-        "instructions": "Ordnen Sie jedem Absatz die passende Überschrift zu.",
-        "passage": "Absätze:\n1. Immer mehr Unternehmen setzen auf digitale Tools, um Meetings effizienter zu gestalten und Reisezeiten zu reduzieren.\n2. Fachkräftemangel zwingt viele Firmen dazu, ihre Ausbildungsprogramme deutlich auszubauen.\n3. Eine aktuelle Umfrage zeigt, dass flexible Arbeitszeitmodelle die Mitarbeiterbindung erheblich verbessern.\n4. Cyberangriffe auf mittelständische Unternehmen haben in den letzten zwei Jahren stark zugenommen.\n5. Nachhaltige Lieferketten werden für Kunden zu einem immer wichtigeren Auswahlkriterium.\n\nÜberschriften:\nA) Ausbildung als Lösung gegen Personalmangel\nB) Digitalisierung verändert Meetingkultur\nC) Flexibilität stärkt die Bindung ans Unternehmen\nD) Wachsende Bedrohung durch Cyberkriminalität\nE) Nachhaltigkeit als Verkaufsargument\nF) Neue Steuervorschriften für Betriebe",
+        "official_duration_minutes": null,
+        "instructions": "Lesen Sie die fünf Texte und ordnen Sie jedem Text die passende Überschrift zu. Es gibt mehr Überschriften als Texte.",
+        "passage": "Text 1: Eine kürzlich durchgeführte interne Umfrage hat ergeben, dass die Zufriedenheit der Mitarbeiter im vergangenen Jahr insgesamt gestiegen ist, wobei besonders die Bereiche Arbeitsatmosphäre und Führungsverhalten positiv bewertet wurden. Kritisch äußerten sich die Befragten hingegen zur Vereinbarkeit von Beruf und Familie, ein Thema, dem sich die Geschäftsführung in den kommenden Monaten verstärkt widmen möchte.\n\nText 2: Im Zuge verschärfter Datenschutzbestimmungen sind alle Mitarbeiter, die Zugang zu Kundendaten haben, ab sofort verpflichtet, eine zusätzliche Vertraulichkeitserklärung zu unterzeichnen. Verstöße gegen diese Regelung können arbeitsrechtliche Konsequenzen nach sich ziehen. Fragen zur genauen Umsetzung beantwortet die Rechtsabteilung.\n\nText 3: Aufgrund veränderter Marktbedingungen wird die Vertriebsabteilung zum Jahresende neu strukturiert. Zwei bisher getrennte Teams sollen zusammengelegt werden, um Arbeitsabläufe effizienter zu gestalten. Die betroffenen Mitarbeiter werden in den nächsten Wochen über die konkreten Auswirkungen auf ihre jeweiligen Aufgabenbereiche informiert.\n\nText 4: Firmenfahrzeuge dürfen ausschließlich für dienstliche Zwecke genutzt werden, private Fahrten sind grundsätzlich nicht gestattet. Ausnahmen müssen vorab schriftlich bei der Fuhrparkleitung beantragt werden. Bei Zuwiderhandlung behält sich das Unternehmen vor, die Nutzungserlaubnis zu widerrufen.\n\nText 5: Die diesjährige Mitarbeiterbefragung zum Thema Weiterbildung zeigt ein deutliches Interesse an digitalen Kompetenzen, insbesondere im Bereich Datenanalyse. Die Personalabteilung plant daher, das bestehende Fortbildungsangebot entsprechend zu erweitern und wird die neuen Kurse voraussichtlich ab dem zweiten Quartal anbieten.",
         "items": [
           {
-            "id": "tb2_l1_q1",
-            "question_text": "Welche Überschrift passt zu Absatz 1?",
+            "id": "tb2l_t1q1",
+            "question_text": "Welche Überschrift passt zu Text 1?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Absatz 1 passt zu B) Digitalisierung verändert Meetingkultur.",
+            "explanation": "Der Text fasst eine Umfrage zusammen, deren Hauptergebnis gestiegene Zufriedenheit ist -- die Kritik zu Familie/Beruf ist nur ein Nebenpunkt, nicht die Überschrift.",
             "order_index": 0,
             "answers": [
               {
-                "id": "tb2_l1_q1_a1",
-                "answer_text": "A) Ausbildung als Lösung gegen Personalmangel",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l1_q1_a2",
-                "answer_text": "B) Digitalisierung verändert Meetingkultur",
+                "id": "tb2l_t1q1_a1",
+                "answer_text": "Umfrage zeigt steigende Mitarbeiterzufriedenheit",
                 "is_correct": true
               },
               {
-                "id": "tb2_l1_q1_a3",
-                "answer_text": "C) Flexibilität stärkt die Bindung ans Unternehmen",
+                "id": "tb2l_t1q1_a2",
+                "answer_text": "Homeoffice-Regelung wird komplett abgeschafft",
                 "is_correct": false
               },
               {
-                "id": "tb2_l1_q1_a4",
-                "answer_text": "D) Wachsende Bedrohung durch Cyberkriminalität",
+                "id": "tb2l_t1q1_a3",
+                "answer_text": "Geschäftsführung kündigt Gehaltserhöhung an",
                 "is_correct": false
               },
               {
-                "id": "tb2_l1_q1_a5",
-                "answer_text": "E) Nachhaltigkeit als Verkaufsargument",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l1_q1_a6",
-                "answer_text": "F) Neue Steuervorschriften für Betriebe",
+                "id": "tb2l_t1q1_a4",
+                "answer_text": "Neue Kantine wird nächsten Monat eröffnet",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_l1_q2",
-            "question_text": "Welche Überschrift passt zu Absatz 2?",
+            "id": "tb2l_t1q2",
+            "question_text": "Welche Überschrift passt zu Text 2?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Absatz 2 passt zu A) Ausbildung als Lösung gegen Personalmangel.",
+            "explanation": "Text 2 handelt von der neuen Pflicht zur Vertraulichkeitserklärung.",
             "order_index": 1,
             "answers": [
               {
-                "id": "tb2_l1_q2_a1",
-                "answer_text": "A) Ausbildung als Lösung gegen Personalmangel",
+                "id": "tb2l_t1q2_a1",
+                "answer_text": "Neue Vertraulichkeitspflicht beim Umgang mit Kundendaten",
                 "is_correct": true
               },
               {
-                "id": "tb2_l1_q2_a2",
-                "answer_text": "B) Digitalisierung verändert Meetingkultur",
+                "id": "tb2l_t1q2_a2",
+                "answer_text": "Unternehmen eröffnet neue Filiale im Ausland",
                 "is_correct": false
               },
               {
-                "id": "tb2_l1_q2_a3",
-                "answer_text": "C) Flexibilität stärkt die Bindung ans Unternehmen",
+                "id": "tb2l_t1q2_a3",
+                "answer_text": "Firma sucht Auszubildende für das kommende Jahr",
                 "is_correct": false
               },
               {
-                "id": "tb2_l1_q2_a4",
-                "answer_text": "D) Wachsende Bedrohung durch Cyberkriminalität",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l1_q2_a5",
-                "answer_text": "E) Nachhaltigkeit als Verkaufsargument",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l1_q2_a6",
-                "answer_text": "F) Neue Steuervorschriften für Betriebe",
+                "id": "tb2l_t1q2_a4",
+                "answer_text": "Restrukturierung der Vertriebsabteilung geplant",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_l1_q3",
-            "question_text": "Welche Überschrift passt zu Absatz 3?",
+            "id": "tb2l_t1q3",
+            "question_text": "Welche Überschrift passt zu Text 3?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Absatz 3 passt zu C) Flexibilität stärkt die Bindung ans Unternehmen.",
+            "explanation": "Text 3 kündigt die Zusammenlegung zweier Teams in der Vertriebsabteilung an.",
             "order_index": 2,
             "answers": [
               {
-                "id": "tb2_l1_q3_a1",
-                "answer_text": "A) Ausbildung als Lösung gegen Personalmangel",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l1_q3_a2",
-                "answer_text": "B) Digitalisierung verändert Meetingkultur",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l1_q3_a3",
-                "answer_text": "C) Flexibilität stärkt die Bindung ans Unternehmen",
+                "id": "tb2l_t1q3_a1",
+                "answer_text": "Restrukturierung der Vertriebsabteilung geplant",
                 "is_correct": true
               },
               {
-                "id": "tb2_l1_q3_a4",
-                "answer_text": "D) Wachsende Bedrohung durch Cyberkriminalität",
+                "id": "tb2l_t1q3_a2",
+                "answer_text": "Neue Kantine wird nächsten Monat eröffnet",
                 "is_correct": false
               },
               {
-                "id": "tb2_l1_q3_a5",
-                "answer_text": "E) Nachhaltigkeit als Verkaufsargument",
+                "id": "tb2l_t1q3_a3",
+                "answer_text": "Homeoffice-Regelung wird komplett abgeschafft",
                 "is_correct": false
               },
               {
-                "id": "tb2_l1_q3_a6",
-                "answer_text": "F) Neue Steuervorschriften für Betriebe",
+                "id": "tb2l_t1q3_a4",
+                "answer_text": "Neue Vertraulichkeitspflicht beim Umgang mit Kundendaten",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_l1_q4",
-            "question_text": "Welche Überschrift passt zu Absatz 4?",
+            "id": "tb2l_t1q4",
+            "question_text": "Welche Überschrift passt zu Text 4?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Absatz 4 passt zu D) Wachsende Bedrohung durch Cyberkriminalität.",
+            "explanation": "Text 4 beschreibt die strengen Regeln zur Nutzung von Firmenfahrzeugen.",
             "order_index": 3,
             "answers": [
               {
-                "id": "tb2_l1_q4_a1",
-                "answer_text": "A) Ausbildung als Lösung gegen Personalmangel",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l1_q4_a2",
-                "answer_text": "B) Digitalisierung verändert Meetingkultur",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l1_q4_a3",
-                "answer_text": "C) Flexibilität stärkt die Bindung ans Unternehmen",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l1_q4_a4",
-                "answer_text": "D) Wachsende Bedrohung durch Cyberkriminalität",
+                "id": "tb2l_t1q4_a1",
+                "answer_text": "Strengere Regeln für die Nutzung von Firmenfahrzeugen",
                 "is_correct": true
               },
               {
-                "id": "tb2_l1_q4_a5",
-                "answer_text": "E) Nachhaltigkeit als Verkaufsargument",
+                "id": "tb2l_t1q4_a2",
+                "answer_text": "Geschäftsführung kündigt Gehaltserhöhung an",
                 "is_correct": false
               },
               {
-                "id": "tb2_l1_q4_a6",
-                "answer_text": "F) Neue Steuervorschriften für Betriebe",
+                "id": "tb2l_t1q4_a3",
+                "answer_text": "Unternehmen eröffnet neue Filiale im Ausland",
+                "is_correct": false
+              },
+              {
+                "id": "tb2l_t1q4_a4",
+                "answer_text": "Umfrage zeigt steigende Mitarbeiterzufriedenheit",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_l1_q5",
-            "question_text": "Welche Überschrift passt zu Absatz 5?",
+            "id": "tb2l_t1q5",
+            "question_text": "Welche Überschrift passt zu Text 5?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Absatz 5 passt zu E) Nachhaltigkeit als Verkaufsargument.",
+            "explanation": "Text 5 handelt vom Interesse der Mitarbeiter an digitaler Weiterbildung.",
             "order_index": 4,
             "answers": [
               {
-                "id": "tb2_l1_q5_a1",
-                "answer_text": "A) Ausbildung als Lösung gegen Personalmangel",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l1_q5_a2",
-                "answer_text": "B) Digitalisierung verändert Meetingkultur",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l1_q5_a3",
-                "answer_text": "C) Flexibilität stärkt die Bindung ans Unternehmen",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l1_q5_a4",
-                "answer_text": "D) Wachsende Bedrohung durch Cyberkriminalität",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l1_q5_a5",
-                "answer_text": "E) Nachhaltigkeit als Verkaufsargument",
+                "id": "tb2l_t1q5_a1",
+                "answer_text": "Mitarbeiter wünschen sich mehr digitale Weiterbildung",
                 "is_correct": true
               },
               {
-                "id": "tb2_l1_q5_a6",
-                "answer_text": "F) Neue Steuervorschriften für Betriebe",
+                "id": "tb2l_t1q5_a2",
+                "answer_text": "Firma sucht Auszubildende für das kommende Jahr",
+                "is_correct": false
+              },
+              {
+                "id": "tb2l_t1q5_a3",
+                "answer_text": "Restrukturierung der Vertriebsabteilung geplant",
+                "is_correct": false
+              },
+              {
+                "id": "tb2l_t1q5_a4",
+                "answer_text": "Strengere Regeln für die Nutzung von Firmenfahrzeugen",
                 "is_correct": false
               }
             ]
@@ -7167,740 +5745,260 @@ const mockContent = {
         ]
       },
       {
-        "key": "lese2",
-        "name": "Leseverstehen — Teil 2 (Detailverstehen)",
+        "key": "reading_teil2",
+        "name": "Leseverstehen Teil 2 — Richtig oder Falsch",
         "type": "reading",
-        "official_duration_minutes": 90,
-        "instructions": "Lesen Sie den Artikel und beantworten Sie die Fragen.",
-        "passage": "Digitalisierung im Mittelstand\n\nViele mittelständische Unternehmen zögern noch, in digitale Prozesse zu investieren, obwohl Studien zeigen, dass digitalisierte Betriebe im Schnitt produktiver sind. Als Hauptgründe für das Zögern nennen Geschäftsführer fehlendes Fachpersonal und hohe Anfangsinvestitionen. Experten empfehlen daher, mit kleinen, klar abgegrenzten Projekten zu beginnen, statt die gesamte Firma auf einmal umzustellen. Eine begleitende Studie zeigt zudem, dass Unternehmen, die externe Berater einbeziehen, im Schnitt schneller Ergebnisse erzielen als jene, die den Prozess komplett intern steuern.",
+        "official_duration_minutes": null,
+        "instructions": "Lesen Sie den Text und entscheiden Sie: Sind die folgenden Aussagen richtig oder falsch?",
+        "passage": "Nachdem in den vergangenen Jahren zunehmend Kritik am bisherigen Bewertungssystem laut wurde, hat sich die Geschäftsführung entschlossen, ab dem kommenden Quartal ein neues Modell für Mitarbeitergespräche einzuführen. Anstelle der bisherigen jährlichen Beurteilung, die von vielen als zu selten und wenig aussagekräftig empfunden wurde, sollen künftig vierteljährliche Gespräche stattfinden, in denen Ziele gemeinsam festgelegt und regelmäßig überprüft werden.\n\nEin weiterer zentraler Bestandteil der Reform ist die Einführung eines sogenannten 360-Grad-Feedbacks, bei dem nicht nur Vorgesetzte, sondern auch Kollegen und in bestimmten Fällen auch Kunden in die Bewertung einbezogen werden. Kritiker befürchten, dass dieses Verfahren zu einem erhöhten bürokratischen Aufwand führen könnte, während Befürworter betonen, dass ein umfassenderes Feedback zu einer faireren und realistischeren Einschätzung der Leistung beitrage.\n\nDie Personalabteilung kündigte an, alle Führungskräfte im Vorfeld der Einführung in speziellen Workshops zu schulen, damit die neuen Gespräche einheitlich und professionell durchgeführt werden können. Eine erste Evaluation des neuen Systems ist nach Ablauf eines Jahres vorgesehen.",
         "items": [
           {
-            "id": "tb2_l2_q1",
-            "question_text": "Warum zögern viele Mittelständler laut Text?",
-            "question_type": "multiple_choice",
+            "id": "tb2l_t2q1",
+            "question_text": "Das bisherige Bewertungssystem wurde von vielen Mitarbeitern als unzureichend empfunden.",
+            "question_type": "true_false",
             "points": 1,
-            "explanation": "Der Text nennt genau diese beiden Gründe.",
+            "explanation": "Der Text sagt, es wurde als zu selten und wenig aussagekräftig empfunden.",
             "order_index": 0,
             "answers": [
               {
-                "id": "tb2_l2_q1_a1",
-                "answer_text": "Wegen fehlendem Fachpersonal und hohen Investitionskosten.",
+                "id": "tb2l_t2q1_r",
+                "answer_text": "Richtig",
                 "is_correct": true
               },
               {
-                "id": "tb2_l2_q1_a2",
-                "answer_text": "Weil die Digitalisierung gesetzlich verboten ist.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l2_q1_a3",
-                "answer_text": "Weil sie keine Kunden haben.",
+                "id": "tb2l_t2q1_f",
+                "answer_text": "Falsch",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_l2_q2",
-            "question_text": "Was empfehlen Experten?",
-            "question_type": "multiple_choice",
+            "id": "tb2l_t2q2",
+            "question_text": "Die neuen Mitarbeitergespräche sollen zweimal im Jahr stattfinden.",
+            "question_type": "true_false",
             "points": 1,
-            "explanation": "Der Text nennt genau diese Empfehlung.",
+            "explanation": "Sie sollen vierteljährlich stattfinden, also viermal im Jahr, nicht zweimal.",
             "order_index": 1,
             "answers": [
               {
-                "id": "tb2_l2_q2_a1",
-                "answer_text": "Mit kleinen, klar abgegrenzten Projekten zu beginnen.",
-                "is_correct": true
-              },
-              {
-                "id": "tb2_l2_q2_a2",
-                "answer_text": "Sofort die gesamte Firma umzustellen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l2_q2_a3",
-                "answer_text": "Auf Digitalisierung ganz zu verzichten.",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb2_l2_q3",
-            "question_text": "Was zeigen Studien laut Text?",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Der Text sagt das explizit im ersten Satz.",
-            "order_index": 2,
-            "answers": [
-              {
-                "id": "tb2_l2_q3_a1",
-                "answer_text": "Digitalisierte Betriebe sind im Schnitt produktiver.",
-                "is_correct": true
-              },
-              {
-                "id": "tb2_l2_q3_a2",
-                "answer_text": "Digitalisierung senkt die Produktivität.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l2_q3_a3",
-                "answer_text": "Digitalisierung hat keinen Effekt.",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb2_l2_q4",
-            "question_text": "Alle mittelständischen Unternehmen haben bereits vollständig digitalisiert.",
-            "question_type": "true_false",
-            "points": 1,
-            "explanation": "Der Text sagt, viele zögern noch mit der Investition.",
-            "order_index": 3,
-            "answers": [
-              {
-                "id": "tb2_l2_q4_r",
+                "id": "tb2l_t2q2_r",
                 "answer_text": "Richtig",
                 "is_correct": false
               },
               {
-                "id": "tb2_l2_q4_f",
+                "id": "tb2l_t2q2_f",
                 "answer_text": "Falsch",
                 "is_correct": true
               }
             ]
           },
           {
-            "id": "tb2_l2_q5",
-            "question_text": "Was zeigt die begleitende Studie?",
-            "question_type": "multiple_choice",
+            "id": "tb2l_t2q3",
+            "question_text": "Beim 360-Grad-Feedback bewerten ausschließlich Vorgesetzte die Mitarbeiter.",
+            "question_type": "true_false",
             "points": 1,
-            "explanation": "Der letzte Satz nennt genau diesen Befund.",
+            "explanation": "Der Text sagt ausdrücklich: nicht nur Vorgesetzte, sondern auch Kollegen und teils Kunden.",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "tb2l_t2q3_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "tb2l_t2q3_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "tb2l_t2q4",
+            "question_text": "Alle Kritiker und Befürworter des neuen Systems sind sich einig, dass es zu mehr Bürokratie führen wird.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Nur die Kritiker befürchten das; die Befürworter betonen stattdessen die Vorteile -- sie sind sich nicht einig.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "tb2l_t2q4_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "tb2l_t2q4_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "tb2l_t2q5",
+            "question_text": "Führungskräfte werden vor der Einführung des neuen Systems geschult.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Der Text sagt, alle Führungskräfte werden im Vorfeld in Workshops geschult.",
             "order_index": 4,
             "answers": [
               {
-                "id": "tb2_l2_q5_a1",
-                "answer_text": "Unternehmen mit externen Beratern erzielen schneller Ergebnisse.",
+                "id": "tb2l_t2q5_r",
+                "answer_text": "Richtig",
                 "is_correct": true
               },
               {
-                "id": "tb2_l2_q5_a2",
-                "answer_text": "Externe Berater verlangsamen den Prozess.",
+                "id": "tb2l_t2q5_f",
+                "answer_text": "Falsch",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2l_t2q6",
+            "question_text": "Das neue System wird bereits nach einem Monat zum ersten Mal überprüft.",
+            "question_type": "true_false",
+            "points": 1,
+            "explanation": "Die erste Evaluation ist erst nach einem Jahr vorgesehen, nicht nach einem Monat.",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "tb2l_t2q6_r",
+                "answer_text": "Richtig",
                 "is_correct": false
               },
               {
-                "id": "tb2_l2_q5_a3",
-                "answer_text": "Interne Steuerung ist immer schneller.",
-                "is_correct": false
+                "id": "tb2l_t2q6_f",
+                "answer_text": "Falsch",
+                "is_correct": true
               }
             ]
           }
         ]
       },
       {
-        "key": "lese3",
-        "name": "Leseverstehen — Teil 3 (Selektives Verstehen)",
+        "key": "reading_teil3",
+        "name": "Leseverstehen Teil 3 — Situationen-Zuordnung",
         "type": "reading",
-        "official_duration_minutes": 90,
-        "instructions": "Ordnen Sie jedem Unternehmensprofil den passenden Dienstleister zu.",
-        "passage": "Unternehmensprofile:\n1. Eine Firma sucht einen Anbieter für Cloud-Speicherlösungen.\n2. Ein Start-up benötigt Hilfe bei der Gestaltung des Firmenlogos.\n3. Ein Unternehmen möchte seine Mitarbeitenden in Projektmanagement schulen lassen.\n4. Eine Firma sucht einen Steuerberater für die Jahresabschlusserstellung.\n5. Ein Betrieb sucht einen Anbieter für Übersetzungsdienste Deutsch-Englisch.\n6. Ein Unternehmen benötigt eine neue Website mit Onlineshop.\n7. Eine Firma sucht einen Caterer für eine Firmenveranstaltung.\n8. Ein Betrieb sucht einen Sicherheitsdienst für das Firmengelände.\n9. Ein Unternehmen möchte seinen CO2-Fußabdruck berechnen lassen.\n10. Eine Firma sucht Unterstützung beim Recruiting neuer Fachkräfte.\n\nDienstleister:\nA) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.\nB) Designstudio Nova: Logo- und Markendesign für Start-ups.\nC) ProManage Academy: Schulungen im Projektmanagement.\nD) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.\nE) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.\nF) WebCraft: Website- und Onlineshop-Erstellung.\nG) EventCatering Plus: Catering für Firmenveranstaltungen.\nH) SecureGuard: Sicherheitsdienste für Firmengelände.\nI) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.\nJ) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
+        "official_duration_minutes": null,
+        "instructions": "Lesen Sie die Anliegen der Mitarbeiter und die Regelungen. Ordnen Sie jedem Anliegen die passende Regelung zu.",
+        "passage": "Mitarbeiter A: Mitarbeiter A möchte wissen, ob er das Firmenfahrzeug auch für eine private Fahrt am Wochenende nutzen darf, wenn er vorher eine Genehmigung einholt.\n\nMitarbeiterin B: Mitarbeiterin B hat Zugang zu sensiblen Kundendaten und möchte wissen, welche zusätzliche Pflicht sie in Zukunft hat.\n\nMitarbeiter C: Mitarbeiter C interessiert sich für eine Fortbildung im Bereich Datenanalyse und möchte wissen, wann die neuen Kurse angeboten werden.\n\nMitarbeiterin D: Mitarbeiterin D möchte sich zur Vereinbarkeit von Beruf und Familie äußern und wissen, ob die Geschäftsführung dieses Thema ernst nimmt.\n\nRegelung a: Private Fahrten mit Firmenfahrzeugen sind grundsätzlich nicht gestattet, Ausnahmen müssen vorab schriftlich beantragt werden.\nRegelung b: Mitarbeiter mit Zugang zu Kundendaten müssen eine zusätzliche Vertraulichkeitserklärung unterzeichnen.\nRegelung c: Die neuen Kurse im Bereich Datenanalyse werden voraussichtlich ab dem zweiten Quartal angeboten.\nRegelung d: Die Geschäftsführung möchte sich in den kommenden Monaten verstärkt dem Thema Vereinbarkeit von Beruf und Familie widmen.\nRegelung e: Alle Firmenfahrzeuge müssen einmal jährlich zur technischen Inspektion.\nRegelung f: Die jährliche Mitarbeiterbefragung findet immer im Januar statt.",
         "items": [
           {
-            "id": "tb2_l3_q1",
-            "question_text": "Welcher Dienstleister passt zu Profil 1?",
+            "id": "tb2l_t3q1",
+            "question_text": "Welche Regelung beantwortet die Frage von Mitarbeiter A?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Profil 1 passt zu A.",
+            "explanation": "Regelung a beschreibt genau, dass private Fahrten mit vorheriger schriftlicher Genehmigung möglich sind.",
             "order_index": 0,
             "answers": [
               {
-                "id": "tb2_l3_q1_a1",
-                "answer_text": "A) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.",
+                "id": "tb2l_t3q1_a1",
+                "answer_text": "Regelung a (Genehmigung für private Fahrten nötig)",
                 "is_correct": true
               },
               {
-                "id": "tb2_l3_q1_a2",
-                "answer_text": "B) Designstudio Nova: Logo- und Markendesign für Start-ups.",
+                "id": "tb2l_t3q1_a2",
+                "answer_text": "Regelung e (jährliche technische Inspektion)",
                 "is_correct": false
               },
               {
-                "id": "tb2_l3_q1_a3",
-                "answer_text": "C) ProManage Academy: Schulungen im Projektmanagement.",
+                "id": "tb2l_t3q1_a3",
+                "answer_text": "Regelung b (Vertraulichkeitserklärung Pflicht)",
                 "is_correct": false
               },
               {
-                "id": "tb2_l3_q1_a4",
-                "answer_text": "D) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q1_a5",
-                "answer_text": "E) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q1_a6",
-                "answer_text": "F) WebCraft: Website- und Onlineshop-Erstellung.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q1_a7",
-                "answer_text": "G) EventCatering Plus: Catering für Firmenveranstaltungen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q1_a8",
-                "answer_text": "H) SecureGuard: Sicherheitsdienste für Firmengelände.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q1_a9",
-                "answer_text": "I) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q1_a10",
-                "answer_text": "J) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
+                "id": "tb2l_t3q1_a4",
+                "answer_text": "Regelung f (Befragung immer im Januar)",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_l3_q2",
-            "question_text": "Welcher Dienstleister passt zu Profil 2?",
+            "id": "tb2l_t3q2",
+            "question_text": "Welche Regelung beantwortet die Frage von Mitarbeiterin B?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Profil 2 passt zu B.",
+            "explanation": "Regelung b nennt genau die zusätzliche Pflicht für Mitarbeiter mit Zugang zu Kundendaten.",
             "order_index": 1,
             "answers": [
               {
-                "id": "tb2_l3_q2_a1",
-                "answer_text": "A) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q2_a2",
-                "answer_text": "B) Designstudio Nova: Logo- und Markendesign für Start-ups.",
+                "id": "tb2l_t3q2_a1",
+                "answer_text": "Regelung b (Vertraulichkeitserklärung Pflicht)",
                 "is_correct": true
               },
               {
-                "id": "tb2_l3_q2_a3",
-                "answer_text": "C) ProManage Academy: Schulungen im Projektmanagement.",
+                "id": "tb2l_t3q2_a2",
+                "answer_text": "Regelung a (Genehmigung für private Fahrten nötig)",
                 "is_correct": false
               },
               {
-                "id": "tb2_l3_q2_a4",
-                "answer_text": "D) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.",
+                "id": "tb2l_t3q2_a3",
+                "answer_text": "Regelung c (neue Kurse ab Q2)",
                 "is_correct": false
               },
               {
-                "id": "tb2_l3_q2_a5",
-                "answer_text": "E) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q2_a6",
-                "answer_text": "F) WebCraft: Website- und Onlineshop-Erstellung.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q2_a7",
-                "answer_text": "G) EventCatering Plus: Catering für Firmenveranstaltungen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q2_a8",
-                "answer_text": "H) SecureGuard: Sicherheitsdienste für Firmengelände.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q2_a9",
-                "answer_text": "I) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q2_a10",
-                "answer_text": "J) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
+                "id": "tb2l_t3q2_a4",
+                "answer_text": "Regelung e (jährliche technische Inspektion)",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_l3_q3",
-            "question_text": "Welcher Dienstleister passt zu Profil 3?",
+            "id": "tb2l_t3q3",
+            "question_text": "Welche Regelung beantwortet die Frage von Mitarbeiter C?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Profil 3 passt zu C.",
+            "explanation": "Regelung c nennt den Starttermin der neuen Datenanalyse-Kurse.",
             "order_index": 2,
             "answers": [
               {
-                "id": "tb2_l3_q3_a1",
-                "answer_text": "A) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q3_a2",
-                "answer_text": "B) Designstudio Nova: Logo- und Markendesign für Start-ups.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q3_a3",
-                "answer_text": "C) ProManage Academy: Schulungen im Projektmanagement.",
+                "id": "tb2l_t3q3_a1",
+                "answer_text": "Regelung c (neue Kurse ab Q2)",
                 "is_correct": true
               },
               {
-                "id": "tb2_l3_q3_a4",
-                "answer_text": "D) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.",
+                "id": "tb2l_t3q3_a2",
+                "answer_text": "Regelung f (Befragung immer im Januar)",
                 "is_correct": false
               },
               {
-                "id": "tb2_l3_q3_a5",
-                "answer_text": "E) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.",
+                "id": "tb2l_t3q3_a3",
+                "answer_text": "Regelung d (Vereinbarkeit Beruf/Familie als Fokus)",
                 "is_correct": false
               },
               {
-                "id": "tb2_l3_q3_a6",
-                "answer_text": "F) WebCraft: Website- und Onlineshop-Erstellung.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q3_a7",
-                "answer_text": "G) EventCatering Plus: Catering für Firmenveranstaltungen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q3_a8",
-                "answer_text": "H) SecureGuard: Sicherheitsdienste für Firmengelände.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q3_a9",
-                "answer_text": "I) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q3_a10",
-                "answer_text": "J) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
+                "id": "tb2l_t3q3_a4",
+                "answer_text": "Regelung a (Genehmigung für private Fahrten nötig)",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_l3_q4",
-            "question_text": "Welcher Dienstleister passt zu Profil 4?",
+            "id": "tb2l_t3q4",
+            "question_text": "Welche Regelung beantwortet die Frage von Mitarbeiterin D?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Profil 4 passt zu D.",
+            "explanation": "Regelung d bestätigt, dass sich die Geschäftsführung diesem Thema widmen möchte.",
             "order_index": 3,
             "answers": [
               {
-                "id": "tb2_l3_q4_a1",
-                "answer_text": "A) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q4_a2",
-                "answer_text": "B) Designstudio Nova: Logo- und Markendesign für Start-ups.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q4_a3",
-                "answer_text": "C) ProManage Academy: Schulungen im Projektmanagement.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q4_a4",
-                "answer_text": "D) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.",
+                "id": "tb2l_t3q4_a1",
+                "answer_text": "Regelung d (Vereinbarkeit Beruf/Familie als Fokus)",
                 "is_correct": true
               },
               {
-                "id": "tb2_l3_q4_a5",
-                "answer_text": "E) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.",
+                "id": "tb2l_t3q4_a2",
+                "answer_text": "Regelung b (Vertraulichkeitserklärung Pflicht)",
                 "is_correct": false
               },
               {
-                "id": "tb2_l3_q4_a6",
-                "answer_text": "F) WebCraft: Website- und Onlineshop-Erstellung.",
+                "id": "tb2l_t3q4_a3",
+                "answer_text": "Regelung e (jährliche technische Inspektion)",
                 "is_correct": false
               },
               {
-                "id": "tb2_l3_q4_a7",
-                "answer_text": "G) EventCatering Plus: Catering für Firmenveranstaltungen.",
+                "id": "tb2l_t3q4_a4",
+                "answer_text": "Regelung c (neue Kurse ab Q2)",
                 "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q4_a8",
-                "answer_text": "H) SecureGuard: Sicherheitsdienste für Firmengelände.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q4_a9",
-                "answer_text": "I) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q4_a10",
-                "answer_text": "J) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb2_l3_q5",
-            "question_text": "Welcher Dienstleister passt zu Profil 5?",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Profil 5 passt zu E.",
-            "order_index": 4,
-            "answers": [
-              {
-                "id": "tb2_l3_q5_a1",
-                "answer_text": "A) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q5_a2",
-                "answer_text": "B) Designstudio Nova: Logo- und Markendesign für Start-ups.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q5_a3",
-                "answer_text": "C) ProManage Academy: Schulungen im Projektmanagement.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q5_a4",
-                "answer_text": "D) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q5_a5",
-                "answer_text": "E) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.",
-                "is_correct": true
-              },
-              {
-                "id": "tb2_l3_q5_a6",
-                "answer_text": "F) WebCraft: Website- und Onlineshop-Erstellung.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q5_a7",
-                "answer_text": "G) EventCatering Plus: Catering für Firmenveranstaltungen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q5_a8",
-                "answer_text": "H) SecureGuard: Sicherheitsdienste für Firmengelände.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q5_a9",
-                "answer_text": "I) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q5_a10",
-                "answer_text": "J) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb2_l3_q6",
-            "question_text": "Welcher Dienstleister passt zu Profil 6?",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Profil 6 passt zu F.",
-            "order_index": 5,
-            "answers": [
-              {
-                "id": "tb2_l3_q6_a1",
-                "answer_text": "A) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q6_a2",
-                "answer_text": "B) Designstudio Nova: Logo- und Markendesign für Start-ups.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q6_a3",
-                "answer_text": "C) ProManage Academy: Schulungen im Projektmanagement.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q6_a4",
-                "answer_text": "D) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q6_a5",
-                "answer_text": "E) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q6_a6",
-                "answer_text": "F) WebCraft: Website- und Onlineshop-Erstellung.",
-                "is_correct": true
-              },
-              {
-                "id": "tb2_l3_q6_a7",
-                "answer_text": "G) EventCatering Plus: Catering für Firmenveranstaltungen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q6_a8",
-                "answer_text": "H) SecureGuard: Sicherheitsdienste für Firmengelände.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q6_a9",
-                "answer_text": "I) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q6_a10",
-                "answer_text": "J) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb2_l3_q7",
-            "question_text": "Welcher Dienstleister passt zu Profil 7?",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Profil 7 passt zu G.",
-            "order_index": 6,
-            "answers": [
-              {
-                "id": "tb2_l3_q7_a1",
-                "answer_text": "A) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q7_a2",
-                "answer_text": "B) Designstudio Nova: Logo- und Markendesign für Start-ups.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q7_a3",
-                "answer_text": "C) ProManage Academy: Schulungen im Projektmanagement.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q7_a4",
-                "answer_text": "D) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q7_a5",
-                "answer_text": "E) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q7_a6",
-                "answer_text": "F) WebCraft: Website- und Onlineshop-Erstellung.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q7_a7",
-                "answer_text": "G) EventCatering Plus: Catering für Firmenveranstaltungen.",
-                "is_correct": true
-              },
-              {
-                "id": "tb2_l3_q7_a8",
-                "answer_text": "H) SecureGuard: Sicherheitsdienste für Firmengelände.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q7_a9",
-                "answer_text": "I) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q7_a10",
-                "answer_text": "J) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb2_l3_q8",
-            "question_text": "Welcher Dienstleister passt zu Profil 8?",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Profil 8 passt zu H.",
-            "order_index": 7,
-            "answers": [
-              {
-                "id": "tb2_l3_q8_a1",
-                "answer_text": "A) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q8_a2",
-                "answer_text": "B) Designstudio Nova: Logo- und Markendesign für Start-ups.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q8_a3",
-                "answer_text": "C) ProManage Academy: Schulungen im Projektmanagement.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q8_a4",
-                "answer_text": "D) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q8_a5",
-                "answer_text": "E) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q8_a6",
-                "answer_text": "F) WebCraft: Website- und Onlineshop-Erstellung.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q8_a7",
-                "answer_text": "G) EventCatering Plus: Catering für Firmenveranstaltungen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q8_a8",
-                "answer_text": "H) SecureGuard: Sicherheitsdienste für Firmengelände.",
-                "is_correct": true
-              },
-              {
-                "id": "tb2_l3_q8_a9",
-                "answer_text": "I) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q8_a10",
-                "answer_text": "J) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb2_l3_q9",
-            "question_text": "Welcher Dienstleister passt zu Profil 9?",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Profil 9 passt zu I.",
-            "order_index": 8,
-            "answers": [
-              {
-                "id": "tb2_l3_q9_a1",
-                "answer_text": "A) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q9_a2",
-                "answer_text": "B) Designstudio Nova: Logo- und Markendesign für Start-ups.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q9_a3",
-                "answer_text": "C) ProManage Academy: Schulungen im Projektmanagement.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q9_a4",
-                "answer_text": "D) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q9_a5",
-                "answer_text": "E) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q9_a6",
-                "answer_text": "F) WebCraft: Website- und Onlineshop-Erstellung.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q9_a7",
-                "answer_text": "G) EventCatering Plus: Catering für Firmenveranstaltungen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q9_a8",
-                "answer_text": "H) SecureGuard: Sicherheitsdienste für Firmengelände.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q9_a9",
-                "answer_text": "I) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.",
-                "is_correct": true
-              },
-              {
-                "id": "tb2_l3_q9_a10",
-                "answer_text": "J) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb2_l3_q10",
-            "question_text": "Welcher Dienstleister passt zu Profil 10?",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Profil 10 passt zu J.",
-            "order_index": 9,
-            "answers": [
-              {
-                "id": "tb2_l3_q10_a1",
-                "answer_text": "A) CloudSecure: Sichere Cloud-Speicherlösungen für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q10_a2",
-                "answer_text": "B) Designstudio Nova: Logo- und Markendesign für Start-ups.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q10_a3",
-                "answer_text": "C) ProManage Academy: Schulungen im Projektmanagement.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q10_a4",
-                "answer_text": "D) Steuerkanzlei Berger: Jahresabschlüsse und Steuerberatung.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q10_a5",
-                "answer_text": "E) LinguaPro: Übersetzungen Deutsch-Englisch für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q10_a6",
-                "answer_text": "F) WebCraft: Website- und Onlineshop-Erstellung.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q10_a7",
-                "answer_text": "G) EventCatering Plus: Catering für Firmenveranstaltungen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q10_a8",
-                "answer_text": "H) SecureGuard: Sicherheitsdienste für Firmengelände.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q10_a9",
-                "answer_text": "I) GreenMetrics: Berechnung des CO2-Fußabdrucks für Unternehmen.",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_l3_q10_a10",
-                "answer_text": "J) TalentFinder: Recruiting-Dienstleistungen für Fachkräfte.",
-                "is_correct": true
               }
             ]
           }
@@ -7908,258 +6006,258 @@ const mockContent = {
       },
       {
         "key": "sprachbausteine1",
-        "name": "Sprachbausteine — Teil 1",
+        "name": "Sprachbausteine — Teil 1 (Grammatik im Kontext)",
         "type": "language",
         "official_duration_minutes": 90,
-        "instructions": "Wählen Sie die richtige Lösung.",
-        "passage": null,
+        "instructions": "Lesen Sie den Text. Wählen Sie für jede Lücke die richtige Lösung.",
+        "passage": "Nachdem die Geschäftsführung (1)___ hatte, das Homeoffice-Modell probeweise einzuführen, zeigten sich schon nach wenigen Wochen erste positive Effekte. Viele Mitarbeiter berichteten, dass sie konzentrierter arbeiten könnten, (2)___ sie morgens keinen langen Arbeitsweg mehr zurücklegen müssten. Die Geschäftsleitung, (3)___ Entscheidung ursprünglich auf großes Misstrauen gestoßen war, zeigte sich zunehmend überzeugt von den Vorteilen.\n\nTrotz der positiven Bilanz gab es auch kritische Stimmen. Einige Führungskräfte äußerten die Sorge, dass der persönliche Austausch im Team (4)___ leiden könnte, wenn Kollegen sich seltener persönlich begegnen. Diese Bedenken wurden jedoch von der Personalabteilung ernst genommen, (5)___ ein hybrides Modell vorgeschlagen wurde, bei dem Mitarbeiter sowohl im Büro als auch von zu Hause arbeiten können.\n\nEin Mitarbeiter, (6)___ Vertrag noch bis Ende des Jahres läuft, äußerte sich besonders positiv über die neue Regelung. Er gab an, dass seine Produktivität (7)___ das neue Modell deutlich gestiegen sei. Sollte sich die Regelung langfristig bewähren, (8)___ die Geschäftsführung, sie dauerhaft in allen Abteilungen einzuführen. Ziel ist es, ein Arbeitsumfeld zu schaffen, (9)___ sich Mitarbeiter langfristig wohlfühlen und produktiv arbeiten können. Die endgültige Entscheidung wird voraussichtlich im kommenden Quartal getroffen, (10)___ dann alle relevanten Daten ausgewertet worden sind.",
         "items": [
           {
-            "id": "tb2_sb1_q1",
-            "question_text": "Die Entscheidung wurde ___ des Vorstands getroffen.",
+            "id": "tb2s_g1",
+            "question_text": "Lücke (1)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "\"seitens\" + Genitiv ist eine formelle Präposition für \"von Seiten\".",
+            "explanation": "Plusquamperfekt: \"hatte...beschlossen\" braucht das Partizip II.",
             "order_index": 0,
             "answers": [
               {
-                "id": "tb2_sb1_q1_a1",
-                "answer_text": "seitens",
+                "id": "tb2s_g1_a1",
+                "answer_text": "beschlossen",
                 "is_correct": true
               },
               {
-                "id": "tb2_sb1_q1_a2",
-                "answer_text": "wegen",
+                "id": "tb2s_g1_a2",
+                "answer_text": "beschließt",
                 "is_correct": false
               },
               {
-                "id": "tb2_sb1_q1_a3",
-                "answer_text": "trotz",
+                "id": "tb2s_g1_a3",
+                "answer_text": "beschließen",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_sb1_q2",
-            "question_text": "___ der schwierigen Marktlage konnte das Unternehmen wachsen.",
+            "id": "tb2s_g2",
+            "question_text": "Lücke (2)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "\"Trotz\" drückt einen Gegensatz aus.",
+            "explanation": "\"da\" leitet hier einen (schriftsprachlich formelleren) Grund ein.",
             "order_index": 1,
             "answers": [
               {
-                "id": "tb2_sb1_q2_a1",
-                "answer_text": "Trotz",
+                "id": "tb2s_g2_a1",
+                "answer_text": "da",
                 "is_correct": true
               },
               {
-                "id": "tb2_sb1_q2_a2",
-                "answer_text": "Wegen",
+                "id": "tb2s_g2_a2",
+                "answer_text": "obwohl",
                 "is_correct": false
               },
               {
-                "id": "tb2_sb1_q2_a3",
-                "answer_text": "Aufgrund",
+                "id": "tb2s_g2_a3",
+                "answer_text": "während",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_sb1_q3",
-            "question_text": "Die Berichte müssen ___ Ende des Quartals eingereicht werden.",
+            "id": "tb2s_g3",
+            "question_text": "Lücke (3)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "\"bis spätestens\" nennt eine Frist.",
+            "explanation": "Genitiv-Relativpronomen: \"deren Entscheidung\" bezieht sich auf die Geschäftsleitung.",
             "order_index": 2,
             "answers": [
               {
-                "id": "tb2_sb1_q3_a1",
-                "answer_text": "bis spätestens",
+                "id": "tb2s_g3_a1",
+                "answer_text": "deren",
                 "is_correct": true
               },
               {
-                "id": "tb2_sb1_q3_a2",
+                "id": "tb2s_g3_a2",
+                "answer_text": "die",
+                "is_correct": false
+              },
+              {
+                "id": "tb2s_g3_a3",
+                "answer_text": "denen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2s_g4",
+            "question_text": "Lücke (4)",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Pronominaladverb: \"darunter leiden\" ist die feste Verbindung.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "tb2s_g4_a1",
+                "answer_text": "darunter",
+                "is_correct": true
+              },
+              {
+                "id": "tb2s_g4_a2",
+                "answer_text": "davon",
+                "is_correct": false
+              },
+              {
+                "id": "tb2s_g4_a3",
+                "answer_text": "dabei",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2s_g5",
+            "question_text": "Lücke (5)",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"sodass\" leitet einen Folgesatz ein (die Bedenken führten zu einem Vorschlag).",
+            "order_index": 4,
+            "answers": [
+              {
+                "id": "tb2s_g5_a1",
+                "answer_text": "sodass",
+                "is_correct": true
+              },
+              {
+                "id": "tb2s_g5_a2",
+                "answer_text": "obwohl",
+                "is_correct": false
+              },
+              {
+                "id": "tb2s_g5_a3",
+                "answer_text": "falls",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2s_g6",
+            "question_text": "Lücke (6)",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Genitiv-Relativpronomen, Maskulinum: \"dessen Vertrag\".",
+            "order_index": 5,
+            "answers": [
+              {
+                "id": "tb2s_g6_a1",
+                "answer_text": "dessen",
+                "is_correct": true
+              },
+              {
+                "id": "tb2s_g6_a2",
+                "answer_text": "der",
+                "is_correct": false
+              },
+              {
+                "id": "tb2s_g6_a3",
+                "answer_text": "dem",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2s_g7",
+            "question_text": "Lücke (7)",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"durch das neue Modell\" -- Ursache/Mittel.",
+            "order_index": 6,
+            "answers": [
+              {
+                "id": "tb2s_g7_a1",
+                "answer_text": "durch",
+                "is_correct": true
+              },
+              {
+                "id": "tb2s_g7_a2",
                 "answer_text": "seit",
                 "is_correct": false
               },
               {
-                "id": "tb2_sb1_q3_a3",
-                "answer_text": "ab",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb2_sb1_q4",
-            "question_text": "Der Vorschlag wurde vom Team einstimmig ___.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Partizip II nach \"wurde\" (Passiv).",
-            "order_index": 3,
-            "answers": [
-              {
-                "id": "tb2_sb1_q4_a1",
-                "answer_text": "angenommen",
-                "is_correct": true
-              },
-              {
-                "id": "tb2_sb1_q4_a2",
-                "answer_text": "annehmen",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb1_q4_a3",
-                "answer_text": "annimmt",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb2_sb1_q5",
-            "question_text": "Man geht davon ___, dass die Zahlen steigen werden.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"davon ausgehen, dass...\" ist die feste Wendung.",
-            "order_index": 4,
-            "answers": [
-              {
-                "id": "tb2_sb1_q5_a1",
-                "answer_text": "aus",
-                "is_correct": true
-              },
-              {
-                "id": "tb2_sb1_q5_a2",
-                "answer_text": "auf",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb1_q5_a3",
-                "answer_text": "an",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb2_sb1_q6",
-            "question_text": "Die Firma haftet nicht ___ Schäden durch höhere Gewalt.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"haften für\" + Akkusativ.",
-            "order_index": 5,
-            "answers": [
-              {
-                "id": "tb2_sb1_q6_a1",
-                "answer_text": "für",
-                "is_correct": true
-              },
-              {
-                "id": "tb2_sb1_q6_a2",
-                "answer_text": "gegen",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb1_q6_a3",
-                "answer_text": "über",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb2_sb1_q7",
-            "question_text": "___ Rücksprache mit der Geschäftsführung wird das Budget erhöht.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"nach Rücksprache mit\" ist die feste Wendung.",
-            "order_index": 6,
-            "answers": [
-              {
-                "id": "tb2_sb1_q7_a1",
-                "answer_text": "Nach",
-                "is_correct": true
-              },
-              {
-                "id": "tb2_sb1_q7_a2",
-                "answer_text": "Bei",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb1_q7_a3",
-                "answer_text": "Zu",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "tb2_sb1_q8",
-            "question_text": "Der Vertrag tritt ___ Unterzeichnung beider Parteien in Kraft.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"mit Unterzeichnung\" beschreibt den Zeitpunkt des Inkrafttretens.",
-            "order_index": 7,
-            "answers": [
-              {
-                "id": "tb2_sb1_q8_a1",
-                "answer_text": "mit",
-                "is_correct": true
-              },
-              {
-                "id": "tb2_sb1_q8_a2",
-                "answer_text": "durch",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb1_q8_a3",
+                "id": "tb2s_g7_a3",
                 "answer_text": "bei",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_sb1_q9",
-            "question_text": "Die Abteilung wurde beauftragt, den Prozess zu ___.",
+            "id": "tb2s_g8",
+            "question_text": "Lücke (8)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Infinitiv nach \"beauftragt, ... zu\".",
-            "order_index": 8,
+            "explanation": "Präsens im Hauptsatz, passend zur Konjunktiv-II-Bedingung im Nebensatz.",
+            "order_index": 7,
             "answers": [
               {
-                "id": "tb2_sb1_q9_a1",
-                "answer_text": "optimieren",
+                "id": "tb2s_g8_a1",
+                "answer_text": "plant",
                 "is_correct": true
               },
               {
-                "id": "tb2_sb1_q9_a2",
-                "answer_text": "Optimierung",
+                "id": "tb2s_g8_a2",
+                "answer_text": "plante",
                 "is_correct": false
               },
               {
-                "id": "tb2_sb1_q9_a3",
-                "answer_text": "optimiert",
+                "id": "tb2s_g8_a3",
+                "answer_text": "geplant",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_sb1_q10",
-            "question_text": "___ eines internen Fehlers verzögerte sich die Lieferung.",
+            "id": "tb2s_g9",
+            "question_text": "Lücke (9)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "\"infolge\" + Genitiv nennt die Ursache einer Verzögerung.",
-            "order_index": 9,
+            "explanation": "Präposition + Relativpronomen: \"ein Umfeld, in dem...\"",
+            "order_index": 8,
             "answers": [
               {
-                "id": "tb2_sb1_q10_a1",
-                "answer_text": "Infolge",
+                "id": "tb2s_g9_a1",
+                "answer_text": "in dem",
                 "is_correct": true
               },
               {
-                "id": "tb2_sb1_q10_a2",
-                "answer_text": "Statt",
+                "id": "tb2s_g9_a2",
+                "answer_text": "das",
                 "is_correct": false
               },
               {
-                "id": "tb2_sb1_q10_a3",
-                "answer_text": "Außer",
+                "id": "tb2s_g9_a3",
+                "answer_text": "welches",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "tb2s_g10",
+            "question_text": "Lücke (10)",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"sobald\" -- die Entscheidung folgt zeitlich auf die Datenauswertung.",
+            "order_index": 9,
+            "answers": [
+              {
+                "id": "tb2s_g10_a1",
+                "answer_text": "sobald",
+                "is_correct": true
+              },
+              {
+                "id": "tb2s_g10_a2",
+                "answer_text": "obwohl",
+                "is_correct": false
+              },
+              {
+                "id": "tb2s_g10_a3",
+                "answer_text": "während",
                 "is_correct": false
               }
             ]
@@ -8168,609 +6266,259 @@ const mockContent = {
       },
       {
         "key": "sprachbausteine2",
-        "name": "Sprachbausteine — Teil 2 (Zuordnung)",
+        "name": "Sprachbausteine — Teil 2 (Wortschatz im Kontext)",
         "type": "language",
         "official_duration_minutes": 90,
-        "instructions": "Ordnen Sie jeder formellen Wendung die passende Bedeutung zu.",
-        "passage": "Formelle Wendungen:\n1. unter Berücksichtigung der aktuellen Lage\n2. im Hinblick auf die kommenden Verhandlungen\n3. vorbehaltlich der Zustimmung des Vorstands\n4. im Rahmen des vereinbarten Budgets\n5. unter der Voraussetzung, dass alle Fristen eingehalten werden\n6. in Anbetracht der gestiegenen Kosten\n7. im Zuge der Umstrukturierung\n8. unbeschadet etwaiger Ansprüche\n9. in Abstimmung mit der Personalabteilung\n10. vorausgesetzt, die Qualität bleibt gleich\n\nBedeutungen:\nA) unter Beachtung der jetzigen Situation\nB) mit Blick auf zukünftige Gespräche\nC) abhängig von einer späteren Genehmigung\nD) innerhalb der festgelegten Finanzmittel\nE) nur wenn alle Termine eingehalten werden\nF) wegen der höheren Kosten\nG) während der Reorganisation\nH) ohne bestehende Rechte zu beeinträchtigen\nI) nach Absprache mit der Personalabteilung\nJ) nur wenn die Qualität unverändert bleibt",
+        "instructions": "Lesen Sie den Text und die Wortliste. Wählen Sie für jede Lücke das passende Wort. Nicht jedes Wort aus der Liste wird gebraucht.",
+        "passage": "Wortliste: einschätzen, Weiterentwicklung, Kompetenzen, Rückmeldung, konstruktiv, Fortschritte, Zielvereinbarung, Herausforderungen, berücksichtigt, Wertschätzung, Kündigung, Gehaltserhöhung, Urlaubsantrag, Elternzeit, Überstunden\n\nEin professionelles Mitarbeitergespräch sollte dazu dienen, die Leistung eines Mitarbeiters realistisch zu (1)___ und gemeinsam über die weitere (2)___ zu sprechen. Dabei ist es wichtig, sowohl die fachlichen (3)___ als auch die persönliche Entwicklung des Mitarbeiters zu berücksichtigen. Eine ehrliche (4)___ zur bisherigen Arbeit hilft dabei, Stärken und Schwächen klar zu benennen.\n\nFührungskräfte sollten dabei besonders auf einen (5)___ Umgangston achten, der weder zu kritisch noch zu oberflächlich ist. Auch die bisherigen (6)___ des Mitarbeiters sollten angemessen gewürdigt werden, bevor neue Ziele besprochen werden. Am Ende des Gesprächs wird häufig eine schriftliche (7)___ getroffen, in der konkrete Ziele für das kommende Jahr festgehalten werden.\n\nWichtig ist außerdem, mögliche (8)___ offen anzusprechen, denen der Mitarbeiter in seiner Rolle begegnet. Nur wenn diese ehrlich (9)___ werden, kann gezielt nach Lösungen gesucht werden. Ein gut geführtes Gespräch endet idealerweise mit einer spürbaren (10)___ für die geleistete Arbeit.",
         "items": [
           {
-            "id": "tb2_sb2_q1",
-            "question_text": "Was bedeutet Wendung 1?",
+            "id": "tb2s_v1",
+            "question_text": "Lücke (1)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Wendung 1 entspricht Bedeutung A.",
+            "explanation": "\"die Leistung realistisch einschätzen\" -- bewerten.",
             "order_index": 0,
             "answers": [
               {
-                "id": "tb2_sb2_q1_a1",
-                "answer_text": "A) unter Beachtung der jetzigen Situation",
+                "id": "tb2s_v1_a1",
+                "answer_text": "einschätzen",
                 "is_correct": true
               },
               {
-                "id": "tb2_sb2_q1_a2",
-                "answer_text": "B) mit Blick auf zukünftige Gespräche",
+                "id": "tb2s_v1_a2",
+                "answer_text": "berücksichtigt",
                 "is_correct": false
               },
               {
-                "id": "tb2_sb2_q1_a3",
-                "answer_text": "C) abhängig von einer späteren Genehmigung",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q1_a4",
-                "answer_text": "D) innerhalb der festgelegten Finanzmittel",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q1_a5",
-                "answer_text": "E) nur wenn alle Termine eingehalten werden",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q1_a6",
-                "answer_text": "F) wegen der höheren Kosten",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q1_a7",
-                "answer_text": "G) während der Reorganisation",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q1_a8",
-                "answer_text": "H) ohne bestehende Rechte zu beeinträchtigen",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q1_a9",
-                "answer_text": "I) nach Absprache mit der Personalabteilung",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q1_a10",
-                "answer_text": "J) nur wenn die Qualität unverändert bleibt",
+                "id": "tb2s_v1_a3",
+                "answer_text": "Kündigung",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_sb2_q2",
-            "question_text": "Was bedeutet Wendung 2?",
+            "id": "tb2s_v2",
+            "question_text": "Lücke (2)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Wendung 2 entspricht Bedeutung B.",
+            "explanation": "\"über die weitere Weiterentwicklung sprechen\" passt zum Kontext des Gesprächs.",
             "order_index": 1,
             "answers": [
               {
-                "id": "tb2_sb2_q2_a1",
-                "answer_text": "A) unter Beachtung der jetzigen Situation",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q2_a2",
-                "answer_text": "B) mit Blick auf zukünftige Gespräche",
+                "id": "tb2s_v2_a1",
+                "answer_text": "Weiterentwicklung",
                 "is_correct": true
               },
               {
-                "id": "tb2_sb2_q2_a3",
-                "answer_text": "C) abhängig von einer späteren Genehmigung",
+                "id": "tb2s_v2_a2",
+                "answer_text": "Überstunden",
                 "is_correct": false
               },
               {
-                "id": "tb2_sb2_q2_a4",
-                "answer_text": "D) innerhalb der festgelegten Finanzmittel",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q2_a5",
-                "answer_text": "E) nur wenn alle Termine eingehalten werden",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q2_a6",
-                "answer_text": "F) wegen der höheren Kosten",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q2_a7",
-                "answer_text": "G) während der Reorganisation",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q2_a8",
-                "answer_text": "H) ohne bestehende Rechte zu beeinträchtigen",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q2_a9",
-                "answer_text": "I) nach Absprache mit der Personalabteilung",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q2_a10",
-                "answer_text": "J) nur wenn die Qualität unverändert bleibt",
+                "id": "tb2s_v2_a3",
+                "answer_text": "Elternzeit",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_sb2_q3",
-            "question_text": "Was bedeutet Wendung 3?",
+            "id": "tb2s_v3",
+            "question_text": "Lücke (3)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Wendung 3 entspricht Bedeutung C.",
+            "explanation": "\"fachliche Kompetenzen\" -- Fähigkeiten im Beruf.",
             "order_index": 2,
             "answers": [
               {
-                "id": "tb2_sb2_q3_a1",
-                "answer_text": "A) unter Beachtung der jetzigen Situation",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q3_a2",
-                "answer_text": "B) mit Blick auf zukünftige Gespräche",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q3_a3",
-                "answer_text": "C) abhängig von einer späteren Genehmigung",
+                "id": "tb2s_v3_a1",
+                "answer_text": "Kompetenzen",
                 "is_correct": true
               },
               {
-                "id": "tb2_sb2_q3_a4",
-                "answer_text": "D) innerhalb der festgelegten Finanzmittel",
+                "id": "tb2s_v3_a2",
+                "answer_text": "Urlaubsantrag",
                 "is_correct": false
               },
               {
-                "id": "tb2_sb2_q3_a5",
-                "answer_text": "E) nur wenn alle Termine eingehalten werden",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q3_a6",
-                "answer_text": "F) wegen der höheren Kosten",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q3_a7",
-                "answer_text": "G) während der Reorganisation",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q3_a8",
-                "answer_text": "H) ohne bestehende Rechte zu beeinträchtigen",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q3_a9",
-                "answer_text": "I) nach Absprache mit der Personalabteilung",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q3_a10",
-                "answer_text": "J) nur wenn die Qualität unverändert bleibt",
+                "id": "tb2s_v3_a3",
+                "answer_text": "Gehaltserhöhung",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_sb2_q4",
-            "question_text": "Was bedeutet Wendung 4?",
+            "id": "tb2s_v4",
+            "question_text": "Lücke (4)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Wendung 4 entspricht Bedeutung D.",
+            "explanation": "\"eine ehrliche Rückmeldung\" -- Feedback zur Arbeit.",
             "order_index": 3,
             "answers": [
               {
-                "id": "tb2_sb2_q4_a1",
-                "answer_text": "A) unter Beachtung der jetzigen Situation",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q4_a2",
-                "answer_text": "B) mit Blick auf zukünftige Gespräche",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q4_a3",
-                "answer_text": "C) abhängig von einer späteren Genehmigung",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q4_a4",
-                "answer_text": "D) innerhalb der festgelegten Finanzmittel",
+                "id": "tb2s_v4_a1",
+                "answer_text": "Rückmeldung",
                 "is_correct": true
               },
               {
-                "id": "tb2_sb2_q4_a5",
-                "answer_text": "E) nur wenn alle Termine eingehalten werden",
+                "id": "tb2s_v4_a2",
+                "answer_text": "Kündigung",
                 "is_correct": false
               },
               {
-                "id": "tb2_sb2_q4_a6",
-                "answer_text": "F) wegen der höheren Kosten",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q4_a7",
-                "answer_text": "G) während der Reorganisation",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q4_a8",
-                "answer_text": "H) ohne bestehende Rechte zu beeinträchtigen",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q4_a9",
-                "answer_text": "I) nach Absprache mit der Personalabteilung",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q4_a10",
-                "answer_text": "J) nur wenn die Qualität unverändert bleibt",
+                "id": "tb2s_v4_a3",
+                "answer_text": "Herausforderungen",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_sb2_q5",
-            "question_text": "Was bedeutet Wendung 5?",
+            "id": "tb2s_v5",
+            "question_text": "Lücke (5)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Wendung 5 entspricht Bedeutung E.",
+            "explanation": "\"ein konstruktiver Umgangston\" -- weder zu kritisch noch oberflächlich.",
             "order_index": 4,
             "answers": [
               {
-                "id": "tb2_sb2_q5_a1",
-                "answer_text": "A) unter Beachtung der jetzigen Situation",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q5_a2",
-                "answer_text": "B) mit Blick auf zukünftige Gespräche",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q5_a3",
-                "answer_text": "C) abhängig von einer späteren Genehmigung",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q5_a4",
-                "answer_text": "D) innerhalb der festgelegten Finanzmittel",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q5_a5",
-                "answer_text": "E) nur wenn alle Termine eingehalten werden",
+                "id": "tb2s_v5_a1",
+                "answer_text": "konstruktiv",
                 "is_correct": true
               },
               {
-                "id": "tb2_sb2_q5_a6",
-                "answer_text": "F) wegen der höheren Kosten",
+                "id": "tb2s_v5_a2",
+                "answer_text": "Fortschritte",
                 "is_correct": false
               },
               {
-                "id": "tb2_sb2_q5_a7",
-                "answer_text": "G) während der Reorganisation",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q5_a8",
-                "answer_text": "H) ohne bestehende Rechte zu beeinträchtigen",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q5_a9",
-                "answer_text": "I) nach Absprache mit der Personalabteilung",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q5_a10",
-                "answer_text": "J) nur wenn die Qualität unverändert bleibt",
+                "id": "tb2s_v5_a3",
+                "answer_text": "Zielvereinbarung",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_sb2_q6",
-            "question_text": "Was bedeutet Wendung 6?",
+            "id": "tb2s_v6",
+            "question_text": "Lücke (6)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Wendung 6 entspricht Bedeutung F.",
+            "explanation": "\"bisherige Fortschritte würdigen\" passt zum Kontext.",
             "order_index": 5,
             "answers": [
               {
-                "id": "tb2_sb2_q6_a1",
-                "answer_text": "A) unter Beachtung der jetzigen Situation",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q6_a2",
-                "answer_text": "B) mit Blick auf zukünftige Gespräche",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q6_a3",
-                "answer_text": "C) abhängig von einer späteren Genehmigung",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q6_a4",
-                "answer_text": "D) innerhalb der festgelegten Finanzmittel",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q6_a5",
-                "answer_text": "E) nur wenn alle Termine eingehalten werden",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q6_a6",
-                "answer_text": "F) wegen der höheren Kosten",
+                "id": "tb2s_v6_a1",
+                "answer_text": "Fortschritte",
                 "is_correct": true
               },
               {
-                "id": "tb2_sb2_q6_a7",
-                "answer_text": "G) während der Reorganisation",
+                "id": "tb2s_v6_a2",
+                "answer_text": "Überstunden",
                 "is_correct": false
               },
               {
-                "id": "tb2_sb2_q6_a8",
-                "answer_text": "H) ohne bestehende Rechte zu beeinträchtigen",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q6_a9",
-                "answer_text": "I) nach Absprache mit der Personalabteilung",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q6_a10",
-                "answer_text": "J) nur wenn die Qualität unverändert bleibt",
+                "id": "tb2s_v6_a3",
+                "answer_text": "Kompetenzen",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_sb2_q7",
-            "question_text": "Was bedeutet Wendung 7?",
+            "id": "tb2s_v7",
+            "question_text": "Lücke (7)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Wendung 7 entspricht Bedeutung G.",
+            "explanation": "\"eine schriftliche Zielvereinbarung\" -- Ziele werden schriftlich festgehalten.",
             "order_index": 6,
             "answers": [
               {
-                "id": "tb2_sb2_q7_a1",
-                "answer_text": "A) unter Beachtung der jetzigen Situation",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q7_a2",
-                "answer_text": "B) mit Blick auf zukünftige Gespräche",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q7_a3",
-                "answer_text": "C) abhängig von einer späteren Genehmigung",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q7_a4",
-                "answer_text": "D) innerhalb der festgelegten Finanzmittel",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q7_a5",
-                "answer_text": "E) nur wenn alle Termine eingehalten werden",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q7_a6",
-                "answer_text": "F) wegen der höheren Kosten",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q7_a7",
-                "answer_text": "G) während der Reorganisation",
+                "id": "tb2s_v7_a1",
+                "answer_text": "Zielvereinbarung",
                 "is_correct": true
               },
               {
-                "id": "tb2_sb2_q7_a8",
-                "answer_text": "H) ohne bestehende Rechte zu beeinträchtigen",
+                "id": "tb2s_v7_a2",
+                "answer_text": "Gehaltserhöhung",
                 "is_correct": false
               },
               {
-                "id": "tb2_sb2_q7_a9",
-                "answer_text": "I) nach Absprache mit der Personalabteilung",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q7_a10",
-                "answer_text": "J) nur wenn die Qualität unverändert bleibt",
+                "id": "tb2s_v7_a3",
+                "answer_text": "Rückmeldung",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_sb2_q8",
-            "question_text": "Was bedeutet Wendung 8?",
+            "id": "tb2s_v8",
+            "question_text": "Lücke (8)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Wendung 8 entspricht Bedeutung H.",
+            "explanation": "\"mögliche Herausforderungen ansprechen\" -- Schwierigkeiten im Job.",
             "order_index": 7,
             "answers": [
               {
-                "id": "tb2_sb2_q8_a1",
-                "answer_text": "A) unter Beachtung der jetzigen Situation",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q8_a2",
-                "answer_text": "B) mit Blick auf zukünftige Gespräche",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q8_a3",
-                "answer_text": "C) abhängig von einer späteren Genehmigung",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q8_a4",
-                "answer_text": "D) innerhalb der festgelegten Finanzmittel",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q8_a5",
-                "answer_text": "E) nur wenn alle Termine eingehalten werden",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q8_a6",
-                "answer_text": "F) wegen der höheren Kosten",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q8_a7",
-                "answer_text": "G) während der Reorganisation",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q8_a8",
-                "answer_text": "H) ohne bestehende Rechte zu beeinträchtigen",
+                "id": "tb2s_v8_a1",
+                "answer_text": "Herausforderungen",
                 "is_correct": true
               },
               {
-                "id": "tb2_sb2_q8_a9",
-                "answer_text": "I) nach Absprache mit der Personalabteilung",
+                "id": "tb2s_v8_a2",
+                "answer_text": "Elternzeit",
                 "is_correct": false
               },
               {
-                "id": "tb2_sb2_q8_a10",
-                "answer_text": "J) nur wenn die Qualität unverändert bleibt",
+                "id": "tb2s_v8_a3",
+                "answer_text": "Wertschätzung",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_sb2_q9",
-            "question_text": "Was bedeutet Wendung 9?",
+            "id": "tb2s_v9",
+            "question_text": "Lücke (9)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Wendung 9 entspricht Bedeutung I.",
+            "explanation": "\"ehrlich berücksichtigt werden\" -- ernst genommen und einbezogen.",
             "order_index": 8,
             "answers": [
               {
-                "id": "tb2_sb2_q9_a1",
-                "answer_text": "A) unter Beachtung der jetzigen Situation",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q9_a2",
-                "answer_text": "B) mit Blick auf zukünftige Gespräche",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q9_a3",
-                "answer_text": "C) abhängig von einer späteren Genehmigung",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q9_a4",
-                "answer_text": "D) innerhalb der festgelegten Finanzmittel",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q9_a5",
-                "answer_text": "E) nur wenn alle Termine eingehalten werden",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q9_a6",
-                "answer_text": "F) wegen der höheren Kosten",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q9_a7",
-                "answer_text": "G) während der Reorganisation",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q9_a8",
-                "answer_text": "H) ohne bestehende Rechte zu beeinträchtigen",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q9_a9",
-                "answer_text": "I) nach Absprache mit der Personalabteilung",
+                "id": "tb2s_v9_a1",
+                "answer_text": "berücksichtigt",
                 "is_correct": true
               },
               {
-                "id": "tb2_sb2_q9_a10",
-                "answer_text": "J) nur wenn die Qualität unverändert bleibt",
+                "id": "tb2s_v9_a2",
+                "answer_text": "Kündigung",
+                "is_correct": false
+              },
+              {
+                "id": "tb2s_v9_a3",
+                "answer_text": "Urlaubsantrag",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_sb2_q10",
-            "question_text": "Was bedeutet Wendung 10?",
+            "id": "tb2s_v10",
+            "question_text": "Lücke (10)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Wendung 10 entspricht Bedeutung J.",
+            "explanation": "\"eine spürbare Wertschätzung\" -- Anerkennung für die geleistete Arbeit.",
             "order_index": 9,
             "answers": [
               {
-                "id": "tb2_sb2_q10_a1",
-                "answer_text": "A) unter Beachtung der jetzigen Situation",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q10_a2",
-                "answer_text": "B) mit Blick auf zukünftige Gespräche",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q10_a3",
-                "answer_text": "C) abhängig von einer späteren Genehmigung",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q10_a4",
-                "answer_text": "D) innerhalb der festgelegten Finanzmittel",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q10_a5",
-                "answer_text": "E) nur wenn alle Termine eingehalten werden",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q10_a6",
-                "answer_text": "F) wegen der höheren Kosten",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q10_a7",
-                "answer_text": "G) während der Reorganisation",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q10_a8",
-                "answer_text": "H) ohne bestehende Rechte zu beeinträchtigen",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q10_a9",
-                "answer_text": "I) nach Absprache mit der Personalabteilung",
-                "is_correct": false
-              },
-              {
-                "id": "tb2_sb2_q10_a10",
-                "answer_text": "J) nur wenn die Qualität unverändert bleibt",
+                "id": "tb2s_v10_a1",
+                "answer_text": "Wertschätzung",
                 "is_correct": true
+              },
+              {
+                "id": "tb2s_v10_a2",
+                "answer_text": "Überstunden",
+                "is_correct": false
+              },
+              {
+                "id": "tb2s_v10_a3",
+                "answer_text": "Fortschritte",
+                "is_correct": false
               }
             ]
           }
@@ -8781,7 +6529,7 @@ const mockContent = {
         "name": "Hörverstehen — Teil 1 (Globalverstehen)",
         "type": "listening",
         "official_duration_minutes": 25,
-        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ النص كما لو كنت تسمعه، ثم حدد صحة الجمل.",
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ النص كما لو كنت تسمعه، ثم حدد صحة الجمل. في الاختبار الرسمي لمستوى B2، يُسمع النص مرة واحدة فقط.",
         "passage": "Ansage vor einer Telefonkonferenz:\n\"Willkommen zur heutigen Telefonkonferenz. Bitte stellen Sie Ihr Mikrofon auf stumm, wenn Sie nicht sprechen. Die Konferenz wird aufgezeichnet und im Anschluss allen Teilnehmenden per E-Mail zugesendet. Fragen können Sie jederzeit über die Chat-Funktion stellen.\"",
         "items": [
           {
@@ -8892,7 +6640,7 @@ const mockContent = {
         "name": "Hörverstehen — Teil 2 (Detailverstehen)",
         "type": "listening",
         "official_duration_minutes": 25,
-        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص الاجتماع كما لو كنت تسمعه، ثم أجب عن الأسئلة.",
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص الاجتماع كما لو كنت تسمعه، ثم أجب عن الأسئلة. في الاختبار الرسمي لمستوى B2، يُسمع النص مرة واحدة فقط.",
         "passage": "Ausschnitt aus einer Teambesprechung:\n\"Projektleiterin: Bevor wir zum nächsten Punkt kommen — der Launch wurde um zwei Wochen verschoben, weil die Testphase noch nicht abgeschlossen ist. Wir brauchen also bis Ende des Monats zusätzliche Ressourcen im QA-Team. Herr Voss, können Sie zwei weitere Tester organisieren?\nHerr Voss: Ich kann versuchen, jemanden aus dem Entwicklerteam abzuziehen, aber das würde andere Aufgaben verzögern.\nProjektleiterin: Verstanden. Dann sprechen wir am Freitag nochmal darüber, sobald wir die genauen Zahlen vom Kunden haben. Bitte bereiten Sie bis dahin eine Kostenschätzung vor.\"",
         "items": [
           {
@@ -9143,106 +6891,106 @@ const mockContent = {
         "name": "Hörverstehen — Teil 3 (Selektives Verstehen)",
         "type": "listening",
         "official_duration_minutes": 25,
-        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص الإعلان كما لو كنت تسمعه، ثم حدد صحة الجمل.",
-        "passage": "Durchsage im Empfangsbereich:\n\"Guten Tag und herzlich willkommen. Bitte melden Sie sich am Empfang an und tragen Sie sich in die Besucherliste ein. Besucherausweise sind gut sichtbar zu tragen und beim Verlassen des Gebäudes wieder abzugeben. Der Aufzug zu den Konferenzräumen befindet sich links neben dem Empfang.\"",
+        "instructions": "لا يتضمن هذا التدريب ملفًا صوتيًا حقيقيًا بعد — اقرأ نص الإعلان كما لو كنت تسمعه، ثم حدد صحة الجمل. في الاختبار الرسمي لمستوى B2، يُسمع النص مرة واحدة فقط.",
+        "passage": "Text 1 (Voicemail): \"Guten Tag, hier ist Herr Roth von der Lieferantenfirma. Der von Ihnen bestellte Posten verzögert sich leider um eine Woche, da ein Zulieferer in Verzug ist. Wir bemühen uns, die Verzögerung so gering wie möglich zu halten.\"\n\nText 2 (Durchsage): \"Achtung, liebe Mitarbeitende: Im Rahmen der neuen Compliance-Vorschriften ist ab sofort jede externe Kommunikation mit Kunden zu dokumentieren, sofern es sich um vertragsrelevante Absprachen handelt. Interne Gespräche sind davon nicht betroffen.\"\n\nText 3 (Nachricht): \"Hallo, hier ist Nadia aus dem Controlling. Der Quartalsbericht, den Sie mir geschickt haben, weicht in den Zahlen zum Marketingbudget von unserer internen Aufstellung ab. Könnten Sie das bitte noch einmal prüfen, bevor wir ihn weiterleiten?\"\n\nText 4 (Ansage): \"Sehr geehrte Anrufende, aufgrund eines hohen Gesprächsaufkommens kann sich die Wartezeit derzeit auf bis zu fünfzehn Minuten verlängern. Für dringende technische Störungen nutzen Sie bitte den separaten Notfallkontakt auf unserer Webseite.\"\n\nText 5 (Nachricht): \"Guten Tag, hier spricht Herr Delgado aus der Rechtsabteilung. Der überarbeitete Vertragsentwurf liegt Ihnen inzwischen vor. Bitte prüfen Sie insbesondere Abschnitt vier, da sich dort die Kündigungsfrist gegenüber der vorherigen Version geändert hat.\"",
         "items": [
           {
-            "id": "tb2_h3_q1",
-            "question_text": "Besucher müssen sich am Empfang anmelden.",
+            "id": "tb2h_t3q1",
+            "question_text": "Die Verzögerung entsteht, weil ein Zulieferer von Herrn Roths Firma selbst in Verzug ist.",
             "question_type": "true_false",
             "points": 1,
-            "explanation": "Die Durchsage bittet genau darum.",
+            "explanation": "Herr Roth nennt genau diesen Grund für die Verzögerung.",
             "order_index": 0,
             "answers": [
               {
-                "id": "tb2_h3_q1_r",
+                "id": "tb2h_t3q1_r",
                 "answer_text": "Richtig",
                 "is_correct": true
               },
               {
-                "id": "tb2_h3_q1_f",
+                "id": "tb2h_t3q1_f",
                 "answer_text": "Falsch",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_h3_q2",
-            "question_text": "Eine Besucherliste ist nicht notwendig.",
+            "id": "tb2h_t3q2",
+            "question_text": "Auch rein interne Gespräche zwischen Kollegen müssen jetzt dokumentiert werden.",
             "question_type": "true_false",
             "points": 1,
-            "explanation": "Man soll sich in die Besucherliste eintragen.",
+            "explanation": "Nur externe, vertragsrelevante Kommunikation mit Kunden muss dokumentiert werden, interne Gespräche sind ausdrücklich ausgenommen.",
             "order_index": 1,
             "answers": [
               {
-                "id": "tb2_h3_q2_r",
+                "id": "tb2h_t3q2_r",
                 "answer_text": "Richtig",
                 "is_correct": false
               },
               {
-                "id": "tb2_h3_q2_f",
+                "id": "tb2h_t3q2_f",
                 "answer_text": "Falsch",
                 "is_correct": true
               }
             ]
           },
           {
-            "id": "tb2_h3_q3",
-            "question_text": "Besucherausweise müssen beim Verlassen abgegeben werden.",
+            "id": "tb2h_t3q3",
+            "question_text": "Nadia bittet darum, die Zahlen im Quartalsbericht vor der Weiterleitung noch einmal zu prüfen.",
             "question_type": "true_false",
             "points": 1,
-            "explanation": "Die Durchsage nennt genau diese Regel.",
+            "explanation": "Nadia sagt das genau so, weil die Zahlen von der internen Aufstellung abweichen.",
             "order_index": 2,
             "answers": [
               {
-                "id": "tb2_h3_q3_r",
+                "id": "tb2h_t3q3_r",
                 "answer_text": "Richtig",
                 "is_correct": true
               },
               {
-                "id": "tb2_h3_q3_f",
+                "id": "tb2h_t3q3_f",
                 "answer_text": "Falsch",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "tb2_h3_q4",
-            "question_text": "Der Aufzug befindet sich rechts neben dem Empfang.",
+            "id": "tb2h_t3q4",
+            "question_text": "Bei technischen Notfällen sollen Anrufer trotzdem in der regulären Warteschlange bleiben.",
             "question_type": "true_false",
             "points": 1,
-            "explanation": "Er befindet sich links neben dem Empfang.",
+            "explanation": "Für dringende technische Störungen gibt es einen separaten Notfallkontakt, keine reguläre Warteschlange.",
             "order_index": 3,
             "answers": [
               {
-                "id": "tb2_h3_q4_r",
+                "id": "tb2h_t3q4_r",
                 "answer_text": "Richtig",
                 "is_correct": false
               },
               {
-                "id": "tb2_h3_q4_f",
+                "id": "tb2h_t3q4_f",
                 "answer_text": "Falsch",
                 "is_correct": true
               }
             ]
           },
           {
-            "id": "tb2_h3_q5",
-            "question_text": "Die Konferenzräume sind über den Aufzug erreichbar.",
+            "id": "tb2h_t3q5",
+            "question_text": "Die Kündigungsfrist im neuen Vertragsentwurf ist identisch mit der vorherigen Version.",
             "question_type": "true_false",
             "points": 1,
-            "explanation": "Die Durchsage nennt den Aufzug zu den Konferenzräumen.",
+            "explanation": "Die Kündigungsfrist in Abschnitt vier hat sich gegenüber der vorherigen Version geändert.",
             "order_index": 4,
             "answers": [
               {
-                "id": "tb2_h3_q5_r",
+                "id": "tb2h_t3q5_r",
                 "answer_text": "Richtig",
-                "is_correct": true
+                "is_correct": false
               },
               {
-                "id": "tb2_h3_q5_f",
+                "id": "tb2h_t3q5_f",
                 "answer_text": "Falsch",
-                "is_correct": false
+                "is_correct": true
               }
             ]
           }
@@ -9253,9 +7001,9 @@ const mockContent = {
     "writing": {
       "name": "Schriftlicher Ausdruck (تدريب غير مُقيَّم)",
       "official_duration_minutes": 30,
-      "instructions": "في الاختبار الرسمي، تكتب رسالة رسمية بناءً على نقاط إرشادية. هذا تدريب ذاتي غير مُقيَّم آليًا.",
-      "prompt": "Schreiben Sie eine formelle E-Mail an Ihre Vorgesetzte (ca. 100 Wörter), in der Sie sich über eine wiederholte Verspätung der Gehaltsabrechnung beschweren. Bleiben Sie höflich, aber klar in Ihrer Forderung.",
-      "sample_answer": "Sehr geehrte Frau Nadal,\n\nich möchte Sie höflich darauf hinweisen, dass meine Gehaltsabrechnung bereits zum dritten Mal in Folge verspätet eingegangen ist. Dies hat mir in den letzten Wochen finanzielle Unannehmlichkeiten bereitet.\n\nIch bitte Sie daher, die Ursache dieser wiederholten Verzögerung zu prüfen und sicherzustellen, dass die kommenden Abrechnungen pünktlich erfolgen.\n\nFür ein kurzes Gespräch stehe ich gerne zur Verfügung.\n\nMit freundlichen Grüßen\nSofia Benali"
+      "instructions": "في الاختبار الرسمي، تكتب رسالة رسمية من 150 كلمة على الأقل، بصيغة Sie الرسمية طوال النص. هذا تدريب ذاتي غير مُقيَّم آليًا.",
+      "prompt": "Schreiben Sie eine formelle E-Mail an Ihre Vorgesetzte (mindestens 150 Wörter), in der Sie sich über eine wiederholte Verspätung der Gehaltsabrechnung beschweren. Gehen Sie auf folgende Punkte ein:\n- Beschreiben Sie das Problem genau und wie oft es bereits aufgetreten ist.\n- Erklären Sie, welche konkreten Auswirkungen das für Sie hatte.\n- Schlagen Sie eine Lösung vor.\n- Bitten Sie um eine Rückmeldung bis zu einem bestimmten Datum.\nAchten Sie auf einen durchgehend formellen Ton (Sie-Form).",
+      "sample_answer": "Sehr geehrte Frau Nadal,\n\nich möchte Sie auf ein Problem aufmerksam machen, das mich in den letzten Monaten wiederholt betroffen hat: Meine Gehaltsabrechnung ist nun bereits zum dritten Mal in Folge um mehrere Tage verspätet eingegangen, zuletzt am 5. statt am üblichen 1. des Monats.\n\nDiese wiederholte Verzögerung hat für mich konkrete finanzielle Unannehmlichkeiten mit sich gebracht, da ich feste monatliche Zahlungen, etwa für Miete und Versicherungen, termingerecht leisten muss. Beim letzten Mal musste ich sogar eine Mahngebühr in Kauf nehmen, weil sich die Überweisung meiner Miete dadurch verzögert hat.\n\nIch wäre Ihnen daher sehr dankbar, wenn Sie der Ursache dieser wiederholten Verspätung auf den Grund gehen und sicherstellen könnten, dass zukünftige Abrechnungen wieder pünktlich zum Monatsersten erfolgen. Sollte es sich um ein technisches Problem in der Buchhaltung handeln, wäre ich auch bereit, meine Kontodaten zur Sicherheit noch einmal zu bestätigen, falls das hilfreich sein sollte. Über eine kurze Rückmeldung bis Ende dieser Woche würde ich mich freuen, damit wir das Thema zeitnah klären können.\n\nFür ein persönliches Gespräch stehe ich Ihnen selbstverständlich gerne zur Verfügung.\n\nMit freundlichen Grüßen\nSofia Benali"
     }
   },
   "test_osd_b1": {
@@ -10191,254 +7939,254 @@ const mockContent = {
         "type": "language",
         "official_duration_minutes": null,
         "instructions": "تدريب إضافي على القواعد والمفردات.",
-        "passage": null,
+        "passage": "Seit letztem (1)___ wohne ich nun in Graz, wo ich eine Ausbildung als Elektrotechnikerin begonnen habe. Am Anfang war es nicht leicht, (2)___ ich niemanden in der Stadt kannte. Mittlerweile habe ich aber schon einige Freunde (3)___, vor allem durch meinen Deutschkurs an der Volkshochschule.\n\nMeine Ausbildungsstelle (4)___ mir sehr gut, obwohl der Arbeitsalltag manchmal anstrengend ist. Mein Chef hat mir erklärt, dass ich mich bei Problemen jederzeit (5)___ ihn wenden kann. Das beruhigt mich sehr.\n\nAm Wochenende höre ich gerne Sendungen im Radio, (6)___ zum Beispiel auf Ö1, dem österreichischen Kultursender. So (7)___ ich mein Hörverständnis, während ich gleichzeitig mehr über die österreichische Kultur erfahre.\n\nNächsten Monat werde ich meine ersten (8)___ zu Hause besuchen, seit ich nach Österreich gezogen bin. Ich freue mich schon sehr darauf, ihnen von meinem neuen Leben zu (9)___. Insgesamt bin ich froh, dass ich diesen Schritt (10)___ habe.",
         "items": [
           {
-            "id": "ob1_sb_q1",
-            "question_text": "Wir ___ jeden Sonntag auf den Markt.",
+            "id": "osdb1_sb1",
+            "question_text": "Lücke (1) — Jänner ist das österreichische Wort für...",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Mit \"Wir\" verwendet man \"gehen\".",
+            "explanation": "In Österreich sagt man \"Jänner\" statt \"Januar\".",
             "order_index": 0,
             "answers": [
               {
-                "id": "ob1_sb_q1_a1",
-                "answer_text": "gehen",
+                "id": "osdb1_sb1_a1",
+                "answer_text": "Januar",
                 "is_correct": true
               },
               {
-                "id": "ob1_sb_q1_a2",
-                "answer_text": "geht",
+                "id": "osdb1_sb1_a2",
+                "answer_text": "Februar",
                 "is_correct": false
               },
               {
-                "id": "ob1_sb_q1_a3",
-                "answer_text": "gehst",
+                "id": "osdb1_sb1_a3",
+                "answer_text": "Dezember",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "ob1_sb_q2",
-            "question_text": "Entschuldigung, ___ ist der Stephansdom?",
+            "id": "osdb1_sb2",
+            "question_text": "Lücke (2)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "\"wo\" fragt nach dem Ort.",
+            "explanation": "\"weil\" leitet den Grund ein, warum es am Anfang nicht leicht war.",
             "order_index": 1,
             "answers": [
               {
-                "id": "ob1_sb_q2_a1",
-                "answer_text": "wo",
-                "is_correct": true
-              },
-              {
-                "id": "ob1_sb_q2_a2",
-                "answer_text": "wohin",
-                "is_correct": false
-              },
-              {
-                "id": "ob1_sb_q2_a3",
-                "answer_text": "woher",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "ob1_sb_q3",
-            "question_text": "Ich freue mich schon ___ das Wochenende.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"sich freuen auf\" + Akkusativ.",
-            "order_index": 2,
-            "answers": [
-              {
-                "id": "ob1_sb_q3_a1",
-                "answer_text": "auf",
-                "is_correct": true
-              },
-              {
-                "id": "ob1_sb_q3_a2",
-                "answer_text": "für",
-                "is_correct": false
-              },
-              {
-                "id": "ob1_sb_q3_a3",
-                "answer_text": "an",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "ob1_sb_q4",
-            "question_text": "Er hat den Zug verpasst, ___ er zu spät aufgestanden ist.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"weil\" nennt den Grund.",
-            "order_index": 3,
-            "answers": [
-              {
-                "id": "ob1_sb_q4_a1",
+                "id": "osdb1_sb2_a1",
                 "answer_text": "weil",
                 "is_correct": true
               },
               {
-                "id": "ob1_sb_q4_a2",
+                "id": "osdb1_sb2_a2",
                 "answer_text": "obwohl",
                 "is_correct": false
               },
               {
-                "id": "ob1_sb_q4_a3",
+                "id": "osdb1_sb2_a3",
                 "answer_text": "damit",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "ob1_sb_q5",
-            "question_text": "Diese Wohnung ist viel ___ als die alte.",
+            "id": "osdb1_sb3",
+            "question_text": "Lücke (3)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Vergleich zwischen zwei Dingen braucht den Komparativ.",
+            "explanation": "Partizip II von \"finden\": \"gefunden\".",
+            "order_index": 2,
+            "answers": [
+              {
+                "id": "osdb1_sb3_a1",
+                "answer_text": "gefunden",
+                "is_correct": true
+              },
+              {
+                "id": "osdb1_sb3_a2",
+                "answer_text": "gefinden",
+                "is_correct": false
+              },
+              {
+                "id": "osdb1_sb3_a3",
+                "answer_text": "finden",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "osdb1_sb4",
+            "question_text": "Lücke (4)",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Präsens, 3. Person Singular von \"gefallen\": \"gefällt\".",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "osdb1_sb4_a1",
+                "answer_text": "gefällt",
+                "is_correct": true
+              },
+              {
+                "id": "osdb1_sb4_a2",
+                "answer_text": "gefallt",
+                "is_correct": false
+              },
+              {
+                "id": "osdb1_sb4_a3",
+                "answer_text": "gefallen",
+                "is_correct": false
+              }
+            ]
+          },
+          {
+            "id": "osdb1_sb5",
+            "question_text": "Lücke (5)",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "\"sich an jemanden wenden\" ist die feste Verbindung.",
             "order_index": 4,
             "answers": [
               {
-                "id": "ob1_sb_q5_a1",
-                "answer_text": "größer",
+                "id": "osdb1_sb5_a1",
+                "answer_text": "an",
                 "is_correct": true
               },
               {
-                "id": "ob1_sb_q5_a2",
-                "answer_text": "groß",
+                "id": "osdb1_sb5_a2",
+                "answer_text": "bei",
                 "is_correct": false
               },
               {
-                "id": "ob1_sb_q5_a3",
-                "answer_text": "am größten",
+                "id": "osdb1_sb5_a3",
+                "answer_text": "mit",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "ob1_sb_q6",
-            "question_text": "Kannst du mir sagen, ___ der Bus fährt?",
+            "id": "osdb1_sb6",
+            "question_text": "Lücke (6)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "\"wann\" fragt nach der Zeit.",
+            "explanation": "\"wie zum Beispiel\" leitet ein Beispiel ein.",
             "order_index": 5,
             "answers": [
               {
-                "id": "ob1_sb_q6_a1",
-                "answer_text": "wann",
+                "id": "osdb1_sb6_a1",
+                "answer_text": "wie",
                 "is_correct": true
               },
               {
-                "id": "ob1_sb_q6_a2",
-                "answer_text": "wo",
+                "id": "osdb1_sb6_a2",
+                "answer_text": "als",
                 "is_correct": false
               },
               {
-                "id": "ob1_sb_q6_a3",
-                "answer_text": "wie",
+                "id": "osdb1_sb6_a3",
+                "answer_text": "so",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "ob1_sb_q7",
-            "question_text": "Ich habe das Formular schon ___.",
+            "id": "osdb1_sb7",
+            "question_text": "Lücke (7)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "Perfekt: \"habe\" + Partizip II.",
+            "explanation": "Präsens, 1. Person Singular: \"ich verbessere\".",
             "order_index": 6,
             "answers": [
               {
-                "id": "ob1_sb_q7_a1",
-                "answer_text": "ausgefüllt",
+                "id": "osdb1_sb7_a1",
+                "answer_text": "verbessere",
                 "is_correct": true
               },
               {
-                "id": "ob1_sb_q7_a2",
-                "answer_text": "ausfüllen",
+                "id": "osdb1_sb7_a2",
+                "answer_text": "verbessert",
                 "is_correct": false
               },
               {
-                "id": "ob1_sb_q7_a3",
-                "answer_text": "füllte aus",
+                "id": "osdb1_sb7_a3",
+                "answer_text": "verbesserte",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "ob1_sb_q8",
-            "question_text": "Sie wohnt ___ ihren Eltern zusammen.",
+            "id": "osdb1_sb8",
+            "question_text": "Lücke (8)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "\"zusammenwohnen mit\" + Dativ.",
+            "explanation": "\"meine ersten Verwandten\" -- Akkusativ Plural der Adjektivnominalisierung.",
             "order_index": 7,
             "answers": [
               {
-                "id": "ob1_sb_q8_a1",
-                "answer_text": "mit",
+                "id": "osdb1_sb8_a1",
+                "answer_text": "Verwandten",
                 "is_correct": true
               },
               {
-                "id": "ob1_sb_q8_a2",
-                "answer_text": "bei",
+                "id": "osdb1_sb8_a2",
+                "answer_text": "Verwandte",
                 "is_correct": false
               },
               {
-                "id": "ob1_sb_q8_a3",
-                "answer_text": "zu",
+                "id": "osdb1_sb8_a3",
+                "answer_text": "Verwandtes",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "ob1_sb_q9",
-            "question_text": "___ du Zeit hast, können wir uns treffen.",
+            "id": "osdb1_sb9",
+            "question_text": "Lücke (9)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "\"wenn\" leitet eine Bedingung ein.",
+            "explanation": "Infinitiv nach \"zu\": \"zu erzählen\".",
             "order_index": 8,
             "answers": [
               {
-                "id": "ob1_sb_q9_a1",
-                "answer_text": "Wenn",
+                "id": "osdb1_sb9_a1",
+                "answer_text": "erzählen",
                 "is_correct": true
               },
               {
-                "id": "ob1_sb_q9_a2",
-                "answer_text": "Ob",
+                "id": "osdb1_sb9_a2",
+                "answer_text": "erzählt",
                 "is_correct": false
               },
               {
-                "id": "ob1_sb_q9_a3",
-                "answer_text": "Als",
+                "id": "osdb1_sb9_a3",
+                "answer_text": "erzähle",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "ob1_sb_q10",
-            "question_text": "Er arbeitet ___ einer großen Firma in Wien.",
+            "id": "osdb1_sb10",
+            "question_text": "Lücke (10)",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "\"arbeiten bei\" + Dativ für den Arbeitgeber.",
+            "explanation": "Perfekt: \"habe...gewagt\", Partizip II von \"wagen\".",
             "order_index": 9,
             "answers": [
               {
-                "id": "ob1_sb_q10_a1",
-                "answer_text": "bei",
+                "id": "osdb1_sb10_a1",
+                "answer_text": "gewagt",
                 "is_correct": true
               },
               {
-                "id": "ob1_sb_q10_a2",
-                "answer_text": "in",
+                "id": "osdb1_sb10_a2",
+                "answer_text": "gewagen",
                 "is_correct": false
               },
               {
-                "id": "ob1_sb_q10_a3",
-                "answer_text": "an",
+                "id": "osdb1_sb10_a3",
+                "answer_text": "wage",
                 "is_correct": false
               }
             ]
@@ -10615,187 +8363,132 @@ const mockContent = {
         "passage": "Gespräch am Würstelstand:\n\"A: Was darf's denn sein?\nB: Eine Käsekrainer mit Senf bitte, und dazu ein kleines Brot.\nA: Gerne, macht zusammen vier Euro fünfzig. Möchten Sie auch etwas trinken?\nB: Ja, ein Mineralwasser bitte.\nA: Das macht dann insgesamt sechs Euro.\nB: Hier bitte, und behalten Sie den Rest.\nA: Vielen Dank, einen schönen Tag noch!\"",
         "items": [
           {
-            "id": "ob1_h2_q1",
-            "question_text": "Was bestellt die Person zuerst?",
-            "question_type": "multiple_choice",
+            "id": "osdh2_q1",
+            "question_text": "Die Person bestellt eine Käsekrainer mit Senf.",
+            "question_type": "true_false",
             "points": 1,
-            "explanation": "B bestellt genau das.",
+            "explanation": "Die Person bestellt genau das zuerst.",
             "order_index": 0,
             "answers": [
               {
-                "id": "ob1_h2_q1_a1",
-                "answer_text": "Eine Käsekrainer mit Senf",
+                "id": "osdh2_q1_r",
+                "answer_text": "Richtig",
                 "is_correct": true
               },
               {
-                "id": "ob1_h2_q1_a2",
-                "answer_text": "Eine Bratwurst",
-                "is_correct": false
-              },
-              {
-                "id": "ob1_h2_q1_a3",
-                "answer_text": "Einen Hamburger",
+                "id": "osdh2_q1_f",
+                "answer_text": "Falsch",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "ob1_h2_q2",
+            "id": "osdh2_q2",
             "question_text": "Die Käsekrainer kostet allein sechs Euro.",
             "question_type": "true_false",
             "points": 1,
-            "explanation": "Käsekrainer und Brot zusammen kosten 4,50 Euro.",
+            "explanation": "Vier Euro fünfzig war der Preis für Essen und Brot; sechs Euro ist der Gesamtpreis inklusive Getränk.",
             "order_index": 1,
             "answers": [
               {
-                "id": "ob1_h2_q2_r",
+                "id": "osdh2_q2_r",
                 "answer_text": "Richtig",
                 "is_correct": false
               },
               {
-                "id": "ob1_h2_q2_f",
+                "id": "osdh2_q2_f",
                 "answer_text": "Falsch",
                 "is_correct": true
               }
             ]
           },
           {
-            "id": "ob1_h2_q3",
-            "question_text": "Was möchte die Person trinken?",
+            "id": "osdh2_q3",
+            "question_text": "Wie viel hat allein das Mineralwasser gekostet?",
             "question_type": "multiple_choice",
             "points": 1,
-            "explanation": "B bestellt ein Mineralwasser.",
+            "explanation": "Sechs Euro insgesamt minus vier Euro fünfzig für Essen ergibt ein Euro fünfzig für das Wasser -- diese Zahl wird nicht direkt genannt, sondern muss berechnet werden.",
             "order_index": 2,
             "answers": [
               {
-                "id": "ob1_h2_q3_a1",
-                "answer_text": "Ein Mineralwasser",
+                "id": "osdh2_q3_a1",
+                "answer_text": "Ein Euro fünfzig",
                 "is_correct": true
               },
               {
-                "id": "ob1_h2_q3_a2",
-                "answer_text": "Eine Cola",
-                "is_correct": false
-              },
-              {
-                "id": "ob1_h2_q3_a3",
-                "answer_text": "Einen Kaffee",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "ob1_h2_q4",
-            "question_text": "Wie viel kostet alles zusammen?",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "A nennt sechs Euro als Gesamtpreis.",
-            "order_index": 3,
-            "answers": [
-              {
-                "id": "ob1_h2_q4_a1",
-                "answer_text": "Sechs Euro",
-                "is_correct": true
-              },
-              {
-                "id": "ob1_h2_q4_a2",
+                "id": "osdh2_q3_a2",
                 "answer_text": "Vier Euro fünfzig",
                 "is_correct": false
               },
               {
-                "id": "ob1_h2_q4_a3",
-                "answer_text": "Sieben Euro",
+                "id": "osdh2_q3_a3",
+                "answer_text": "Sechs Euro",
                 "is_correct": false
               }
             ]
           },
           {
-            "id": "ob1_h2_q5",
+            "id": "osdh2_q4",
             "question_text": "Die Person gibt kein Trinkgeld.",
             "question_type": "true_false",
             "points": 1,
-            "explanation": "Sie sagt \"behalten Sie den Rest\", also gibt sie Trinkgeld.",
+            "explanation": "\"Behalten Sie den Rest\" bedeutet, dass sie ein Trinkgeld gibt, auch wenn das Wort \"Trinkgeld\" nicht fällt.",
+            "order_index": 3,
+            "answers": [
+              {
+                "id": "osdh2_q4_r",
+                "answer_text": "Richtig",
+                "is_correct": false
+              },
+              {
+                "id": "osdh2_q4_f",
+                "answer_text": "Falsch",
+                "is_correct": true
+              }
+            ]
+          },
+          {
+            "id": "osdh2_q5",
+            "question_text": "Wann wird das Getränk bestellt?",
+            "question_type": "multiple_choice",
+            "points": 1,
+            "explanation": "Der Verkäufer nennt zuerst den Preis für Essen und Brot (vier Euro fünfzig) und fragt erst danach nach einem Getränk.",
             "order_index": 4,
             "answers": [
               {
-                "id": "ob1_h2_q5_r",
-                "answer_text": "Richtig",
+                "id": "osdh2_q5_a1",
+                "answer_text": "Nachdem der Preis für Essen genannt wurde",
+                "is_correct": true
+              },
+              {
+                "id": "osdh2_q5_a2",
+                "answer_text": "Bevor die Käsekrainer bestellt wird",
                 "is_correct": false
               },
               {
-                "id": "ob1_h2_q5_f",
-                "answer_text": "Falsch",
-                "is_correct": true
+                "id": "osdh2_q5_a3",
+                "answer_text": "Nachdem schon bezahlt wurde",
+                "is_correct": false
               }
             ]
           },
           {
-            "id": "ob1_h2_q6",
-            "question_text": "Wo findet das Gespräch statt?",
-            "question_type": "multiple_choice",
+            "id": "osdh2_q6",
+            "question_text": "Das Gespräch findet in einem Restaurant mit Bedienung am Tisch statt.",
+            "question_type": "true_false",
             "points": 1,
-            "explanation": "Der Titel nennt den Würstelstand.",
+            "explanation": "Es findet an einem Würstelstand statt, einem typischen Imbissstand, nicht in einem Restaurant.",
             "order_index": 5,
             "answers": [
               {
-                "id": "ob1_h2_q6_a1",
-                "answer_text": "Am Würstelstand",
-                "is_correct": true
-              },
-              {
-                "id": "ob1_h2_q6_a2",
-                "answer_text": "Im Restaurant",
-                "is_correct": false
-              },
-              {
-                "id": "ob1_h2_q6_a3",
-                "answer_text": "Im Supermarkt",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "ob1_h2_q7",
-            "question_text": "Die Person bekommt auch ein Brot dazu.",
-            "question_type": "true_false",
-            "points": 1,
-            "explanation": "B bestellt \"dazu ein kleines Brot\".",
-            "order_index": 6,
-            "answers": [
-              {
-                "id": "ob1_h2_q7_r",
+                "id": "osdh2_q6_r",
                 "answer_text": "Richtig",
-                "is_correct": true
+                "is_correct": false
               },
               {
-                "id": "ob1_h2_q7_f",
+                "id": "osdh2_q6_f",
                 "answer_text": "Falsch",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "ob1_h2_q8",
-            "question_text": "Was sagt der Verkäufer zum Schluss?",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "A wünscht \"einen schönen Tag noch\".",
-            "order_index": 7,
-            "answers": [
-              {
-                "id": "ob1_h2_q8_a1",
-                "answer_text": "Einen schönen Tag noch",
                 "is_correct": true
-              },
-              {
-                "id": "ob1_h2_q8_a2",
-                "answer_text": "Auf Wiedersehen",
-                "is_correct": false
-              },
-              {
-                "id": "ob1_h2_q8_a3",
-                "answer_text": "Bis morgen",
-                "is_correct": false
               }
             ]
           }
@@ -10957,9 +8650,9 @@ const mockContent = {
     "writing": {
       "name": "Schreiben (تدريب غير مُقيَّم)",
       "official_duration_minutes": 40,
-      "instructions": "في الاختبار الرسمي، تكتب رسالة غير رسمية أو شبه رسمية. هذا تدريب ذاتي غير مُقيَّم آليًا.",
-      "prompt": "Schreiben Sie einen informellen Brief an eine Freundin / einen Freund (ca. 50 Wörter). Erzählen Sie von Ihrem neuen Leben in einer anderen Stadt und laden Sie sie/ihn zu Besuch ein.",
-      "sample_answer": "Liebe Amina,\n\nseit zwei Monaten lebe ich jetzt in Wien und es gefällt mir richtig gut! Die Stadt ist wunderschön, besonders die U-Bahn ist super praktisch.\n\nHättest du Lust, mich im Sommer zu besuchen? Wir könnten zusammen den Naschmarkt erkunden.\n\nGanz liebe Grüße\nYasmin"
+      "instructions": "في الاختبار الرسمي، تكتب ثلاثة نصوص: رسالة غير رسمية، تعبيرًا شخصيًا عن رأي، واعتذارًا رسميًا قصيرًا. اكتب النصوص الثلاثة معًا في إجابة واحدة، بنفس الترتيب. هذا تدريب ذاتي غير مُقيَّم آليًا.",
+      "prompt": "Teil 1 — Informeller Brief (ca. 50 Wörter):\nSchreiben Sie einen informellen Brief an eine Freundin / einen Freund. Erzählen Sie von Ihrem neuen Leben in einer anderen Stadt und laden Sie sie/ihn zu Besuch ein.\n\nTeil 2 — Persönliche Meinungsäußerung (ca. 50–70 Wörter):\nWas denken Sie: Ist es besser, in einer Großstadt oder in einer kleinen Gemeinde zu leben? Sagen Sie Ihre Meinung und nennen Sie mindestens einen Grund.\n\nTeil 3 — Kurze formelle Entschuldigung (ca. 40–50 Wörter):\nSie konnten einen wichtigen Termin bei einer Behörde nicht wahrnehmen. Schreiben Sie eine kurze formelle Entschuldigung und bitten Sie um einen neuen Termin.",
+      "sample_answer": "Teil 1:\nLiebe Amina,\n\nseit zwei Monaten lebe ich jetzt in Wien und es gefällt mir richtig gut! Die Stadt ist wunderschön, besonders die U-Bahn ist super praktisch.\n\nHättest du Lust, mich im Sommer zu besuchen? Wir könnten zusammen den Naschmarkt erkunden.\n\nGanz liebe Grüße\nYasmin\n\nTeil 2:\nMeiner Meinung nach ist das Leben in einer kleinen Gemeinde angenehmer. Es ist ruhiger, man kennt seine Nachbarn, und die Natur ist meist näher. In einer Großstadt gibt es zwar mehr Möglichkeiten für Arbeit und Freizeit, aber auch mehr Lärm und Stress. Für mich persönlich überwiegen die Vorteile eines ruhigeren Lebens.\n\nTeil 3:\nSehr geehrte Damen und Herren,\n\nleider konnte ich meinen Termin am vergangenen Dienstag aufgrund einer plötzlichen Erkrankung nicht wahrnehmen. Ich möchte mich dafür aufrichtig entschuldigen.\n\nWäre es möglich, einen neuen Termin in der kommenden Woche zu vereinbaren? Ich bin flexibel und richte mich gerne nach Ihrer Verfügbarkeit.\n\nMit freundlichen Grüßen\nKarim Benali"
     }
   },
   "test_osd_b2": {
@@ -11645,266 +9338,6 @@ const mockContent = {
         ]
       },
       {
-        "key": "sprachbausteine",
-        "name": "Sprachbausteine (تدريب إضافي)",
-        "type": "language",
-        "official_duration_minutes": null,
-        "instructions": "تدريب إضافي على القواعد المتقدمة والمفردات.",
-        "passage": null,
-        "items": [
-          {
-            "id": "ob2_sb_q1",
-            "question_text": "___ des schlechten Wetters fand das Fest trotzdem statt.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"Trotz\" drückt einen Gegensatz aus.",
-            "order_index": 0,
-            "answers": [
-              {
-                "id": "ob2_sb_q1_a1",
-                "answer_text": "Trotz",
-                "is_correct": true
-              },
-              {
-                "id": "ob2_sb_q1_a2",
-                "answer_text": "Wegen",
-                "is_correct": false
-              },
-              {
-                "id": "ob2_sb_q1_a3",
-                "answer_text": "Während",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "ob2_sb_q2",
-            "question_text": "Je mehr Erfahrung man hat, ___ leichter fällt einem die Arbeit.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"je... desto...\" ist die feste Konstruktion.",
-            "order_index": 1,
-            "answers": [
-              {
-                "id": "ob2_sb_q2_a1",
-                "answer_text": "desto",
-                "is_correct": true
-              },
-              {
-                "id": "ob2_sb_q2_a2",
-                "answer_text": "so",
-                "is_correct": false
-              },
-              {
-                "id": "ob2_sb_q2_a3",
-                "answer_text": "als",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "ob2_sb_q3",
-            "question_text": "Der Vertrag muss noch ___ dem Anwalt geprüft werden.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Passiv mit Handelndem: \"von\" + Dativ.",
-            "order_index": 2,
-            "answers": [
-              {
-                "id": "ob2_sb_q3_a1",
-                "answer_text": "von",
-                "is_correct": true
-              },
-              {
-                "id": "ob2_sb_q3_a2",
-                "answer_text": "durch",
-                "is_correct": false
-              },
-              {
-                "id": "ob2_sb_q3_a3",
-                "answer_text": "bei",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "ob2_sb_q4",
-            "question_text": "___ man die Statistik betrachtet, erkennt man einen klaren Trend.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"Wenn\" leitet hier einen Bedingungssatz ein.",
-            "order_index": 3,
-            "answers": [
-              {
-                "id": "ob2_sb_q4_a1",
-                "answer_text": "Wenn",
-                "is_correct": true
-              },
-              {
-                "id": "ob2_sb_q4_a2",
-                "answer_text": "Damit",
-                "is_correct": false
-              },
-              {
-                "id": "ob2_sb_q4_a3",
-                "answer_text": "Obwohl",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "ob2_sb_q5",
-            "question_text": "Die Firma sieht sich ___, ihre Strategie zu überdenken.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"sich gezwungen sehen, etwas zu tun\" ist die feste Wendung.",
-            "order_index": 4,
-            "answers": [
-              {
-                "id": "ob2_sb_q5_a1",
-                "answer_text": "gezwungen",
-                "is_correct": true
-              },
-              {
-                "id": "ob2_sb_q5_a2",
-                "answer_text": "zwingend",
-                "is_correct": false
-              },
-              {
-                "id": "ob2_sb_q5_a3",
-                "answer_text": "zwingt",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "ob2_sb_q6",
-            "question_text": "___ ich das gewusst hätte, wäre ich früher gekommen.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Konjunktiv II Bedingungssatz mit \"Wenn\".",
-            "order_index": 5,
-            "answers": [
-              {
-                "id": "ob2_sb_q6_a1",
-                "answer_text": "Wenn",
-                "is_correct": true
-              },
-              {
-                "id": "ob2_sb_q6_a2",
-                "answer_text": "Ob",
-                "is_correct": false
-              },
-              {
-                "id": "ob2_sb_q6_a3",
-                "answer_text": "Als",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "ob2_sb_q7",
-            "question_text": "Das Unternehmen hat sich ___ verpflichtet, klimaneutral zu werden.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"sich dazu verpflichten\" ist die feste Wendung.",
-            "order_index": 6,
-            "answers": [
-              {
-                "id": "ob2_sb_q7_a1",
-                "answer_text": "dazu",
-                "is_correct": true
-              },
-              {
-                "id": "ob2_sb_q7_a2",
-                "answer_text": "darauf",
-                "is_correct": false
-              },
-              {
-                "id": "ob2_sb_q7_a3",
-                "answer_text": "damit",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "ob2_sb_q8",
-            "question_text": "Der Bericht enthält Informationen, ___ für die Entscheidung wichtig sind.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "Relativpronomen für Plural: \"die\".",
-            "order_index": 7,
-            "answers": [
-              {
-                "id": "ob2_sb_q8_a1",
-                "answer_text": "die",
-                "is_correct": true
-              },
-              {
-                "id": "ob2_sb_q8_a2",
-                "answer_text": "was",
-                "is_correct": false
-              },
-              {
-                "id": "ob2_sb_q8_a3",
-                "answer_text": "wo",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "ob2_sb_q9",
-            "question_text": "___ ihrer Qualifikation wurde sie sofort eingestellt.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"Aufgrund\" nennt den Grund.",
-            "order_index": 8,
-            "answers": [
-              {
-                "id": "ob2_sb_q9_a1",
-                "answer_text": "Aufgrund",
-                "is_correct": true
-              },
-              {
-                "id": "ob2_sb_q9_a2",
-                "answer_text": "Trotz",
-                "is_correct": false
-              },
-              {
-                "id": "ob2_sb_q9_a3",
-                "answer_text": "Statt",
-                "is_correct": false
-              }
-            ]
-          },
-          {
-            "id": "ob2_sb_q10",
-            "question_text": "Es ist wichtig, ___ alle Regeln einzuhalten.",
-            "question_type": "multiple_choice",
-            "points": 1,
-            "explanation": "\"Es ist wichtig, dass...\" leitet einen Nebensatz ein.",
-            "order_index": 9,
-            "answers": [
-              {
-                "id": "ob2_sb_q10_a1",
-                "answer_text": "dass",
-                "is_correct": true
-              },
-              {
-                "id": "ob2_sb_q10_a2",
-                "answer_text": "ob",
-                "is_correct": false
-              },
-              {
-                "id": "ob2_sb_q10_a3",
-                "answer_text": "wie",
-                "is_correct": false
-              }
-            ]
-          }
-        ]
-      },
-      {
         "key": "hoeren1",
         "name": "Hören — Teil 1 (Transkript)",
         "type": "listening",
@@ -11954,10 +9387,10 @@ const mockContent = {
           },
           {
             "id": "ob2_h1_q3",
-            "question_text": "Die Universität Wien bietet dieses Semester keine neuen Deutschkurse an.",
+            "question_text": "Die Universität Wien bietet dieses Semester mehrere neue Deutschkurse an.",
             "question_type": "true_false",
             "points": 1,
-            "explanation": "Es werden neue Kurse angeboten, das Gegenteil wird gesagt.",
+            "explanation": "Die Ansage sagt das Gegenteil: keine neuen Deutschkurse dieses Semester.",
             "order_index": 2,
             "answers": [
               {
@@ -12014,10 +9447,10 @@ const mockContent = {
           },
           {
             "id": "ob2_h1_q6",
-            "question_text": "Die Stadtbücherei verlangt für die Mitgliedschaft eine einmalige Gebühr von 50 Euro.",
+            "question_text": "Die Stadtbücherei verlangt für die Mitgliedschaft eine monatliche Gebühr von 50 Euro.",
             "question_type": "true_false",
             "points": 1,
-            "explanation": "Die Mitgliedschaft ist kostenlos oder günstiger, nicht 50 Euro einmalig laut Ansage.",
+            "explanation": "Die Gebühr ist einmalig, nicht monatlich.",
             "order_index": 5,
             "answers": [
               {
@@ -12054,10 +9487,10 @@ const mockContent = {
           },
           {
             "id": "ob2_h1_q8",
-            "question_text": "Die Firma stellt aktuell keine neuen Mitarbeitenden ein.",
+            "question_text": "Die Firma stellt aktuell viele neue Mitarbeitende ein.",
             "question_type": "true_false",
             "points": 1,
-            "explanation": "Die Firma sucht aktuell neue Mitarbeitende.",
+            "explanation": "Die Ansage sagt das Gegenteil: aktuell keine Neueinstellungen.",
             "order_index": 7,
             "answers": [
               {
@@ -12074,10 +9507,10 @@ const mockContent = {
           },
           {
             "id": "ob2_h1_q9",
-            "question_text": "Der Flughafen Wien meldet für heute keine Verspätungen.",
+            "question_text": "Der Flughafen Wien meldet für heute mehrere Verspätungen.",
             "question_type": "true_false",
             "points": 1,
-            "explanation": "Es werden Verspätungen gemeldet.",
+            "explanation": "Die Ansage sagt das Gegenteil: keine Verspätungen heute.",
             "order_index": 8,
             "answers": [
               {
@@ -12114,10 +9547,10 @@ const mockContent = {
           },
           {
             "id": "ob2_h1_q11",
-            "question_text": "Der Marathon findet dieses Jahr wegen Bauarbeiten nicht statt.",
+            "question_text": "Der Marathon findet dieses Jahr wie geplant statt.",
             "question_type": "true_false",
             "points": 1,
-            "explanation": "Der Marathon findet trotz Bauarbeiten statt, nur die Route ändert sich.",
+            "explanation": "Die Ansage sagt das Gegenteil: der Marathon findet wegen Bauarbeiten nicht statt.",
             "order_index": 10,
             "answers": [
               {
@@ -12174,10 +9607,10 @@ const mockContent = {
           },
           {
             "id": "ob2_h1_q14",
-            "question_text": "Der Konzertsaal wurde wegen Renovierung für ein Jahr komplett geschlossen.",
+            "question_text": "Der Konzertsaal wurde wegen Renovierung nur für einen Monat geschlossen.",
             "question_type": "true_false",
             "points": 1,
-            "explanation": "Er ist nur für einige Monate geschlossen, nicht ein Jahr.",
+            "explanation": "Die Ansage nennt ein Jahr, nicht einen Monat.",
             "order_index": 13,
             "answers": [
               {
@@ -12234,10 +9667,10 @@ const mockContent = {
           },
           {
             "id": "ob2_h1_q17",
-            "question_text": "Die Universität schließt ihre Mensa während der Semesterferien komplett.",
+            "question_text": "Die Universität schließt ihre Mensa während der Semesterferien nur teilweise.",
             "question_type": "true_false",
             "points": 1,
-            "explanation": "Die Mensa bleibt eingeschränkt geöffnet.",
+            "explanation": "Die Ansage sagt \"komplett\", nicht teilweise.",
             "order_index": 16,
             "answers": [
               {
@@ -12274,10 +9707,10 @@ const mockContent = {
           },
           {
             "id": "ob2_h1_q19",
-            "question_text": "Im Stadtpark ist das Grillen ganzjährig ohne Einschränkung erlaubt.",
+            "question_text": "Im Stadtpark ist das Grillen ganzjährig verboten.",
             "question_type": "true_false",
             "points": 1,
-            "explanation": "Es gibt spezielle Grillzonen und Zeiten.",
+            "explanation": "Die Ansage sagt das Gegenteil: ganzjährig ohne Einschränkung erlaubt.",
             "order_index": 18,
             "answers": [
               {
@@ -12730,9 +10163,9 @@ const mockContent = {
     "writing": {
       "name": "Schreiben (تدريب غير مُقيَّم)",
       "official_duration_minutes": 90,
-      "instructions": "في الاختبار الرسمي، تكتب رسالة رسمية وموقفًا رأيًا. هذا تدريب ذاتي غير مُقيَّم آليًا.",
-      "prompt": "Schreiben Sie eine Meinungsäußerung (ca. 120 Wörter) zum Thema: \"Sollte die Vier-Tage-Woche gesetzlich verpflichtend werden?\" Nennen Sie Argumente dafür und dagegen und formulieren Sie einen klaren Standpunkt.",
-      "sample_answer": "Die Frage, ob die Vier-Tage-Woche gesetzlich verpflichtend werden sollte, wird kontrovers diskutiert. Befürworter argumentieren, dass kürzere Arbeitszeiten die Gesundheit der Beschäftigten verbessern und die Produktivität sogar steigern können, wie erste Pilotprojekte zeigen. Gegner hingegen warnen, dass nicht jede Branche gleich davon profitieren kann, etwa im Gesundheitswesen oder im Handel, wo durchgehende Anwesenheit notwendig ist.\n\nMeiner Meinung nach wäre eine gesetzliche Pflicht zu starr. Sinnvoller erscheint mir, Unternehmen finanzielle Anreize zu bieten, damit sie das Modell freiwillig testen können. So ließe sich herausfinden, in welchen Branchen es tatsächlich funktioniert, ohne alle Betriebe pauschal zu zwingen."
+      "instructions": "في الاختبار الرسمي، تكتب نصين: بريدًا إلكترونيًا رسميًا وموقفًا رأيًا (Argumentation). اكتب النصين معًا في إجابة واحدة، بنفس الترتيب. هذا تدريب ذاتي غير مُقيَّم آليًا.",
+      "prompt": "Teil 1 — Formelles E-Mail (ca. 100–120 Wörter):\nSchreiben Sie eine formelle E-Mail an die Hausverwaltung Ihres Wohnhauses. Sie sind mit dem Zustand des Treppenhauses unzufrieden. Beschreiben Sie das Problem genau, erklären Sie, welche Auswirkungen es hat, und schlagen Sie eine konkrete Lösung vor.\n\nTeil 2 — Meinungsäußerung (ca. 120 Wörter):\nSchreiben Sie eine Meinungsäußerung (ca. 120 Wörter) zum Thema: \"Sollte die Vier-Tage-Woche gesetzlich verpflichtend werden?\" Nennen Sie Argumente dafür und dagegen und formulieren Sie einen klaren Standpunkt.",
+      "sample_answer": "Teil 1:\nSehr geehrte Damen und Herren,\n\nich möchte Sie auf den schlechten Zustand des Treppenhauses in unserem Wohnhaus aufmerksam machen. Seit mehreren Wochen ist die Beleuchtung im zweiten Stock defekt, und das Geländer wackelt an mehreren Stellen deutlich.\n\nDies stellt insbesondere für ältere Bewohner und Kinder ein echtes Sicherheitsrisiko dar, vor allem in den Abendstunden. Ich bitte Sie daher, die Beleuchtung so schnell wie möglich reparieren zu lassen und das Geländer auf seine Stabilität überprüfen zu lassen.\n\nÜber eine kurze Rückmeldung zum weiteren Vorgehen würde ich mich freuen.\n\nMit freundlichen Grüßen\nLeila Nasser\n\nTeil 2:\nDie Frage, ob die Vier-Tage-Woche gesetzlich verpflichtend werden sollte, wird kontrovers diskutiert. Befürworter argumentieren, dass kürzere Arbeitszeiten die Gesundheit der Beschäftigten verbessern und die Produktivität sogar steigern können, wie erste Pilotprojekte zeigen. Gegner hingegen warnen, dass nicht jede Branche gleich davon profitieren kann, etwa im Gesundheitswesen oder im Handel, wo durchgehende Anwesenheit notwendig ist.\n\nMeiner Meinung nach wäre eine gesetzliche Pflicht zu starr. Sinnvoller erscheint mir, Unternehmen finanzielle Anreize zu bieten, damit sie das Modell freiwillig testen können. So ließe sich herausfinden, in welchen Branchen es tatsächlich funktioniert, ohne alle Betriebe pauschal zu zwingen."
     }
   },
   "test_skill_reading": {
