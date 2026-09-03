@@ -7,7 +7,7 @@
     <meta name="robots" content="noindex, nofollow">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -18,14 +18,14 @@
             colors: {
               flag: {
                 black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
-                red: '#2563EB', redbright: '#3B82F6', reddeep: '#1D4ED8',
-                gold: '#38BDF8', goldsoft: '#7DD3FC',
-                accent: '#FF7A45', accentbright: '#FF9466', accentdeep: '#E85A2A',
-                cream: '#F5F8FC', paper: '#FFFFFF', ink: '#1E293B'
+                red: '#DC2626', redbright: '#EF4444', reddeep: '#B91C1C',
+                blue: '#2563EB', bluebright: '#3B82F6', blueddeep: '#1D4ED8',
+                gold: '#DC2626', goldbright: '#EF4444', golddeep: '#B91C1C',
+                accent: '#DC2626', accentbright: '#EF4444', accentdeep: '#B91C1C',
+                cream: '#FFFFFF', paper: '#FFFFFF', ink: '#0F172A'
               }
             },
             fontFamily: {
-              display: ['"Space Grotesk"', 'sans-serif'],
               arabic: ['Cairo', 'sans-serif'],
               mono: ['"JetBrains Mono"', 'monospace']
             }
@@ -119,8 +119,8 @@
             <div class="de-card w-full max-w-sm overflow-hidden">
                 <div class="de-flag-ribbon"></div>
                 <div class="p-8 text-center">
-                    <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5"><i class="fas fa-user-shield"></i></span>
-                    <h1 class="font-display text-xl font-bold text-flag-ink mb-1">لوحة تحكم المشرف</h1>
+                    <span class="de-stamp de-stamp-onlight h-16 w-16 text-xs mx-auto mb-5"><i class="fas fa-user-shield"></i></span>
+                    <h1 class="text-xl font-bold text-flag-ink mb-1">لوحة تحكم المشرف</h1>
                     <p class="text-sm text-flag-ink/50 mb-6">سجّل الدخول بحساب مشرف للمتابعة</p>
 
                     <form @submit.prevent="login()" class="space-y-4 text-start">
@@ -160,7 +160,7 @@
                     <div class="flex items-center gap-3">
                         <span class="de-stamp de-stamp-onlight h-10 w-10 text-xs"><i class="fas fa-user-shield"></i></span>
                         <div class="hidden sm:block">
-                            <div class="font-display font-semibold text-sm leading-tight">لوحة تحكم المشرف</div>
+                            <div class="font-semibold text-sm leading-tight">لوحة تحكم المشرف</div>
                             <div class="text-xs text-flag-ink/50">LisanTest.com</div>
                         </div>
                     </div>
@@ -239,42 +239,42 @@
                             <div class="h-10 w-10 rounded-lg bg-flag-black/5 flex items-center justify-center mb-3">
                                 <i class="fas fa-users text-flag-ink/60"></i>
                             </div>
-                            <div class="text-2xl font-display font-bold text-flag-ink" x-text="stats.total"></div>
+                            <div class="text-2xl font-bold text-flag-ink" x-text="stats.total"></div>
                             <div class="text-xs text-flag-ink/50">إجمالي الأعضاء</div>
                         </div>
                         <div class="de-card rounded-2xl p-5 border-flag-gold/40">
                             <div class="h-10 w-10 rounded-lg bg-flag-gold/15 flex items-center justify-center mb-3">
                                 <i class="fas fa-hourglass-half text-flag-gold"></i>
                             </div>
-                            <div class="text-2xl font-display font-bold text-flag-ink" x-text="stats.pending"></div>
+                            <div class="text-2xl font-bold text-flag-ink" x-text="stats.pending"></div>
                             <div class="text-xs text-flag-ink/50">قيد المراجعة</div>
                         </div>
                         <div class="de-card rounded-2xl p-5">
                             <div class="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center mb-3">
                                 <i class="fas fa-circle-check text-emerald-600"></i>
                             </div>
-                            <div class="text-2xl font-display font-bold text-flag-ink" x-text="stats.active"></div>
+                            <div class="text-2xl font-bold text-flag-ink" x-text="stats.active"></div>
                             <div class="text-xs text-flag-ink/50">أعضاء نشطون</div>
                         </div>
                         <div class="de-card rounded-2xl p-5">
                             <div class="h-10 w-10 rounded-lg bg-red-50 flex items-center justify-center mb-3">
                                 <i class="fas fa-circle-xmark text-red-600"></i>
                             </div>
-                            <div class="text-2xl font-display font-bold text-flag-ink" x-text="stats.rejected"></div>
+                            <div class="text-2xl font-bold text-flag-ink" x-text="stats.rejected"></div>
                             <div class="text-xs text-flag-ink/50">مرفوضون</div>
                         </div>
                         <div class="de-card rounded-2xl p-5">
                             <div class="h-10 w-10 rounded-lg bg-flag-black/5 flex items-center justify-center mb-3">
                                 <i class="fas fa-credit-card text-flag-ink/60"></i>
                             </div>
-                            <div class="text-2xl font-display font-bold text-flag-ink" x-text="stats.activeSubscriptions"></div>
+                            <div class="text-2xl font-bold text-flag-ink" x-text="stats.activeSubscriptions"></div>
                             <div class="text-xs text-flag-ink/50">اشتراكات فعالة</div>
                         </div>
                     </div>
 
                     <div class="de-card rounded-2xl overflow-hidden">
                         <div class="p-6 border-b border-black/5 flex items-center justify-between">
-                            <h2 class="font-display font-semibold text-flag-ink">
+                            <h2 class="font-semibold text-flag-ink">
                                 <i class="fas fa-hourglass-half text-flag-gold me-2"></i> بانتظار المراجعة
                             </h2>
                             <button @click="activeTab = 'members'; memberFilter = 'pending'" class="text-sm text-flag-red hover:text-flag-reddeep">
@@ -295,7 +295,7 @@
                                         <button @click="approve(m.id)" class="de-btn de-btn-primary text-xs py-2 px-4">
                                             <i class="fas fa-check"></i> موافقة
                                         </button>
-                                        <button @click="reject(m.id)" class="de-btn text-xs py-2 px-4" style="background:#EEEAE0;color:#1E293B;">
+                                        <button @click="reject(m.id)" class="de-btn text-xs py-2 px-4" style="background:#EEEAE0;color:#0F172A;">
                                             <i class="fas fa-xmark"></i> رفض
                                         </button>
                                     </div>
@@ -400,7 +400,7 @@
                 <!-- ===== Notifications tab ===== -->
                 <div x-show="activeTab === 'notifications'" x-cloak class="grid lg:grid-cols-5 gap-6">
                     <div class="lg:col-span-2 de-card rounded-2xl p-6 h-fit">
-                        <h2 class="font-display font-semibold text-flag-ink mb-5">
+                        <h2 class="font-semibold text-flag-ink mb-5">
                             <i class="fas fa-paper-plane text-flag-red me-2"></i> إرسال إشعار جديد
                         </h2>
                         <form @submit.prevent="sendNotification()" class="space-y-4">
@@ -446,7 +446,7 @@
 
                     <div class="lg:col-span-3 de-card rounded-2xl overflow-hidden">
                         <div class="p-6 border-b border-black/5">
-                            <h2 class="font-display font-semibold text-flag-ink">سجل الإشعارات المرسلة</h2>
+                            <h2 class="font-semibold text-flag-ink">سجل الإشعارات المرسلة</h2>
                         </div>
                         <div class="divide-y divide-black/5 max-h-[560px] overflow-y-auto">
                             <template x-for="n in notifications" :key="n.id">
@@ -478,7 +478,7 @@
                 <!-- ===== Resources / Classroom tab ===== -->
                 <div x-show="activeTab === 'resources'" x-cloak class="grid lg:grid-cols-5 gap-6">
                     <div class="lg:col-span-2 de-card rounded-2xl p-6 h-fit">
-                        <h2 class="font-display font-semibold text-flag-ink mb-5">
+                        <h2 class="font-semibold text-flag-ink mb-5">
                             <i class="fas fa-upload text-flag-red me-2"></i> إضافة مادة جديدة
                         </h2>
                         <form @submit.prevent="uploadResource()" class="space-y-4">
@@ -543,7 +543,7 @@
 
                     <div class="lg:col-span-3 de-card rounded-2xl overflow-hidden">
                         <div class="p-6 border-b border-black/5 flex items-center justify-between">
-                            <h2 class="font-display font-semibold text-flag-ink">المواد الحالية</h2>
+                            <h2 class="font-semibold text-flag-ink">المواد الحالية</h2>
                             <span class="text-xs text-flag-ink/40 font-mono" x-text="resources.length + ' عنصر'"></span>
                         </div>
                         <div class="divide-y divide-black/5 max-h-[640px] overflow-y-auto">
@@ -581,7 +581,7 @@
                 <!-- List view -->
                 <div x-show="!testBuilderOpen">
                     <div class="flex items-center justify-between mb-5">
-                        <h2 class="font-display font-semibold text-flag-ink">إدارة الاختبارات</h2>
+                        <h2 class="font-semibold text-flag-ink">إدارة الاختبارات</h2>
                         <button @click="newTest()" class="de-btn de-btn-primary text-sm py-2.5 px-5">
                             <i class="fas fa-plus"></i> اختبار جديد
                         </button>
@@ -630,7 +630,7 @@
 
                     <!-- Test metadata -->
                     <div class="de-card rounded-2xl p-6 mb-5">
-                        <h3 class="font-display font-semibold text-flag-ink mb-4">بيانات الاختبار</h3>
+                        <h3 class="font-semibold text-flag-ink mb-4">بيانات الاختبار</h3>
                         <div class="grid sm:grid-cols-2 gap-4 mb-4">
                             <div>
                                 <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">العنوان</label>
@@ -684,7 +684,7 @@
                     <template x-for="(section, sIndex) in testBuilder.sections" :key="section._key">
                         <div class="de-card rounded-2xl p-6 mb-5">
                             <div class="flex items-center justify-between mb-4">
-                                <h3 class="font-display font-semibold text-flag-ink">القسم <span x-text="sIndex + 1"></span></h3>
+                                <h3 class="font-semibold text-flag-ink">القسم <span x-text="sIndex + 1"></span></h3>
                                 <button @click="removeSection(sIndex)" class="text-xs text-red-600 hover:text-red-700"><i class="fas fa-trash"></i> حذف القسم</button>
                             </div>
                             <div class="grid sm:grid-cols-2 gap-4 mb-4">
@@ -735,12 +735,12 @@
                                     <button @click="addAnswer(sIndex, qIndex)" class="text-xs text-flag-red hover:text-flag-reddeep"><i class="fas fa-plus"></i> إضافة إجابة</button>
                                 </div>
                             </template>
-                            <button @click="addQuestion(sIndex)" class="de-btn text-xs py-2 px-4" style="background:#EEEAE0;color:#1E293B;">
+                            <button @click="addQuestion(sIndex)" class="de-btn text-xs py-2 px-4" style="background:#EEEAE0;color:#0F172A;">
                                 <i class="fas fa-plus"></i> إضافة سؤال
                             </button>
                         </div>
                     </template>
-                    <button @click="addSection()" class="de-btn w-full text-sm py-3 mb-5" style="background:#EEEAE0;color:#1E293B;">
+                    <button @click="addSection()" class="de-btn w-full text-sm py-3 mb-5" style="background:#EEEAE0;color:#0F172A;">
                         <i class="fas fa-plus"></i> إضافة قسم
                     </button>
 
@@ -769,7 +769,7 @@
 
                 <template x-for="cfg in llmSettings" :key="cfg.purpose">
                     <div class="de-card rounded-2xl p-6 mb-5">
-                        <h3 class="font-display font-semibold text-flag-ink mb-1" x-text="cfg.purpose === 'grading' ? 'تقييم الكتابة' : 'التلميحات'"></h3>
+                        <h3 class="font-semibold text-flag-ink mb-1" x-text="cfg.purpose === 'grading' ? 'تقييم الكتابة' : 'التلميحات'"></h3>
                         <p class="text-xs text-flag-ink/50 mb-4" x-text="cfg.purpose === 'grading' ? 'يُستخدم عند تقييم نصوص الطلاب في نشاطات الكتابة الحرة' : 'يُستخدم عند طلب الطالب تلميحًا أثناء تدريب'"></p>
 
                         <div class="grid sm:grid-cols-2 gap-4 mb-4">
@@ -791,7 +791,7 @@
                             <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">عنوان الواجهة (base URL)</label>
                             <input type="text" x-model="cfg.base_url" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-flag-red/30">
                         </div>
-                        <button @click="saveLlmConfig(cfg)" :disabled="savingLlmConfig === cfg.purpose" class="de-btn text-xs py-2 px-4 mb-5" style="background:#EEEAE0;color:#1E293B;">
+                        <button @click="saveLlmConfig(cfg)" :disabled="savingLlmConfig === cfg.purpose" class="de-btn text-xs py-2 px-4 mb-5" style="background:#EEEAE0;color:#0F172A;">
                             <span x-text="savingLlmConfig === cfg.purpose ? 'جاري الحفظ...' : 'حفظ الإعدادات'"></span>
                         </button>
 
@@ -823,7 +823,7 @@
                 <div class="grid lg:grid-cols-5 gap-6">
                     <!-- Create/edit form -->
                     <div class="lg:col-span-2 de-card rounded-2xl p-6 h-fit">
-                        <h2 class="font-display font-semibold text-flag-ink mb-5">
+                        <h2 class="font-semibold text-flag-ink mb-5">
                             <i class="fas" :class="eventForm.id ? 'fa-pen' : 'fa-plus'"></i>
                             <span x-text="eventForm.id ? 'تعديل فعالية' : 'إضافة فعالية جديدة'"></span>
                         </h2>
@@ -869,7 +869,7 @@
                                 <button type="submit" :disabled="savingEvent" class="de-btn de-btn-primary flex-1 text-sm py-3 disabled:opacity-50">
                                     <span x-text="savingEvent ? 'جاري الحفظ...' : (eventForm.id ? 'حفظ التعديلات' : 'إضافة الفعالية')"></span>
                                 </button>
-                                <button type="button" x-show="eventForm.id" @click="resetEventForm()" class="de-btn text-sm py-3 px-4" style="background:#EEEAE0;color:#1E293B;">إلغاء</button>
+                                <button type="button" x-show="eventForm.id" @click="resetEventForm()" class="de-btn text-sm py-3 px-4" style="background:#EEEAE0;color:#0F172A;">إلغاء</button>
                             </div>
                         </form>
                     </div>
@@ -877,7 +877,7 @@
                     <!-- Events list -->
                     <div class="lg:col-span-3 de-card rounded-2xl overflow-hidden">
                         <div class="p-6 border-b border-black/5 flex items-center justify-between">
-                            <h2 class="font-display font-semibold text-flag-ink">الفعاليات الحالية</h2>
+                            <h2 class="font-semibold text-flag-ink">الفعاليات الحالية</h2>
                             <span class="text-xs text-flag-ink/40 font-mono" x-text="events.length + ' فعالية'"></span>
                         </div>
                         <div class="divide-y divide-black/5 max-h-[720px] overflow-y-auto">
@@ -927,7 +927,7 @@
                 <!-- Posts: list -->
                 <div x-show="blogSubTab === 'posts' && !postEditorOpen">
                     <div class="flex items-center justify-between mb-4">
-                        <h2 class="font-display font-semibold text-flag-ink">المقالات</h2>
+                        <h2 class="font-semibold text-flag-ink">المقالات</h2>
                         <button @click="newPost()" class="de-btn de-btn-primary text-sm py-2.5 px-5">
                             <i class="fas fa-plus"></i> مقال جديد
                         </button>
@@ -1019,7 +1019,7 @@
                 <div x-show="blogSubTab === 'categories'" x-cloak>
                     <div class="grid lg:grid-cols-3 gap-6">
                         <div class="de-card rounded-2xl p-6 h-fit">
-                            <h2 class="font-display font-semibold text-flag-ink mb-4">إضافة تصنيف</h2>
+                            <h2 class="font-semibold text-flag-ink mb-4">إضافة تصنيف</h2>
                             <form @submit.prevent="saveCategory()" class="space-y-3">
                                 <input type="text" x-model="newCategoryName" placeholder="اسم التصنيف" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30">
                                 <button type="submit" :disabled="!newCategoryName.trim()" class="de-btn de-btn-primary w-full text-sm py-2.5 disabled:opacity-50">إضافة</button>
@@ -1071,7 +1071,7 @@
                 <div class="de-card rounded-2xl overflow-hidden grid md:grid-cols-5" style="height: 640px;">
                     <div class="md:col-span-2 border-e border-black/10 flex flex-col">
                         <div class="p-4 border-b border-black/10 flex-shrink-0">
-                            <h2 class="font-display font-semibold text-flag-ink text-sm">محادثات الطلاب</h2>
+                            <h2 class="font-semibold text-flag-ink text-sm">محادثات الطلاب</h2>
                         </div>
                         <div class="flex-1 overflow-y-auto divide-y divide-black/5">
                             <template x-for="t in threads" :key="t.student_id">
@@ -1140,12 +1140,12 @@
                 <div class="h-12 w-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-trash"></i>
                 </div>
-                <h3 class="font-display font-semibold text-flag-ink mb-2">حذف العضو نهائيًا؟</h3>
+                <h3 class="font-semibold text-flag-ink mb-2">حذف العضو نهائيًا؟</h3>
                 <p class="text-sm text-flag-ink/60 mb-6">
                     سيتم حذف <span class="font-medium" x-text="deleteTarget && deleteTarget.full_name"></span> وكل بياناته نهائيًا. لا يمكن التراجع عن هذا الإجراء.
                 </p>
                 <div class="flex gap-3">
-                    <button @click="deleteTarget = null" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#1E293B;">إلغاء</button>
+                    <button @click="deleteTarget = null" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#0F172A;">إلغاء</button>
                     <button @click="removeMember()" class="de-btn de-btn-primary flex-1 text-sm py-2.5">حذف</button>
                 </div>
             </div>
@@ -1161,12 +1161,12 @@
                 <div class="h-12 w-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-trash"></i>
                 </div>
-                <h3 class="font-display font-semibold text-flag-ink mb-2">حذف المادة؟</h3>
+                <h3 class="font-semibold text-flag-ink mb-2">حذف المادة؟</h3>
                 <p class="text-sm text-flag-ink/60 mb-6">
                     سيتم حذف <span class="font-medium" x-text="deleteResourceTarget && deleteResourceTarget.title"></span> نهائيًا من الفصل الدراسي. لا يمكن التراجع عن هذا الإجراء.
                 </p>
                 <div class="flex gap-3">
-                    <button @click="deleteResourceTarget = null" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#1E293B;">إلغاء</button>
+                    <button @click="deleteResourceTarget = null" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#0F172A;">إلغاء</button>
                     <button @click="deleteResource()" class="de-btn de-btn-primary flex-1 text-sm py-2.5">حذف</button>
                 </div>
             </div>
@@ -1182,12 +1182,12 @@
                 <div class="h-12 w-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-trash"></i>
                 </div>
-                <h3 class="font-display font-semibold text-flag-ink mb-2">حذف الاختبار؟</h3>
+                <h3 class="font-semibold text-flag-ink mb-2">حذف الاختبار؟</h3>
                 <p class="text-sm text-flag-ink/60 mb-6">
                     سيتم حذف <span class="font-medium" x-text="deleteTestTarget && deleteTestTarget.title"></span> نهائيًا مع كل أسئلته ومحاولات الطلاب المرتبطة به. لا يمكن التراجع عن هذا الإجراء.
                 </p>
                 <div class="flex gap-3">
-                    <button @click="deleteTestTarget = null" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#1E293B;">إلغاء</button>
+                    <button @click="deleteTestTarget = null" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#0F172A;">إلغاء</button>
                     <button @click="deleteTest()" class="de-btn de-btn-primary flex-1 text-sm py-2.5">حذف</button>
                 </div>
             </div>
@@ -1203,12 +1203,12 @@
                 <div class="h-12 w-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-trash"></i>
                 </div>
-                <h3 class="font-display font-semibold text-flag-ink mb-2">حذف الفعالية؟</h3>
+                <h3 class="font-semibold text-flag-ink mb-2">حذف الفعالية؟</h3>
                 <p class="text-sm text-flag-ink/60 mb-6">
                     سيتم حذف <span class="font-medium" x-text="deleteEventTarget && deleteEventTarget.title"></span> نهائيًا. لا يمكن التراجع عن هذا الإجراء.
                 </p>
                 <div class="flex gap-3">
-                    <button @click="deleteEventTarget = null" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#1E293B;">إلغاء</button>
+                    <button @click="deleteEventTarget = null" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#0F172A;">إلغاء</button>
                     <button @click="deleteEvent()" class="de-btn de-btn-primary flex-1 text-sm py-2.5">حذف</button>
                 </div>
             </div>
@@ -1224,12 +1224,12 @@
                 <div class="h-12 w-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-trash"></i>
                 </div>
-                <h3 class="font-display font-semibold text-flag-ink mb-2">حذف المقال؟</h3>
+                <h3 class="font-semibold text-flag-ink mb-2">حذف المقال؟</h3>
                 <p class="text-sm text-flag-ink/60 mb-6">
                     سيتم حذف <span class="font-medium" x-text="deletePostTarget && deletePostTarget.title"></span> نهائيًا مع تعليقاته وإعجاباته. لا يمكن التراجع عن هذا الإجراء.
                 </p>
                 <div class="flex gap-3">
-                    <button @click="deletePostTarget = null" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#1E293B;">إلغاء</button>
+                    <button @click="deletePostTarget = null" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#0F172A;">إلغاء</button>
                     <button @click="deletePost()" class="de-btn de-btn-primary flex-1 text-sm py-2.5">حذف</button>
                 </div>
             </div>
@@ -1245,12 +1245,12 @@
                 <div class="h-12 w-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-trash"></i>
                 </div>
-                <h3 class="font-display font-semibold text-flag-ink mb-2">حذف الإشعار؟</h3>
+                <h3 class="font-semibold text-flag-ink mb-2">حذف الإشعار؟</h3>
                 <p class="text-sm text-flag-ink/60 mb-6">
                     سيتم حذف <span class="font-medium" x-text="deleteNotificationTarget && deleteNotificationTarget.title"></span> نهائيًا لجميع من استلموه. لا يمكن التراجع عن هذا الإجراء.
                 </p>
                 <div class="flex gap-3">
-                    <button @click="deleteNotificationTarget = null" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#1E293B;">إلغاء</button>
+                    <button @click="deleteNotificationTarget = null" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#0F172A;">إلغاء</button>
                     <button @click="deleteNotification()" class="de-btn de-btn-primary flex-1 text-sm py-2.5">حذف</button>
                 </div>
             </div>

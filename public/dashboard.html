@@ -10,7 +10,7 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,14 +21,14 @@
             colors: {
               flag: {
                 black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
-                red: '#2563EB', redbright: '#3B82F6', reddeep: '#1D4ED8',
-                gold: '#38BDF8', goldsoft: '#7DD3FC',
-                accent: '#FF7A45', accentbright: '#FF9466', accentdeep: '#E85A2A',
-                cream: '#F5F8FC', paper: '#FFFFFF', ink: '#1E293B'
+                red: '#DC2626', redbright: '#EF4444', reddeep: '#B91C1C',
+                blue: '#2563EB', bluebright: '#3B82F6', blueddeep: '#1D4ED8',
+                gold: '#2563EB', goldbright: '#3B82F6', golddeep: '#1D4ED8',
+                accent: '#DC2626', accentbright: '#EF4444', accentdeep: '#B91C1C',
+                cream: '#FFFFFF', paper: '#FFFFFF', ink: '#0F172A'
               }
             },
             fontFamily: {
-              display: ['"Space Grotesk"', 'sans-serif'],
               arabic: ['Cairo', 'sans-serif'],
               mono: ['"JetBrains Mono"', 'monospace']
             }
@@ -63,13 +63,13 @@
                 <div class="de-flag-ribbon"></div>
                 <div class="p-8">
                     <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5" style="border-color:#DC2626;color:#DC2626;"><i class="fas fa-circle-xmark"></i></span>
-                    <h1 class="font-display text-xl font-bold text-flag-ink mb-3">تعذّر تفعيل حسابك</h1>
+                    <h1 class="text-xl font-bold text-flag-ink mb-3">تعذّر تفعيل حسابك</h1>
                     <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">
                         لم تتم الموافقة على عضويتك. تواصل معنا على
                         <a href="mailto:hello@lisantest.com" class="text-flag-red">hello@lisantest.com</a>
                         لمزيد من المعلومات.
                     </p>
-                    <button @click="logout()" class="de-btn w-full text-sm py-3" style="background:#EEEAE0;color:#1E293B;">
+                    <button @click="logout()" class="de-btn w-full text-sm py-3" style="background:#EEEAE0;color:#0F172A;">
                         <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
                     </button>
                 </div>
@@ -87,7 +87,7 @@
                         <div class="flex justify-between h-16 items-center">
                             <a href="index.html" class="flex items-center gap-3">
                                 <img src="images/lisantest-logo.png" alt="LisanTest" class="h-10 w-auto">
-                                <span class="font-display font-semibold hidden sm:block">LisanTest<span class="text-flag-red">.com</span></span>
+                                <span class="font-semibold hidden sm:block">LisanTest<span class="text-flag-red">.com</span></span>
                             </a>
 
                             <div class="hidden md:flex items-center gap-4">
@@ -148,7 +148,7 @@
                                     </button>
                                     <div x-show="open" x-cloak x-transition class="absolute top-full mt-2 end-0 w-72 sm:w-80 max-h-96 overflow-y-auto de-card rounded-xl overflow-hidden z-50">
                                         <div class="px-4 py-3 border-b border-black/5 flex items-center justify-between">
-                                            <span class="font-display font-semibold text-sm text-flag-ink">الإشعارات</span>
+                                            <span class="font-semibold text-sm text-flag-ink">الإشعارات</span>
                                             <button x-show="notifications.length > 0" @click="clearAllNotifications()" class="text-xs text-flag-ink/40 hover:text-flag-red transition-colors">مسح الكل</button>
                                         </div>
                                         <template x-for="n in notifications" :key="n.id">
@@ -179,29 +179,29 @@
                                         <div class="text-xs text-flag-ink/50" x-text="user.email"></div>
                                     </div>
                                 </div>
-                                <a href="classroom.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#1E293B;">
+                                <a href="classroom.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#0F172A;">
                                     <i class="fas fa-chalkboard"></i> الفصل الدراسي
                                 </a>
-                                <a href="events.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#1E293B;">
+                                <a href="events.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#0F172A;">
                                     <i class="fas fa-calendar-days"></i> الفعاليات
                                 </a>
-                                <a href="blog.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#1E293B;">
+                                <a href="blog.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#0F172A;">
                                     <i class="fas fa-book-open-reader"></i> المدونة
                                 </a>
                                 <div class="text-xs font-medium text-flag-ink/40 px-1 pt-1">تدريبات سريعة</div>
-                                <a href="lesen.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#1E293B;">
+                                <a href="lesen.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#0F172A;">
                                     <i class="fas fa-book-open"></i> تدريبات القراءة
                                 </a>
-                                <a href="schreiben.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#1E293B;">
+                                <a href="schreiben.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#0F172A;">
                                     <i class="fas fa-pen"></i> تدريبات الكتابة
                                 </a>
-                                <a href="hoeren.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#1E293B;">
+                                <a href="hoeren.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#0F172A;">
                                     <i class="fas fa-headphones"></i> تدريبات الاستماع
                                 </a>
                                 <button @click="showSubscriptionModal = true; showMobileMenu = false" class="de-btn de-btn-gold w-full text-sm py-2">
                                     <i class="fas fa-credit-card"></i> الاشتراك
                                 </button>
-                                <button @click="showLogoutConfirm = true; showMobileMenu = false" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#1E293B;">
+                                <button @click="showLogoutConfirm = true; showMobileMenu = false" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#0F172A;">
                                     <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
                                 </button>
                             </div>
@@ -219,7 +219,7 @@
                             <i class="fas fa-user-graduate text-flag-gold text-xl"></i>
                         </div>
                         <div>
-                            <h2 class="font-display text-xl font-bold mb-1">مرحبًا، <span x-text="user.full_name"></span>!</h2>
+                            <h2 class="text-xl font-bold mb-1">مرحبًا، <span x-text="user.full_name"></span>!</h2>
                             <p class="text-sm text-white/70">جاهز لبدء استعدادك لاختبارات Ausbildungsaufnahme اليوم؟</p>
                         </div>
                     </div>
@@ -231,37 +231,37 @@
                         <div class="h-10 w-10 rounded-lg bg-flag-red/10 flex items-center justify-center mb-3">
                             <i class="fas fa-clipboard-list text-flag-red"></i>
                         </div>
-                        <div class="text-2xl font-display font-bold text-flag-ink" x-text="testAttempts.filter(a => a.completed_at).length"></div>
+                        <div class="text-2xl font-bold text-flag-ink" x-text="testAttempts.filter(a => a.completed_at).length"></div>
                         <div class="text-xs text-flag-ink/50">اختبارات مكتملة</div>
                     </div>
                     <div class="de-card rounded-2xl p-5">
                         <div class="h-10 w-10 rounded-lg bg-flag-gold/15 flex items-center justify-center mb-3">
                             <i class="fas fa-chart-line text-flag-ink"></i>
                         </div>
-                        <div class="text-2xl font-display font-bold text-flag-ink" x-text="averageScore().toFixed(0) + '%'"></div>
+                        <div class="text-2xl font-bold text-flag-ink" x-text="averageScore().toFixed(0) + '%'"></div>
                         <div class="text-xs text-flag-ink/50">متوسط النتيجة</div>
                     </div>
                     <div class="de-card rounded-2xl p-5">
                         <div class="h-10 w-10 rounded-lg bg-flag-black/5 flex items-center justify-center mb-3">
                             <i class="fas fa-calendar-alt text-flag-ink/60"></i>
                         </div>
-                        <div class="text-2xl font-display font-bold text-flag-ink" x-text="daysUntilRenewal()"></div>
+                        <div class="text-2xl font-bold text-flag-ink" x-text="daysUntilRenewal()"></div>
                         <div class="text-xs text-flag-ink/50">يوم حتى تجديد الاشتراك</div>
                     </div>
                 </div>
 
                 <!-- Performance report -->
                 <div class="mb-10" x-show="performanceReport && performanceReport.attempts_count > 0">
-                    <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
+                    <h2 class="text-lg font-bold text-flag-ink mb-4">
                         <i class="fas fa-chart-pie text-flag-red me-2"></i> تقرير الأداء
                     </h2>
                     <div class="grid md:grid-cols-2 gap-5">
                         <div class="de-card rounded-2xl p-5">
-                            <h3 class="font-display font-semibold text-flag-ink text-sm mb-3">نقاط القوة والضعف حسب المهارة</h3>
+                            <h3 class="font-semibold text-flag-ink text-sm mb-3">نقاط القوة والضعف حسب المهارة</h3>
                             <div style="height:220px;"><canvas x-ref="performanceSkillCanvas"></canvas></div>
                         </div>
                         <div class="de-card rounded-2xl p-5">
-                            <h3 class="font-display font-semibold text-flag-ink text-sm mb-3">تطور النتائج عبر الوقت</h3>
+                            <h3 class="font-semibold text-flag-ink text-sm mb-3">تطور النتائج عبر الوقت</h3>
                             <div style="height:220px;"><canvas x-ref="performanceTrendCanvas"></canvas></div>
                         </div>
                     </div>
@@ -269,7 +269,7 @@
 
                 <!-- Recent activity -->
                 <div class="mb-10">
-                    <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
+                    <h2 class="text-lg font-bold text-flag-ink mb-4">
                         <i class="fas fa-clock-rotate-left text-flag-red me-2"></i> النشاط الأخير
                     </h2>
                     <div class="de-card rounded-2xl overflow-hidden divide-y divide-black/5">
@@ -303,7 +303,7 @@
                     <div class="flex items-center gap-3">
                         <span class="de-stamp de-stamp-onlight h-11 w-11 text-xs"><i class="fas fa-bolt"></i></span>
                         <div>
-                            <h3 class="font-display font-semibold text-flag-ink">أنت على الخطة المجانية</h3>
+                            <h3 class="font-semibold text-flag-ink">أنت على الخطة المجانية</h3>
                             <p class="text-sm text-flag-ink/60">
                                 <span x-text="freeTestsUsed"></span> من 6 اختبارات مجانية مستخدمة — تجربة تدريب جديد تُحتسب من الحصة، وإعادة تدريب سبق لك تجربته لا تُحتسب أبدًا
                             </p>
@@ -316,7 +316,7 @@
 
                 <!-- Quick drills -->
                 <div class="mb-10">
-                    <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
+                    <h2 class="text-lg font-bold text-flag-ink mb-4">
                         <i class="fas fa-bolt text-flag-red me-2"></i> تدريبات سريعة
                     </h2>
                     <div class="grid sm:grid-cols-3 gap-4">
@@ -324,21 +324,21 @@
                             <div class="h-11 w-11 rounded-xl bg-flag-red/10 flex items-center justify-center mb-3">
                                 <i class="fas fa-book-open text-flag-red"></i>
                             </div>
-                            <h3 class="font-display font-semibold text-flag-ink mb-1">تدريب القراءة</h3>
+                            <h3 class="font-semibold text-flag-ink mb-1">تدريب القراءة</h3>
                             <p class="text-xs text-flag-ink/50">نص قصير + أسئلة — 5-8 دقائق</p>
                         </a>
                         <a href="hoeren.html" class="de-card rounded-2xl p-5 block hover:border-flag-red/30 transition-colors">
                             <div class="h-11 w-11 rounded-xl bg-flag-gold/20 flex items-center justify-center mb-3">
                                 <i class="fas fa-headphones text-flag-ink"></i>
                             </div>
-                            <h3 class="font-display font-semibold text-flag-ink mb-1">تدريب الاستماع</h3>
+                            <h3 class="font-semibold text-flag-ink mb-1">تدريب الاستماع</h3>
                             <p class="text-xs text-flag-ink/50">حوار قصير + أسئلة — 5-8 دقائق</p>
                         </a>
                         <a href="schreiben.html" class="de-card rounded-2xl p-5 block hover:border-flag-red/30 transition-colors">
                             <div class="h-11 w-11 rounded-xl bg-flag-red/10 flex items-center justify-center mb-3">
                                 <i class="fas fa-pen text-flag-red"></i>
                             </div>
-                            <h3 class="font-display font-semibold text-flag-ink mb-1">أساسيات الكتابة</h3>
+                            <h3 class="font-semibold text-flag-ink mb-1">أساسيات الكتابة</h3>
                             <p class="text-xs text-flag-ink/50">قواعد وروابط لغوية — 5-8 دقائق</p>
                         </a>
                     </div>
@@ -347,7 +347,7 @@
                 <!-- Available tests -->
                 <div id="available-tests" class="mb-10">
                     <div class="flex items-center justify-between mb-4">
-                        <h2 class="font-display text-lg font-bold text-flag-ink">
+                        <h2 class="text-lg font-bold text-flag-ink">
                             <i class="fas fa-play text-flag-red me-2"></i> الاختبارات المتاحة
                         </h2>
                         <span x-show="isFreeTier" x-cloak class="de-badge de-badge-gold">
@@ -358,7 +358,7 @@
                         <template x-for="test in availableTests" :key="test.id">
                             <div class="de-card de-ticket-edge rounded-2xl p-6">
                                 <div class="flex items-center justify-between mb-4">
-                                    <h3 class="font-display font-semibold text-flag-ink" x-text="test.title"></h3>
+                                    <h3 class="font-semibold text-flag-ink" x-text="test.title"></h3>
                                     <span class="de-badge de-badge-red" x-text="test.level"></span>
                                 </div>
                                 <p class="text-sm text-flag-ink/60 mb-4" x-text="test.description"></p>
@@ -368,7 +368,7 @@
                                 <button x-show="!isFreeTier" @click="startTest(test)" class="de-btn de-btn-primary w-full text-sm py-2.5">
                                     <i class="fas fa-play"></i> ابدأ الاختبار
                                 </button>
-                                <button x-show="isFreeTier" x-cloak @click="showUpgradePrompt = true" class="de-btn w-full text-sm py-2.5" style="background:#EEEAE0;color:#1E293B;">
+                                <button x-show="isFreeTier" x-cloak @click="showUpgradePrompt = true" class="de-btn w-full text-sm py-2.5" style="background:#EEEAE0;color:#0F172A;">
                                     <i class="fas fa-lock"></i> اشترك للوصول
                                 </button>
                             </div>
@@ -378,7 +378,7 @@
 
                 <!-- Full history -->
                 <div id="test-history">
-                    <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
+                    <h2 class="text-lg font-bold text-flag-ink mb-4">
                         <i class="fas fa-list text-flag-red me-2"></i> سجل الاختبارات الكامل
                     </h2>
                     <div class="de-card rounded-2xl overflow-hidden">
@@ -432,7 +432,7 @@
                     <div class="px-5 py-4 border-b border-black/10 flex items-center gap-3 flex-shrink-0">
                         <span class="de-stamp de-stamp-onlight h-9 w-9 text-xs"><i class="fas fa-headset"></i></span>
                         <div>
-                            <div class="font-display font-semibold text-flag-ink text-sm">الدعم الفني</div>
+                            <div class="font-semibold text-flag-ink text-sm">الدعم الفني</div>
                             <div class="text-xs text-flag-ink/50">عادة ما نرد خلال ساعات العمل</div>
                         </div>
                     </div>
@@ -470,7 +470,7 @@
              :class="testModalExpanded ? 'max-w-6xl h-[95vh]' : 'max-w-2xl max-h-[92vh]'">
             <div class="de-flag-ribbon"></div>
             <div class="flex items-center justify-between px-6 py-4 border-b border-black/10 flex-shrink-0">
-                <h3 class="font-display font-semibold text-flag-ink" x-text="activeTest ? activeTest.title : 'جارٍ التحميل...'"></h3>
+                <h3 class="font-semibold text-flag-ink" x-text="activeTest ? activeTest.title : 'جارٍ التحميل...'"></h3>
                 <div class="flex items-center gap-3">
                     <button @click="testModalExpanded = !testModalExpanded" class="text-flag-ink/40 hover:text-flag-red" :title="testModalExpanded ? 'تصغير' : 'تكبير'">
                         <i class="fas" :class="testModalExpanded ? 'fa-down-left-and-up-right-to-center' : 'fa-up-right-and-down-left-from-center'"></i>
@@ -569,13 +569,13 @@
                         <div class="flex items-center justify-between gap-3">
                             <button @click="currentQuestionIndex = Math.max(0, currentQuestionIndex - 1)"
                                     :disabled="currentQuestionIndex === 0"
-                                    class="de-btn text-sm py-2 px-4 disabled:opacity-40" style="background:#EEEAE0;color:#1E293B;">
+                                    class="de-btn text-sm py-2 px-4 disabled:opacity-40" style="background:#EEEAE0;color:#0F172A;">
                                 <i class="fas fa-arrow-right"></i> السابق
                             </button>
 
                             <button x-show="currentQuestionIndex < gradedItems.length - 1"
                                     @click="currentQuestionIndex = Math.min(gradedItems.length - 1, currentQuestionIndex + 1)"
-                                    class="de-btn text-sm py-2 px-4" style="background:#EEEAE0;color:#1E293B;">
+                                    class="de-btn text-sm py-2 px-4" style="background:#EEEAE0;color:#0F172A;">
                                 التالي <i class="fas fa-arrow-left"></i>
                             </button>
 
@@ -594,7 +594,7 @@
                 <template x-if="testResults">
                     <div>
                         <i class="fas fa-chart-bar text-4xl mb-3" :class="testResults.passed ? 'text-emerald-600' : 'text-red-600'"></i>
-                        <div class="text-3xl font-display font-bold mb-1" x-text="testResults.score_percentage + '%'"></div>
+                        <div class="text-3xl font-bold mb-1" x-text="testResults.score_percentage + '%'"></div>
                         <p class="text-sm font-medium mb-6" :class="testResults.passed ? 'text-emerald-700' : 'text-red-600'"
                            x-text="testResults.passed ? 'ناجح' : 'راسب'"></p>
 
@@ -610,19 +610,19 @@
                         </div>
 
                         <div class="de-card rounded-xl p-4 max-w-sm mx-auto mb-6" x-show="testResults.section_breakdown">
-                            <h4 class="font-display font-semibold text-flag-ink text-sm mb-3">أداؤك حسب المهارة</h4>
+                            <h4 class="font-semibold text-flag-ink text-sm mb-3">أداؤك حسب المهارة</h4>
                             <div style="height:200px;"><canvas x-ref="resultChartCanvas"></canvas></div>
                         </div>
 
                         <div class="flex justify-center gap-3 mb-6">
-                            <button @click="closeTestModal()" class="de-btn text-sm py-2.5 px-5" style="background:#EEEAE0;color:#1E293B;">إنهاء</button>
+                            <button @click="closeTestModal()" class="de-btn text-sm py-2.5 px-5" style="background:#EEEAE0;color:#0F172A;">إنهاء</button>
                             <button @click="retakeTest()" class="de-btn de-btn-primary text-sm py-2.5 px-5">
                                 <i class="fas fa-rotate-right"></i> إعادة الاختبار
                             </button>
                         </div>
 
                         <div class="text-start space-y-3 max-w-xl mx-auto mb-8">
-                            <h4 class="font-display font-semibold text-flag-ink text-sm mb-2">مراجعة الأسئلة</h4>
+                            <h4 class="font-semibold text-flag-ink text-sm mb-2">مراجعة الأسئلة</h4>
                             <template x-for="q in testResults.questions_review" :key="q.id">
                                 <div class="de-card rounded-xl p-4" :style="{ borderInlineStartWidth: '4px', borderInlineStartColor: q.is_correct ? '#059669' : '#DC2626' }">
                                     <span class="de-badge de-badge-gold mb-2 inline-block" x-show="q.section_name" x-text="q.section_name"></span>
@@ -655,7 +655,7 @@
                                             <i class="fas" :class="gradingWriting ? 'fa-circle-notch fa-spin' : 'fa-robot'"></i>
                                             <span x-text="gradingWriting ? 'جاري التقييم...' : 'قيّم كتابتي بالذكاء الاصطناعي'"></span>
                                         </button>
-                                        <button @click="showWritingSample = !showWritingSample" class="de-btn text-xs py-2 px-4" style="background:#EEEAE0;color:#1E293B;">
+                                        <button @click="showWritingSample = !showWritingSample" class="de-btn text-xs py-2 px-4" style="background:#EEEAE0;color:#0F172A;">
                                             <span x-text="showWritingSample ? 'إخفاء نموذج الإجابة' : 'إظهار نموذج الإجابة'"></span>
                                         </button>
                                     </div>
@@ -666,20 +666,20 @@
                                         <div class="grid grid-cols-3 gap-2 mb-4 text-center">
                                             <div class="de-card rounded-lg p-2">
                                                 <div class="text-[10px] text-flag-ink/50 mb-1">استيفاء الموضوع</div>
-                                                <div class="font-display font-bold text-flag-ink" x-text="writingGradeResult ? writingGradeResult.task_fulfillment_score + '%' : ''"></div>
+                                                <div class="font-bold text-flag-ink" x-text="writingGradeResult ? writingGradeResult.task_fulfillment_score + '%' : ''"></div>
                                             </div>
                                             <div class="de-card rounded-lg p-2">
                                                 <div class="text-[10px] text-flag-ink/50 mb-1">تنوع اللغة</div>
-                                                <div class="font-display font-bold text-flag-ink" x-text="writingGradeResult ? writingGradeResult.range_of_expression_score + '%' : ''"></div>
+                                                <div class="font-bold text-flag-ink" x-text="writingGradeResult ? writingGradeResult.range_of_expression_score + '%' : ''"></div>
                                             </div>
                                             <div class="de-card rounded-lg p-2">
                                                 <div class="text-[10px] text-flag-ink/50 mb-1">القواعد</div>
-                                                <div class="font-display font-bold text-flag-ink" x-text="writingGradeResult ? writingGradeResult.grammar_score + '%' : ''"></div>
+                                                <div class="font-bold text-flag-ink" x-text="writingGradeResult ? writingGradeResult.grammar_score + '%' : ''"></div>
                                             </div>
                                         </div>
                                         <div class="de-card rounded-xl p-4 text-center mb-3">
                                             <div class="text-xs text-flag-ink/50 mb-1">التقييم العام</div>
-                                            <div class="text-2xl font-display font-bold text-flag-red" x-text="writingGradeResult ? writingGradeResult.overall_score + '%' : ''"></div>
+                                            <div class="text-2xl font-bold text-flag-red" x-text="writingGradeResult ? writingGradeResult.overall_score + '%' : ''"></div>
                                         </div>
                                         <div class="de-card rounded-xl p-4">
                                             <p class="text-xs font-medium text-flag-ink/50 mb-2"><i class="fas fa-comment-dots"></i> ملاحظات</p>
@@ -703,13 +703,13 @@
         <div class="de-card w-full max-w-2xl overflow-hidden max-h-[92vh] flex flex-col">
             <div class="de-flag-ribbon"></div>
             <div class="flex items-center justify-between px-6 py-4 border-b border-black/10 flex-shrink-0">
-                <h3 class="font-display font-semibold text-flag-ink" x-text="selectedAttemptDetail ? selectedAttemptDetail.test_title : ''"></h3>
+                <h3 class="font-semibold text-flag-ink" x-text="selectedAttemptDetail ? selectedAttemptDetail.test_title : ''"></h3>
                 <button @click="closeAttemptDetail()" class="text-flag-ink/40 hover:text-flag-red"><i class="fas fa-times"></i></button>
             </div>
             <div class="p-6 text-center overflow-y-auto" x-show="selectedAttemptDetail">
                 <template x-if="selectedAttemptDetail">
                     <div>
-                        <div class="text-3xl font-display font-bold mb-1" x-text="selectedAttemptDetail.score_percentage + '%'"></div>
+                        <div class="text-3xl font-bold mb-1" x-text="selectedAttemptDetail.score_percentage + '%'"></div>
                         <p class="text-sm font-medium mb-6" :class="selectedAttemptDetail.passed ? 'text-emerald-700' : 'text-red-600'"
                            x-text="selectedAttemptDetail.passed ? 'ناجح' : 'راسب'"></p>
 
@@ -725,7 +725,7 @@
                         </div>
 
                         <div class="de-card rounded-xl p-4 max-w-sm mx-auto mb-6" x-show="selectedAttemptDetail.section_breakdown">
-                            <h4 class="font-display font-semibold text-flag-ink text-sm mb-3">أداؤك حسب المهارة</h4>
+                            <h4 class="font-semibold text-flag-ink text-sm mb-3">أداؤك حسب المهارة</h4>
                             <div style="height:200px;"><canvas x-ref="detailChartCanvas"></canvas></div>
                         </div>
 
@@ -736,7 +736,7 @@
                         </div>
 
                         <div class="text-start space-y-3 max-w-xl mx-auto">
-                            <h4 class="font-display font-semibold text-flag-ink text-sm mb-2">مراجعة الأسئلة</h4>
+                            <h4 class="font-semibold text-flag-ink text-sm mb-2">مراجعة الأسئلة</h4>
                             <template x-for="q in selectedAttemptDetail.questions_review" :key="q.id">
                                 <div class="de-card rounded-xl p-4" :style="{ borderInlineStartWidth: '4px', borderInlineStartColor: q.is_correct ? '#059669' : '#DC2626' }">
                                     <span class="de-badge de-badge-gold mb-2 inline-block" x-show="q.section_name" x-text="q.section_name"></span>
@@ -758,11 +758,11 @@
         <div class="de-card w-full max-w-md overflow-hidden">
             <div class="de-flag-ribbon"></div>
             <div class="flex items-center justify-between px-6 py-4 border-b border-black/10">
-                <h3 class="font-display font-semibold text-flag-ink"><i class="fas fa-credit-card text-flag-red me-2"></i> حالة الاشتراك</h3>
+                <h3 class="font-semibold text-flag-ink"><i class="fas fa-credit-card text-flag-red me-2"></i> حالة الاشتراك</h3>
                 <button @click="showSubscriptionModal = false" class="text-flag-ink/40 hover:text-flag-red"><i class="fas fa-times"></i></button>
             </div>
             <div class="p-6 text-center">
-                <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5"><i class="fas fa-heart-pulse"></i></span>
+                <span class="de-stamp de-stamp-onlight h-16 w-16 text-xs mx-auto mb-5"><i class="fas fa-heart-pulse"></i></span>
 
                 <p class="text-sm text-flag-ink/70 mb-6">
                     <template x-if="subscription && subscription.status === 'active'">
@@ -790,10 +790,10 @@
         <div class="de-card w-full max-w-sm overflow-hidden">
             <div class="de-flag-ribbon"></div>
             <div class="p-6 text-center">
-                <h3 class="font-display font-semibold text-flag-ink mb-2">تسجيل الخروج؟</h3>
+                <h3 class="font-semibold text-flag-ink mb-2">تسجيل الخروج؟</h3>
                 <p class="text-sm text-flag-ink/60 mb-6">سيتم إنهاء جلستك الحالية.</p>
                 <div class="flex gap-3">
-                    <button @click="showLogoutConfirm = false" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#1E293B;">إلغاء</button>
+                    <button @click="showLogoutConfirm = false" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#0F172A;">إلغاء</button>
                     <button @click="logout()" class="de-btn de-btn-primary flex-1 text-sm py-2.5">نعم، خروج</button>
                 </div>
             </div>
@@ -809,12 +809,12 @@
                     <span class="de-stamp de-stamp-onlight h-11 w-11 text-xs flex-shrink-0"><i class="fas fa-bell"></i></span>
                     <button @click="closeNotification()" class="text-flag-ink/40 hover:text-flag-red"><i class="fas fa-times"></i></button>
                 </div>
-                <h3 class="font-display font-semibold text-flag-ink mb-2" x-text="viewingNotification && viewingNotification.title"></h3>
+                <h3 class="font-semibold text-flag-ink mb-2" x-text="viewingNotification && viewingNotification.title"></h3>
                 <p class="text-sm text-flag-ink/70 whitespace-pre-line mb-5" x-text="viewingNotification && viewingNotification.message"></p>
                 <p class="text-xs text-flag-ink/40 mb-5" x-show="viewingNotification">
                     <i class="fas fa-clock"></i> <span x-text="viewingNotification && formatDate(viewingNotification.sent_at)"></span>
                 </p>
-                <button @click="closeNotification()" class="de-btn w-full text-sm py-2.5" style="background:#EEEAE0;color:#1E293B;">إغلاق</button>
+                <button @click="closeNotification()" class="de-btn w-full text-sm py-2.5" style="background:#EEEAE0;color:#0F172A;">إغلاق</button>
             </div>
         </div>
     </div>
@@ -825,12 +825,12 @@
             <div class="de-flag-ribbon"></div>
             <div class="p-8">
                 <span class="de-stamp de-stamp-onlight h-16 w-16 text-xs mx-auto mb-5"><i class="fas fa-arrow-up"></i></span>
-                <h3 class="font-display text-xl font-bold text-flag-ink mb-3">اشترك للوصول الكامل</h3>
+                <h3 class="text-xl font-bold text-flag-ink mb-3">اشترك للوصول الكامل</h3>
                 <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">
                     الخطة المجانية تمنحك 6 تدريبات قصيرة للتجربة. للوصول إلى الاختبارات الكاملة المطابقة للاختبار الرسمي، والفصل الدراسي، ومزايا الذكاء الاصطناعي، اشترك مقابل 200 درهم شهريًا فقط.
                 </p>
                 <div class="flex gap-3">
-                    <button @click="showUpgradePrompt = false" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#1E293B;">لاحقًا</button>
+                    <button @click="showUpgradePrompt = false" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#0F172A;">لاحقًا</button>
                     <button @click="showUpgradePrompt = false; showSubscriptionModal = true;" class="de-btn de-btn-primary flex-1 text-sm py-2.5">اشترك الآن</button>
                 </div>
             </div>
