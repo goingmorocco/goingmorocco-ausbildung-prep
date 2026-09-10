@@ -275,8 +275,9 @@
                     <div class="de-card rounded-2xl overflow-hidden divide-y divide-black/5">
                         <template x-for="attempt in testAttempts.slice(0, 5)" :key="attempt.id">
                             <button @click="viewAttempt(attempt.id)" class="w-full text-start p-4 sm:p-5 flex items-center gap-4 hover:bg-flag-cream/60 transition-colors">
-                                <div class="h-10 w-10 rounded-full bg-flag-red/10 flex items-center justify-center flex-shrink-0">
-                                    <i class="fas fa-clipboard-check text-flag-red"></i>
+                                <div class="h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0"
+                                     :class="attempt.passed ? 'bg-emerald-100' : 'bg-flag-red/10'">
+                                    <i class="fas fa-clipboard-check" :class="attempt.passed ? 'text-emerald-600' : 'text-flag-red'"></i>
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <div class="flex items-center justify-between gap-2 mb-1">
@@ -402,7 +403,8 @@
                                             </td>
                                             <td class="px-5 py-4 text-flag-ink/50 text-xs font-mono hidden sm:table-cell" x-text="formatDate(attempt.completed_at)"></td>
                                             <td class="px-5 py-4">
-                                                <button @click="viewAttempt(attempt.id)" class="text-flag-red hover:text-flag-reddeep text-xs font-medium">
+                                                <button @click="viewAttempt(attempt.id)" class="text-xs font-medium"
+                                                        :class="attempt.passed ? 'text-emerald-600 hover:text-emerald-800' : 'text-flag-red hover:text-flag-reddeep'">
                                                     عرض التفاصيل
                                                 </button>
                                             </td>
