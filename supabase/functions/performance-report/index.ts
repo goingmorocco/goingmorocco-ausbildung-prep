@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
 
     const { data: attempts, error: attemptsErr } = await admin
       .from('user_test_attempts')
-      .select('id, test_id, score, completed_at, answers, tests(title)')
+      .select('id, test_id, score, passed, completed_at, answers, tests(title)')
       .eq('user_id', user.id)
       .not('completed_at', 'is', null)
       .order('completed_at', { ascending: true });
@@ -55,7 +55,8 @@ Deno.serve(async (req) => {
       attempt_id: a.id,
       test_title: a.tests?.title || 'اختبار غير معروف',
       completed_at: a.completed_at,
-      score_percentage: a.score
+      score_percentage: a.score,
+      passed: a.passed
     }));
 
     // Section-type breakdown across every attempt. One question-bank
@@ -85,7 +86,17 @@ Deno.serve(async (req) => {
 
       const submitted: any[] = Array.isArray(attempt.answers) ? attempt.answers : [];
       submitted.forEach((a) => {
-        const type = questionTypeMap[a.question_id] || 'other';
+        // If this question's ID isn't in the current question bank for
+        // this test, it can't be attributed to a real, current skill
+        // type -- most commonly because the test's content was rebuilt
+        // (sections replaced) after this student completed it, so their
+        // stored answers reference question IDs that no longer exist.
+        // Skip rather than lump into a generic "other" bucket, which
+        // would show up as a misleading, confusing chart entry (a
+        // labeled category with an empty/zero bar) rather than just
+        // being correctly excluded.
+        const type = questionTypeMap[a.question_id];
+        if (!type) return;
         if (!breakdown[type]) breakdown[type] = { correct: 0, total: 0 };
         breakdown[type].total++;
         if (correctAnswerMap[a.question_id] === a.answer_id) breakdown[type].correct++;

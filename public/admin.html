@@ -607,8 +607,8 @@
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="text-xs font-medium text-flag-ink/40">الامتحان الرسمي:</span>
-                            <button @click="testFilterExamFamily = null" class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
-                                    :class="testFilterExamFamily === null ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10'">الكل</button>
+                            <button @click="testFilterExamFamily = testFilterExamFamily === 'all' ? null : 'all'" class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
+                                    :class="testFilterExamFamily === 'all' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10'">الكل</button>
                             <template x-for="ex in [['telc','telc'],['goethe','Goethe'],['osd','ÖSD']]" :key="ex[0]">
                                 <button @click="testFilterExamFamily = ex[0]" class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
                                         :class="testFilterExamFamily === ex[0] ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10'" x-text="ex[1]"></button>
@@ -1316,11 +1316,14 @@
                 tests: [], testsLoading: false, testBuilderOpen: false, savingTest: false,
                 testFilterSkill: null, testFilterLevel: null, testFilterExamFamily: null,
                 get filteredTests() {
-                    return this.tests.filter(t =>
-                        (!this.testFilterSkill || t.skill === this.testFilterSkill) &&
-                        (!this.testFilterLevel || t.level === this.testFilterLevel) &&
-                        (!this.testFilterExamFamily || (t.test_type || '').toLowerCase().startsWith(this.testFilterExamFamily))
-                    );
+                    return this.tests.filter(t => {
+                        const examOk = this.testFilterExamFamily === null ? true
+                            : this.testFilterExamFamily === 'all' ? !t.is_skill_practice
+                            : (t.test_type || '').toLowerCase().startsWith(this.testFilterExamFamily);
+                        return (!this.testFilterSkill || t.skill === this.testFilterSkill) &&
+                               (!this.testFilterLevel || t.level === this.testFilterLevel) &&
+                               examOk;
+                    });
                 },
                 testBuilderError: '', deleteTestTarget: null, testKeyCounter: 0,
                 llmSettings: [], llmSettingsLoading: false, savingLlmConfig: null, settingLlmKey: null,

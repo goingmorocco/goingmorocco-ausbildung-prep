@@ -256,7 +256,7 @@
                         <i class="fas fa-chart-pie text-flag-red me-2"></i> تقرير الأداء
                     </h2>
                     <div class="grid md:grid-cols-2 gap-5">
-                        <div class="de-card rounded-2xl p-5">
+                        <div class="de-card rounded-2xl p-5" x-show="performanceReport.section_breakdown && Object.keys(performanceReport.section_breakdown).length > 0">
                             <h3 class="font-semibold text-flag-ink text-sm mb-3">نقاط القوة والضعف حسب المهارة</h3>
                             <div style="height:220px;"><canvas x-ref="performanceSkillCanvas"></canvas></div>
                         </div>
@@ -1121,7 +1121,7 @@
                         if (skillCanvas) {
                             const existing = Chart.getChart(skillCanvas);
                             if (existing) existing.destroy();
-                            if (this.performanceReport.section_breakdown) {
+                            if (this.performanceReport.section_breakdown && Object.keys(this.performanceReport.section_breakdown).length > 0) {
                                 this.performanceChart = this.buildSkillChart(skillCanvas, this.performanceReport.section_breakdown);
                             }
                         }
@@ -1131,17 +1131,23 @@
                             const existingTrend = Chart.getChart(trendCanvas);
                             if (existingTrend) existingTrend.destroy();
                             if (this.performanceReport.trend && this.performanceReport.trend.length) {
+                                const trend = this.performanceReport.trend;
+                                const passColor = '#059669';   // emerald-600
+                                const failColor = '#DC2626';   // bright red, matching the rebrand
                                 this.trendChart = new Chart(trendCanvas, {
                                     type: 'line',
                                     data: {
-                                        labels: this.performanceReport.trend.map(t => this.formatDate(t.completed_at)),
+                                        labels: trend.map(t => this.formatDate(t.completed_at)),
                                         datasets: [{
-                                            data: this.performanceReport.trend.map(t => t.score_percentage),
-                                            borderColor: '#FF7A45',
-                                            backgroundColor: 'rgba(255,122,69,0.12)',
+                                            data: trend.map(t => t.score_percentage),
+                                            segment: {
+                                                borderColor: (ctx) => trend[ctx.p1DataIndex]?.passed ? passColor : failColor
+                                            },
+                                            pointBackgroundColor: (ctx) => trend[ctx.dataIndex]?.passed ? passColor : failColor,
+                                            pointBorderColor: (ctx) => trend[ctx.dataIndex]?.passed ? passColor : failColor,
+                                            backgroundColor: 'rgba(37,99,235,0.06)',
                                             tension: 0.3,
-                                            fill: true,
-                                            pointBackgroundColor: '#FF7A45'
+                                            fill: true
                                         }]
                                     },
                                     options: {
@@ -1149,7 +1155,14 @@
                                         maintainAspectRatio: false,
                                         plugins: {
                                             legend: { display: false },
-                                            tooltip: { callbacks: { label: (ctx) => ctx.parsed.y + '%' } }
+                                            tooltip: {
+                                                callbacks: {
+                                                    label: (ctx) => {
+                                                        const passed = trend[ctx.dataIndex]?.passed;
+                                                        return ctx.parsed.y + '% — ' + (passed ? 'ناجح' : 'راسب');
+                                                    }
+                                                }
+                                            }
                                         },
                                         scales: { y: { min: 0, max: 100, ticks: { callback: (v) => v + '%' } } }
                                     }
