@@ -716,7 +716,7 @@
                         <div class="grid grid-cols-2 gap-3 text-sm text-start max-w-sm mx-auto mb-6">
                             <div class="de-card rounded-lg p-3">
                                 <div class="text-xs text-flag-ink/50 mb-1">الوقت المستغرق</div>
-                                <div class="font-medium" x-text="formatDuration(selectedAttemptDetail.time_taken_seconds)"></div>
+                                <div class="font-medium" x-text="selectedAttemptDetail.time_taken_seconds ? formatDuration(selectedAttemptDetail.time_taken_seconds) : '—'"></div>
                             </div>
                             <div class="de-card rounded-lg p-3">
                                 <div class="text-xs text-flag-ink/50 mb-1">تاريخ المحاولة</div>
@@ -735,7 +735,44 @@
                             </button>
                         </div>
 
-                        <div class="text-start space-y-3 max-w-xl mx-auto">
+                        <div class="text-start max-w-xl mx-auto mb-6" x-show="selectedAttemptDetail.essay_detail">
+                            <template x-if="selectedAttemptDetail.essay_detail">
+                                <div class="de-card rounded-xl p-5">
+                                    <h4 class="font-semibold text-flag-ink text-sm mb-3">مراجعة نشاط الكتابة</h4>
+                                    <p class="text-xs text-flag-ink/50 mb-1" x-text="selectedAttemptDetail.essay_detail.prompt_name"></p>
+                                    <p class="text-sm text-flag-ink/70 whitespace-pre-line mb-4" x-text="selectedAttemptDetail.essay_detail.prompt_text"></p>
+
+                                    <div class="bg-flag-cream rounded-lg p-3 mb-4">
+                                        <p class="text-xs text-flag-ink/50 mb-1">إجابتك:</p>
+                                        <p class="text-sm text-flag-ink whitespace-pre-line" x-text="selectedAttemptDetail.essay_detail.submission_text"></p>
+                                    </div>
+
+                                    <div class="grid grid-cols-3 gap-2 text-center mb-4">
+                                        <div class="de-card rounded-lg p-2">
+                                            <div class="text-xs text-flag-ink/50 mb-1">المحتوى</div>
+                                            <div class="font-semibold text-flag-red" x-text="selectedAttemptDetail.essay_detail.task_fulfillment_score + '%'"></div>
+                                        </div>
+                                        <div class="de-card rounded-lg p-2">
+                                            <div class="text-xs text-flag-ink/50 mb-1">التعبير</div>
+                                            <div class="font-semibold text-flag-red" x-text="selectedAttemptDetail.essay_detail.range_of_expression_score + '%'"></div>
+                                        </div>
+                                        <div class="de-card rounded-lg p-2">
+                                            <div class="text-xs text-flag-ink/50 mb-1">القواعد</div>
+                                            <div class="font-semibold text-flag-red" x-text="selectedAttemptDetail.essay_detail.grammar_score + '%'"></div>
+                                        </div>
+                                    </div>
+
+                                    <p class="text-xs text-flag-ink/50 mb-1">ملاحظات المقيّم:</p>
+                                    <p class="text-sm text-flag-ink/80 whitespace-pre-line" x-text="selectedAttemptDetail.essay_detail.feedback"></p>
+                                </div>
+                            </template>
+                        </div>
+
+                        <p class="text-xs text-flag-ink/40 mb-6" x-show="!selectedAttemptDetail.essay_detail && (!selectedAttemptDetail.questions_review || selectedAttemptDetail.questions_review.length === 0)">
+                            <i class="fas fa-circle-info"></i> هذا نشاط كتابة حرة يُقيَّم بالذكاء الاصطناعي، ولا يحتوي على أسئلة اختيار من متعدد لمراجعتها.
+                        </p>
+
+                        <div class="text-start space-y-3 max-w-xl mx-auto" x-show="selectedAttemptDetail.questions_review && selectedAttemptDetail.questions_review.length > 0">
                             <h4 class="font-semibold text-flag-ink text-sm mb-2">مراجعة الأسئلة</h4>
                             <template x-for="q in selectedAttemptDetail.questions_review" :key="q.id">
                                 <div class="de-card rounded-xl p-4" :style="{ borderInlineStartWidth: '4px', borderInlineStartColor: q.is_correct ? '#059669' : '#DC2626' }">

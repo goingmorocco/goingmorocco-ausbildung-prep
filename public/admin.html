@@ -605,6 +605,15 @@
                                         :class="testFilterLevel === lvl ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10'" x-text="lvl"></button>
                             </template>
                         </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-xs font-medium text-flag-ink/40">الامتحان الرسمي:</span>
+                            <button @click="testFilterExamFamily = null" class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
+                                    :class="testFilterExamFamily === null ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10'">الكل</button>
+                            <template x-for="ex in [['telc','telc'],['goethe','Goethe'],['osd','ÖSD']]" :key="ex[0]">
+                                <button @click="testFilterExamFamily = ex[0]" class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
+                                        :class="testFilterExamFamily === ex[0] ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10'" x-text="ex[1]"></button>
+                            </template>
+                        </div>
                     </div>
                     <div class="de-card rounded-2xl overflow-hidden divide-y divide-black/5">
                         <template x-for="t in filteredTests" :key="t.id">
@@ -1305,11 +1314,12 @@
                 resources: [], resourcesLoading: false, deleteResourceTarget: null,
 
                 tests: [], testsLoading: false, testBuilderOpen: false, savingTest: false,
-                testFilterSkill: null, testFilterLevel: null,
+                testFilterSkill: null, testFilterLevel: null, testFilterExamFamily: null,
                 get filteredTests() {
                     return this.tests.filter(t =>
                         (!this.testFilterSkill || t.skill === this.testFilterSkill) &&
-                        (!this.testFilterLevel || t.level === this.testFilterLevel)
+                        (!this.testFilterLevel || t.level === this.testFilterLevel) &&
+                        (!this.testFilterExamFamily || (t.test_type || '').toLowerCase().startsWith(this.testFilterExamFamily))
                     );
                 },
                 testBuilderError: '', deleteTestTarget: null, testKeyCounter: 0,

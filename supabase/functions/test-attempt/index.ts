@@ -264,6 +264,51 @@ Deno.serve(async (req) => {
         };
       });
 
+      // Essay-type attempts have no quiz sections at all -- try to find
+      // the matching AI-graded writing submission instead, so the detail
+      // view can show the actual essay text and feedback rather than an
+      // empty quiz-shaped view. There is no direct foreign key between
+      // user_test_attempts and writing_submissions -- grade-writing
+      // creates both independently in the same request (submission
+      // inserted first, then the attempt row, both from
+      // supabase/functions/grade-writing/index.ts). That known order is
+      // what makes this correlation reliable: the most recent submission
+      // for this user+prompt whose graded_at is at-or-before this
+      // attempt's completed_at will always be the one grade-writing
+      // created for THIS attempt, not an earlier or later retake.
+      let essayDetail = null;
+      if (allQuestions.length === 0) {
+        const { data: prompt } = await admin
+          .from('test_writing_prompts')
+          .select('id, name, prompt')
+          .eq('test_id', attempt.test_id)
+          .maybeSingle();
+
+        if (prompt) {
+          const { data: submission } = await admin
+            .from('writing_submissions')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('writing_prompt_id', prompt.id)
+            .lte('graded_at', attempt.completed_at)
+            .order('graded_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (submission) {
+            essayDetail = {
+              prompt_name: prompt.name,
+              prompt_text: prompt.prompt,
+              submission_text: submission.submission_text,
+              task_fulfillment_score: submission.task_fulfillment_score,
+              range_of_expression_score: submission.range_of_expression_score,
+              grammar_score: submission.grammar_score,
+              feedback: submission.feedback
+            };
+          }
+        }
+      }
+
       return json({
         success: true,
         attempt: {
@@ -277,7 +322,13 @@ Deno.serve(async (req) => {
           time_taken_seconds: attempt.time_taken_seconds,
           total_questions: allQuestions.length,
           questions_review: questionsReview,
-          section_breakdown: buildSectionBreakdown(allQuestions, questionsReview)
+          // Essay-type attempts have no test_sections/test_questions at
+          // all by design (allQuestions is empty), so there is genuinely
+          // nothing to chart. Returning {} here would be truthy in JS
+          // and make the frontend's x-show render an empty chart card --
+          // null lets it correctly hide the section instead.
+          section_breakdown: allQuestions.length > 0 ? buildSectionBreakdown(allQuestions, questionsReview) : null,
+          essay_detail: essayDetail
         }
       });
     }
