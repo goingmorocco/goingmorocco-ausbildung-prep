@@ -1,24 +1,24 @@
 /* ==========================================================================
    Ausbildungsaufnahme Test Prep — Design System
-   Navy (structure/dark) + two-tone Blue (brand/badges) + Coral accent
-   (buttons only) + white/neutral base.
+   White (base) + Blue (brand/primary) + Red (accent/CTA)
    ========================================================================== */
 
 :root {
   --de-black: #0E2A4C;
   --de-black-soft: #163B63;
   --de-charcoal: #1F4C78;
-  --de-red: #2563EB;
-  --de-red-bright: #3B82F6;
-  --de-red-deep: #1D4ED8;
-  --de-gold: #38BDF8;
-  --de-gold-soft: #7DD3FC;
-  --de-accent: #FF7A45;
-  --de-accent-bright: #FF9466;
-  --de-accent-deep: #E85A2A;
-  --de-cream: #F5F8FC;
+  --de-red: #DC2626;
+  --de-red-bright: #EF4444;
+  --de-red-deep: #B91C1C;
+  --de-blue: #2563EB;
+  --de-blue-bright: #3B82F6;
+  --de-blue-deep: #1D4ED8;
+  --de-accent: #DC2626;
+  --de-accent-bright: #EF4444;
+  --de-accent-deep: #B91C1C;
+  --de-cream: #FFFFFF;
   --de-paper: #FFFFFF;
-  --de-ink: #1E293B;
+  --de-ink: #0F172A;
 
   --shadow-stamp: 0 20px 45px rgba(14,42,76, 0.18);
 }
@@ -37,7 +37,7 @@ body {
    -------------------------------------------------------------------- */
 .de-paper-bg {
   background-color: var(--de-cream);
-  background-image: radial-gradient(circle at 1px 1px, rgba(30,41,59,0.05) 1px, transparent 0);
+  background-image: radial-gradient(circle at 1px 1px, rgba(15,23,42,0.05) 1px, transparent 0);
   background-size: 22px 22px;
 }
 
@@ -57,7 +57,7 @@ body {
   background-image:
     radial-gradient(circle at 15% 15%, rgba(37,99,235,0.06), transparent 45%),
     radial-gradient(circle at 85% 0%, rgba(56,189,248,0.12), transparent 40%),
-    radial-gradient(circle at 1px 1px, rgba(30,41,59,0.035) 1px, transparent 0);
+    radial-gradient(circle at 1px 1px, rgba(15,23,42,0.035) 1px, transparent 0);
   background-size: auto, auto, 24px 24px;
 }
 
@@ -76,15 +76,15 @@ body {
 
 /* --------------------------------------------------------------------
    Flag ribbon: the signature structural device.
-   A thin animated navy/blue/sky-blue band used as a divider & accent.
+   A thin animated blue/red/white band used as a divider & accent.
    -------------------------------------------------------------------- */
 .de-flag-ribbon {
   height: 6px;
   width: 100%;
   background: linear-gradient(90deg,
-    var(--de-black) 0%, var(--de-black) 33.3%,
+    var(--de-blue) 0%, var(--de-blue) 33.3%,
     var(--de-red) 33.3%, var(--de-red) 66.6%,
-    var(--de-gold) 66.6%, var(--de-gold) 100%);
+    var(--de-paper) 66.6%, var(--de-paper) 100%);
   background-size: 200% 100%;
 }
 
@@ -124,8 +124,8 @@ body {
 /* White is the default (for dark/navy backgrounds); on a light background
    this modifier swaps it to the primary blue instead. */
 .de-stamp-onlight {
-  border-color: var(--de-red);
-  color: var(--de-red);
+  border-color: var(--de-blue);
+  color: var(--de-blue);
   box-shadow: 0 0 0 3px rgba(37,99,235,0.10);
 }
 
@@ -146,9 +146,9 @@ body {
    -------------------------------------------------------------------- */
 .de-card {
   background: var(--de-paper);
-  border: 1px solid rgba(30,41,59,0.08);
+  border: 1px solid rgba(15,23,42,0.08);
   border-radius: 18px;
-  box-shadow: 0 1px 2px rgba(30,41,59,0.05);
+  box-shadow: 0 1px 2px rgba(15,23,42,0.05);
   transition: transform 0.35s cubic-bezier(.2,.8,.2,1), box-shadow 0.35s ease, border-color 0.35s ease;
 }
 
@@ -202,17 +202,17 @@ body {
 }
 
 .de-btn-primary {
-  background: linear-gradient(135deg, var(--de-accent-bright), var(--de-accent-deep));
+  background: linear-gradient(135deg, var(--de-blue-bright), var(--de-blue-deep));
   color: white;
-  box-shadow: 0 10px 25px rgba(255,122,69,0.35);
+  box-shadow: 0 10px 25px rgba(37,99,235,0.35);
 }
 .de-btn-primary:hover {
   transform: translateY(-3px);
-  box-shadow: 0 16px 32px rgba(255,122,69,0.45);
+  box-shadow: 0 16px 32px rgba(37,99,235,0.45);
 }
 
 .de-btn-gold {
-  background: linear-gradient(135deg, var(--de-accent), var(--de-accent-deep));
+  background: linear-gradient(135deg, var(--de-accent-bright), var(--de-accent-deep));
   color: white;
   box-shadow: 0 10px 25px rgba(255,122,69,0.30);
 }
@@ -262,15 +262,15 @@ body {
 }
 
 .de-badge-gold {
-  background: rgba(56,189,248,0.16);
-  color: var(--de-red-deep);
-  border: 1px solid rgba(56,189,248,0.5);
+  background: rgba(37,99,235,0.16);
+  color: var(--de-blue-deep);
+  border: 1px solid rgba(37,99,235,0.5);
 }
 
 .de-badge-red {
-  background: rgba(37,99,235,0.08);
+  background: rgba(220,38,38,0.08);
   color: var(--de-red);
-  border: 1px solid rgba(37,99,235,0.3);
+  border: 1px solid rgba(220,38,38,0.3);
 }
 
 .de-avatar {
@@ -281,7 +281,7 @@ body {
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
   color: white;
-  background: linear-gradient(135deg, var(--de-red-bright), var(--de-black));
+  background: linear-gradient(135deg, var(--de-blue-bright), var(--de-black));
 }
 
 /* --------------------------------------------------------------------
@@ -349,6 +349,11 @@ body {
 /* Accordion chevron rotation handled inline via Alpine :class */
 
 ::selection {
-  background: var(--de-gold);
-  color: var(--de-black);
+  background: var(--de-blue);
+  color: var(--de-paper);
+}
+
+/* Titles: increased line spacing per rebrand request */
+h1, h2, h3 {
+  line-height: 1.8;
 }

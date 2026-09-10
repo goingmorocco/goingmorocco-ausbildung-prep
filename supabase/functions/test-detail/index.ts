@@ -95,14 +95,40 @@ Deno.serve(async (req) => {
       .eq('test_id', test_id)
       .maybeSingle();
 
-    const sanitizedSections = (sections || []).map((s: any) => ({
+    // Audio URLs in the database come from two different sources that
+    // need different treatment. Seeded/mock exam content uses a static
+    // path like "/audio/testId__sectionKey.mp3" -- a plain file served
+    // directly from public/audio, already a valid URL as-is. Admin-
+    // uploaded audio (via the test builder) goes into the private
+    // test-audio Storage bucket and is stored as a bare path like
+    // "uuid-filename.mp3" -- not a usable URL on its own, it needs a
+    // signed URL generated before the browser can actually fetch it.
+    // This used to be passed straight through unchanged, which is why
+    // admin-uploaded audio silently failed to load and fell back to
+    // showing the transcript instead.
+    const AUDIO_SIGNED_URL_EXPIRY_SECONDS = 60 * 60; // 1 hour -- long enough for one practice session
+
+    async function resolveAudioUrl(rawPath: string | null): Promise<string | null> {
+      if (!rawPath) return null;
+      if (rawPath.startsWith('/audio/') || rawPath.startsWith('http')) return rawPath;
+      const { data, error } = await admin.storage
+        .from('test-audio')
+        .createSignedUrl(rawPath, AUDIO_SIGNED_URL_EXPIRY_SECONDS);
+      if (error || !data) {
+        console.error('Failed to sign audio URL for path:', rawPath, error);
+        return null;
+      }
+      return data.signedUrl;
+    }
+
+    const sanitizedSections = await Promise.all((sections || []).map(async (s: any) => ({
       key: s.key,
       name: s.name,
       type: s.type,
       official_duration_minutes: s.official_duration_minutes,
       instructions: s.instructions,
       passage: s.passage,
-      audio_url: s.audio_url,
+      audio_url: await resolveAudioUrl(s.audio_url),
       items: (s.test_questions || [])
         .sort((a: any, b: any) => a.order_index - b.order_index)
         .map((q: any) => ({
@@ -117,7 +143,7 @@ Deno.serve(async (req) => {
             .sort((a: any, b: any) => a.order_index - b.order_index)
             .map((a: any) => ({ id: a.id, answer_text: a.answer_text }))
         }))
-    }));
+    })));
 
     return new Response(
       JSON.stringify({

@@ -10,7 +10,7 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,14 +21,14 @@
             colors: {
               flag: {
                 black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
-                red: '#2563EB', redbright: '#3B82F6', reddeep: '#1D4ED8',
-                gold: '#38BDF8', goldsoft: '#7DD3FC',
-                accent: '#FF7A45', accentbright: '#FF9466', accentdeep: '#E85A2A',
-                cream: '#F5F8FC', paper: '#FFFFFF', ink: '#1E293B'
+                red: '#DC2626', redbright: '#EF4444', reddeep: '#B91C1C',
+                blue: '#2563EB', bluebright: '#3B82F6', blueddeep: '#1D4ED8',
+                gold: '#2563EB', goldbright: '#3B82F6', golddeep: '#1D4ED8',
+                accent: '#DC2626', accentbright: '#EF4444', accentdeep: '#B91C1C',
+                cream: '#FFFFFF', paper: '#FFFFFF', ink: '#0F172A'
               }
             },
             fontFamily: {
-              display: ['"Space Grotesk"', 'sans-serif'],
               arabic: ['Cairo', 'sans-serif'],
               mono: ['"JetBrains Mono"', 'monospace']
             }
@@ -60,9 +60,9 @@
                 <div class="de-flag-ribbon"></div>
                 <div class="p-8">
                     <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5" style="border-color:#DC2626;color:#DC2626;"><i class="fas fa-circle-xmark"></i></span>
-                    <h1 class="font-display text-xl font-bold text-flag-ink mb-3">تعذّر تفعيل حسابك</h1>
+                    <h1 class="text-xl font-bold text-flag-ink mb-3">تعذّر تفعيل حسابك</h1>
                     <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">لم تتم الموافقة على عضويتك. تواصل معنا على <a href="mailto:hello@lisantest.com" class="text-flag-red">hello@lisantest.com</a> لمزيد من المعلومات.</p>
-                    <a href="dashboard.html" class="de-btn w-full text-sm py-3" style="background:#EEEAE0;color:#1E293B;">
+                    <a href="dashboard.html" class="de-btn w-full text-sm py-3" style="background:#EEEAE0;color:#0F172A;">
                         <i class="fas fa-arrow-right"></i> العودة إلى لوحة التحكم
                     </a>
                 </div>
@@ -79,7 +79,7 @@
                         <div class="flex justify-between h-16 items-center">
                             <a href="dashboard.html" class="flex items-center gap-3">
                                 <span class="de-stamp de-stamp-onlight h-10 w-10 text-xs"><i class="fas fa-book-open"></i></span>
-                                <span class="font-display font-semibold">Lesen</span>
+                                <span class="font-semibold">Lesen</span>
                             </a>
                             <a href="dashboard.html" class="text-sm text-flag-ink/60 hover:text-flag-red transition-colors">
                                 <i class="fas fa-arrow-right"></i> <span class="hidden sm:inline">لوحة التحكم</span>
@@ -97,7 +97,7 @@
                             <i class="fas fa-book-open text-flag-gold text-xl"></i>
                         </div>
                         <div>
-                            <h2 class="font-display text-xl font-bold mb-1">تدريبات القراءة</h2>
+                            <h2 class="text-xl font-bold mb-1">تدريبات القراءة</h2>
                             <p class="text-sm text-white/70">نصوص قصيرة ومتنوعة — تدريبات جديدة تُضاف باستمرار</p>
                         </div>
                     </div>
@@ -119,7 +119,7 @@
                     <div class="flex items-center gap-3">
                         <span class="de-stamp de-stamp-onlight h-11 w-11 text-xs"><i class="fas fa-bolt"></i></span>
                         <div>
-                            <h3 class="font-display font-semibold text-flag-ink">أنت على الخطة المجانية</h3>
+                            <h3 class="font-semibold text-flag-ink">أنت على الخطة المجانية</h3>
                             <p class="text-sm text-flag-ink/60">
                                 <span x-text="freeTestsUsed"></span> من 6 اختبارات مجانية مستخدمة — إعادة تدريب سبق لك تجربته لا تُحتسب أبدًا
                             </p>
@@ -141,7 +141,7 @@
                                 <span x-show="lastScores[t.id] !== undefined" x-cloak class="de-badge de-badge-gold flex-shrink-0" x-text="lastScores[t.id] + '%'"></span>
                             </div>
                             <div class="flex items-center gap-2 mb-1">
-                                <h3 class="font-display font-semibold text-flag-ink" x-text="t.title"></h3>
+                                <h3 class="font-semibold text-flag-ink" x-text="t.title"></h3>
                                 <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-flag-black/5 text-flag-ink/50 flex-shrink-0" x-text="t.level"></span>
                             </div>
                             <p class="text-sm text-flag-ink/60 mb-3" x-text="t.description"></p>
@@ -166,7 +166,7 @@
              :class="testModalExpanded ? 'max-w-4xl h-[95vh]' : 'max-w-2xl max-h-[92vh]'">
             <div class="de-flag-ribbon"></div>
             <div class="flex items-center justify-between px-6 py-4 border-b border-black/10 flex-shrink-0">
-                <h3 class="font-display font-semibold text-flag-ink truncate" x-text="activeTest ? activeTest.title : ''"></h3>
+                <h3 class="font-semibold text-flag-ink truncate" x-text="activeTest ? activeTest.title : ''"></h3>
                 <div class="flex items-center gap-3 flex-shrink-0">
                     <button @click="testModalExpanded = !testModalExpanded" class="text-flag-ink/40 hover:text-flag-red" :title="testModalExpanded ? 'تصغير' : 'تكبير'">
                         <i class="fas" :class="testModalExpanded ? 'fa-down-left-and-up-right-to-center' : 'fa-up-right-and-down-left-from-center'"></i>
@@ -226,12 +226,12 @@
 
                         <div class="flex items-center justify-between gap-3">
                             <button @click="currentQuestionIndex = Math.max(0, currentQuestionIndex - 1)" :disabled="currentQuestionIndex === 0"
-                                    class="de-btn text-sm py-2 px-4 disabled:opacity-40" style="background:#EEEAE0;color:#1E293B;">
+                                    class="de-btn text-sm py-2 px-4 disabled:opacity-40" style="background:#EEEAE0;color:#0F172A;">
                                 <i class="fas fa-arrow-right"></i> السابق
                             </button>
                             <button x-show="currentQuestionIndex < gradedItems.length - 1"
                                     @click="currentQuestionIndex = Math.min(gradedItems.length - 1, currentQuestionIndex + 1)"
-                                    class="de-btn text-sm py-2 px-4" style="background:#EEEAE0;color:#1E293B;">
+                                    class="de-btn text-sm py-2 px-4" style="background:#EEEAE0;color:#0F172A;">
                                 التالي <i class="fas fa-arrow-left"></i>
                             </button>
                             <button x-show="currentQuestionIndex === gradedItems.length - 1" @click="submitPractice()" class="de-btn de-btn-primary text-sm py-2 px-5">
@@ -253,11 +253,11 @@
                         <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto mb-3">
                             <div class="de-card rounded-xl p-4">
                                 <div class="text-xs text-flag-ink/50 mb-1">المحاولة السابقة</div>
-                                <div class="text-2xl font-display font-bold text-flag-ink" x-text="previousAttemptScore !== null ? previousAttemptScore + '%' : '—'"></div>
+                                <div class="text-2xl font-bold text-flag-ink" x-text="previousAttemptScore !== null ? previousAttemptScore + '%' : '—'"></div>
                             </div>
                             <div class="de-card rounded-xl p-4">
                                 <div class="text-xs text-flag-ink/50 mb-1">هذه المحاولة</div>
-                                <div class="text-2xl font-display font-bold" :class="testResults.passed ? 'text-emerald-600' : 'text-red-600'" x-text="testResults.score_percentage + '%'"></div>
+                                <div class="text-2xl font-bold" :class="testResults.passed ? 'text-emerald-600' : 'text-red-600'" x-text="testResults.score_percentage + '%'"></div>
                             </div>
                         </div>
                         <div x-show="previousAttemptScore !== null" x-cloak class="mb-6">
@@ -279,14 +279,14 @@
                         </div>
 
                         <div class="flex justify-center gap-3 mb-8">
-                            <button @click="closeTestModal()" class="de-btn text-sm py-2.5 px-5" style="background:#EEEAE0;color:#1E293B;">إنهاء</button>
+                            <button @click="closeTestModal()" class="de-btn text-sm py-2.5 px-5" style="background:#EEEAE0;color:#0F172A;">إنهاء</button>
                             <button @click="retakePractice()" class="de-btn de-btn-primary text-sm py-2.5 px-5">
                                 <i class="fas fa-rotate-right"></i> أعد المحاولة
                             </button>
                         </div>
 
                         <div class="text-start space-y-3 max-w-xl mx-auto mb-8">
-                            <h4 class="font-display font-semibold text-flag-ink text-sm mb-2">مراجعة الأسئلة</h4>
+                            <h4 class="font-semibold text-flag-ink text-sm mb-2">مراجعة الأسئلة</h4>
                             <template x-for="q in testResults.questions_review" :key="q.id">
                                 <div class="de-card rounded-xl p-4" :style="{ borderInlineStartWidth: '4px', borderInlineStartColor: q.is_correct ? '#059669' : '#DC2626' }">
                                     <p class="text-sm font-medium text-flag-ink mb-2" x-text="q.question_text"></p>
@@ -299,7 +299,7 @@
 
                         <!-- Resources, shown right after the result -->
                         <div x-show="resources.length > 0" class="text-start max-w-xl mx-auto">
-                            <h2 class="font-display text-lg font-bold text-flag-ink mb-4">
+                            <h2 class="text-lg font-bold text-flag-ink mb-4">
                                 <i class="fas fa-book text-flag-red me-2"></i> للمزيد من التدريب
                             </h2>
                             <div class="grid sm:grid-cols-2 gap-4">
@@ -310,7 +310,7 @@
                                             <i :class="r.type === 'pdf' ? 'fas fa-file-pdf' : 'fab fa-youtube'"></i>
                                         </span>
                                         <div class="min-w-0">
-                                            <h3 class="font-display font-semibold text-flag-ink text-sm truncate" x-text="r.title"></h3>
+                                            <h3 class="font-semibold text-flag-ink text-sm truncate" x-text="r.title"></h3>
                                             <p class="text-xs text-flag-ink/50" x-text="r.type === 'pdf' ? 'اضغط لفتح المستند' : 'اضغط لمشاهدة الفيديو'"></p>
                                         </div>
                                     </button>
@@ -328,7 +328,7 @@
         <div class="de-card w-full max-w-4xl h-[90vh] overflow-hidden flex flex-col">
             <div class="de-flag-ribbon"></div>
             <div class="flex items-center justify-between px-6 py-4 border-b border-black/10 flex-shrink-0">
-                <h3 class="font-display font-semibold text-flag-ink truncate" x-text="viewingPdf && viewingPdf.title"></h3>
+                <h3 class="font-semibold text-flag-ink truncate" x-text="viewingPdf && viewingPdf.title"></h3>
                 <button @click="closePdf()" class="text-flag-ink/40 hover:text-flag-red flex-shrink-0 ms-4"><i class="fas fa-times"></i></button>
             </div>
             <div class="flex-1 bg-flag-cream">
@@ -342,7 +342,7 @@
         <div class="de-card w-full max-w-2xl overflow-hidden">
             <div class="de-flag-ribbon"></div>
             <div class="flex items-center justify-between px-5 py-3 border-b border-black/10">
-                <h3 class="font-display font-semibold text-flag-ink text-sm truncate" x-text="viewingVideo && viewingVideo.title"></h3>
+                <h3 class="font-semibold text-flag-ink text-sm truncate" x-text="viewingVideo && viewingVideo.title"></h3>
                 <button @click="closeVideo()" class="text-flag-ink/40 hover:text-flag-red flex-shrink-0 ms-4"><i class="fas fa-times"></i></button>
             </div>
             <div class="aspect-video bg-flag-black">
@@ -360,12 +360,12 @@
             <div class="de-flag-ribbon"></div>
             <div class="p-8">
                 <span class="de-stamp de-stamp-onlight h-16 w-16 text-xs mx-auto mb-5"><i class="fas fa-arrow-up"></i></span>
-                <h3 class="font-display text-xl font-bold text-flag-ink mb-3">اشترك للوصول الكامل</h3>
+                <h3 class="text-xl font-bold text-flag-ink mb-3">اشترك للوصول الكامل</h3>
                 <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">
                     الخطة المجانية تمنحك 6 تدريبات قصيرة للتجربة. للوصول إلى الاختبارات الكاملة المطابقة للاختبار الرسمي، والفصل الدراسي، ومزايا الذكاء الاصطناعي، اشترك مقابل 200 درهم شهريًا فقط.
                 </p>
                 <div class="flex gap-3">
-                    <button @click="showUpgradePrompt = false" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#1E293B;">لاحقًا</button>
+                    <button @click="showUpgradePrompt = false" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#0F172A;">لاحقًا</button>
                     <a href="dashboard.html" class="de-btn de-btn-primary flex-1 text-sm py-2.5 text-center">لوحة التحكم</a>
                 </div>
             </div>

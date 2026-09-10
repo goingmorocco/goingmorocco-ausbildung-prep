@@ -14,7 +14,7 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -25,14 +25,14 @@
             colors: {
               flag: {
                 black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
-                red: '#2563EB', redbright: '#3B82F6', reddeep: '#1D4ED8',
-                gold: '#38BDF8', goldsoft: '#7DD3FC',
-                accent: '#FF7A45', accentbright: '#FF9466', accentdeep: '#E85A2A',
-                cream: '#F5F8FC', paper: '#FFFFFF', ink: '#1E293B'
+                red: '#DC2626', redbright: '#EF4444', reddeep: '#B91C1C',
+                blue: '#2563EB', bluebright: '#3B82F6', blueddeep: '#1D4ED8',
+                gold: '#DC2626', goldbright: '#EF4444', golddeep: '#B91C1C',
+                accent: '#DC2626', accentbright: '#EF4444', accentdeep: '#B91C1C',
+                cream: '#FFFFFF', paper: '#FFFFFF', ink: '#0F172A'
               }
             },
             fontFamily: {
-              display: ['"Space Grotesk"', 'sans-serif'],
               arabic: ['Cairo', 'sans-serif'],
               mono: ['"JetBrains Mono"', 'monospace']
             }
@@ -58,7 +58,7 @@
                 <div class="flex justify-between h-16 items-center">
                     <a href="index.html" class="flex items-center gap-3">
                         <img src="images/lisantest-logo.png" alt="LisanTest" class="h-10 w-auto">
-                        <span class="font-display font-semibold hidden sm:block">LisanTest<span class="text-flag-red">.com</span></span>
+                        <span class="font-semibold hidden sm:block">LisanTest<span class="text-flag-red">.com</span></span>
                     </a>
                     <a :href="user ? 'dashboard.html' : 'index.html'" class="text-sm text-flag-ink/60 hover:text-flag-red transition-colors">
                         <span x-text="user ? 'لوحة التحكم' : 'تسجيل الدخول'"></span> <i class="fas fa-arrow-left"></i>
@@ -76,7 +76,7 @@
                     <i class="fas fa-book-open-reader text-flag-gold text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="font-display text-xl font-bold mb-1">المدونة</h1>
+                    <h1 class="text-xl font-bold mb-1">المدونة</h1>
                     <p class="text-sm text-white/70">دروس مكتوبة ومقالات لتحضير اختباراتك بثقة</p>
                 </div>
             </div>
@@ -107,7 +107,7 @@
                         <div class="flex items-center gap-2 mb-2" x-show="post.blog_categories">
                             <span class="de-badge de-badge-red" x-text="post.blog_categories && post.blog_categories.name"></span>
                         </div>
-                        <h2 class="font-display font-semibold text-flag-ink mb-2 line-clamp-2" x-text="post.title"></h2>
+                        <h2 class="font-semibold text-flag-ink mb-2 line-clamp-2" x-text="post.title"></h2>
                         <p class="text-sm text-flag-ink/60 line-clamp-2 mb-3" x-text="post.excerpt"></p>
                         <p class="text-xs text-flag-ink/40"><i class="fas fa-calendar"></i> <span x-text="formatDate(post.published_at)"></span></p>
                     </div>
@@ -122,7 +122,7 @@
             <i class="fas fa-circle-notch fa-spin"></i> جاري التحميل...
         </div>
         <div class="text-center mt-8" x-show="hasMore && !postsLoading">
-            <button @click="loadPosts(false)" class="de-btn text-sm py-2.5 px-6" style="background:#EEEAE0;color:#1E293B;">
+            <button @click="loadPosts(false)" class="de-btn text-sm py-2.5 px-6" style="background:#EEEAE0;color:#0F172A;">
                 تحميل المزيد
             </button>
         </div>
@@ -137,7 +137,7 @@
                         <div class="h-9 w-9 bg-white rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
                             <img src="images/lisantest-logo.png" alt="LisanTest" class="h-6 w-auto">
                         </div>
-                        <h3 class="font-display font-semibold">LisanTest<span class="text-flag-red">.com</span></h3>
+                        <h3 class="font-semibold">LisanTest<span class="text-flag-red">.com</span></h3>
                     </div>
                     <p class="text-sm text-white/60 mb-5">منصة شاملة للتحضير لاختبارات اللغة الألمانية المطلوبة لبرامج Ausbildung في ألمانيا</p>
                     <div class="flex gap-4 text-white/60">
@@ -150,7 +150,7 @@
                 </div>
 
                 <div>
-                    <h3 class="font-display font-semibold mb-4">روابط سريعة</h3>
+                    <h3 class="font-semibold mb-4">روابط سريعة</h3>
                     <ul class="space-y-2 text-sm text-white/60">
                         <li><a href="index.html" class="hover:text-flag-gold transition-colors">الرئيسية</a></li>
                         <li><a href="index.html#how-it-works" class="hover:text-flag-gold transition-colors">كيف يعمل الموقع</a></li>
@@ -162,7 +162,7 @@
                 </div>
 
                 <div>
-                    <h3 class="font-display font-semibold mb-4">اتصل بنا</h3>
+                    <h3 class="font-semibold mb-4">اتصل بنا</h3>
                     <p class="text-sm text-white/60 mb-2"><i class="fas fa-map-marker-alt me-2"></i> الدار البيضاء، المغرب</p>
                     <p class="text-sm text-white/60 mb-2"><i class="fas fa-phone me-2"></i> +212680901375</p>
                     <p class="text-sm text-white/60 mb-5"><i class="fas fa-envelope me-2"></i> hello@lisantest.com</p>

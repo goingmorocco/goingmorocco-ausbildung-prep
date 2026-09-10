@@ -11,7 +11,7 @@
     <link rel="icon" type="image/x-icon" href="favicon.ico">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -22,14 +22,14 @@
             colors: {
               flag: {
                 black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
-                red: '#2563EB', redbright: '#3B82F6', reddeep: '#1D4ED8',
-                gold: '#38BDF8', goldsoft: '#7DD3FC',
-                accent: '#FF7A45', accentbright: '#FF9466', accentdeep: '#E85A2A',
-                cream: '#F5F8FC', paper: '#FFFFFF', ink: '#1E293B'
+                red: '#DC2626', redbright: '#EF4444', reddeep: '#B91C1C',
+                blue: '#2563EB', bluebright: '#3B82F6', blueddeep: '#1D4ED8',
+                gold: '#DC2626', goldbright: '#EF4444', golddeep: '#B91C1C',
+                accent: '#DC2626', accentbright: '#EF4444', accentdeep: '#B91C1C',
+                cream: '#FFFFFF', paper: '#FFFFFF', ink: '#0F172A'
               }
             },
             fontFamily: {
-              display: ['"Space Grotesk"', 'sans-serif'],
               arabic: ['Cairo', 'sans-serif'],
               mono: ['"JetBrains Mono"', 'monospace']
             }
@@ -61,9 +61,9 @@
                 <div class="de-flag-ribbon"></div>
                 <div class="p-8">
                     <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5" style="border-color:#DC2626;color:#DC2626;"><i class="fas fa-circle-xmark"></i></span>
-                    <h1 class="font-display text-xl font-bold text-flag-ink mb-3">تعذّر تفعيل حسابك</h1>
+                    <h1 class="text-xl font-bold text-flag-ink mb-3">تعذّر تفعيل حسابك</h1>
                     <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">لم تتم الموافقة على عضويتك. تواصل معنا على <a href="mailto:hello@lisantest.com" class="text-flag-red">hello@lisantest.com</a> لمزيد من المعلومات.</p>
-                    <a href="dashboard.html" class="de-btn w-full text-sm py-3" style="background:#EEEAE0;color:#1E293B;">
+                    <a href="dashboard.html" class="de-btn w-full text-sm py-3" style="background:#EEEAE0;color:#0F172A;">
                         <i class="fas fa-arrow-right"></i> العودة إلى لوحة التحكم
                     </a>
                 </div>
@@ -78,7 +78,7 @@
                 <div class="de-flag-ribbon"></div>
                 <div class="p-8">
                     <span class="de-stamp de-stamp-onlight h-16 w-16 text-xs mx-auto mb-5"><i class="fas fa-calendar-days"></i></span>
-                    <h1 class="font-display text-xl font-bold text-flag-ink mb-3">أنشئ حسابًا مجانيًا لتصفح الفعاليات</h1>
+                    <h1 class="text-xl font-bold text-flag-ink mb-3">أنشئ حسابًا مجانيًا لتصفح الفعاليات</h1>
                     <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">تصفح الفعاليات ومتابعتها متاح للأعضاء فقط — إنشاء الحساب مجاني ولا يتطلب اشتراكًا.</p>
                     <a href="index.html" class="de-btn de-btn-primary w-full text-sm py-3">
                         <i class="fas fa-user-plus"></i> سجّل مجانًا
@@ -97,7 +97,7 @@
                         <div class="flex justify-between h-16 items-center">
                             <a href="dashboard.html" class="flex items-center gap-3">
                                 <span class="de-stamp de-stamp-onlight h-10 w-10 text-xs"><i class="fas fa-calendar-days"></i></span>
-                                <span class="font-display font-semibold">الفعاليات</span>
+                                <span class="font-semibold">الفعاليات</span>
                             </a>
                             <a href="dashboard.html" class="text-sm text-flag-ink/60 hover:text-flag-red transition-colors">
                                 <i class="fas fa-arrow-right"></i> <span class="hidden sm:inline">لوحة التحكم</span>
@@ -115,7 +115,7 @@
                             <i class="fas fa-calendar-days text-flag-gold text-xl"></i>
                         </div>
                         <div>
-                            <h2 class="font-display text-xl font-bold mb-1">الفعاليات القادمة</h2>
+                            <h2 class="text-xl font-bold mb-1">الفعاليات القادمة</h2>
                             <p class="text-sm text-white/70">لقاءات وورشات وفرص تواصل مع أساتذة ومشغّلين محتملين</p>
                         </div>
                     </div>
@@ -136,7 +136,7 @@
                                         <span class="de-badge" :class="ev.is_paid ? 'de-badge-gold' : 'bg-emerald-100 text-emerald-800'" x-text="ev.is_paid ? (ev.price + ' درهم') : 'مجاني'"></span>
                                         <span class="text-xs text-flag-ink/40"><i class="fas fa-calendar"></i> <span x-text="formatDate(ev.event_date)"></span></span>
                                     </div>
-                                    <h3 class="font-display font-semibold text-flag-ink mb-1" x-text="ev.title"></h3>
+                                    <h3 class="font-semibold text-flag-ink mb-1" x-text="ev.title"></h3>
                                     <p class="text-sm text-flag-ink/60 line-clamp-2" x-text="ev.description"></p>
                                 </div>
                             </button>
@@ -173,7 +173,7 @@
                     <div class="px-5 py-4 border-b border-black/10 flex items-center gap-3 flex-shrink-0">
                         <span class="de-stamp de-stamp-onlight h-9 w-9 text-xs"><i class="fas fa-headset"></i></span>
                         <div>
-                            <div class="font-display font-semibold text-flag-ink text-sm">الدعم الفني</div>
+                            <div class="font-semibold text-flag-ink text-sm">الدعم الفني</div>
                             <div class="text-xs text-flag-ink/50">عادة ما نرد خلال ساعات العمل</div>
                         </div>
                     </div>
@@ -210,7 +210,7 @@
         <div class="de-card w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
             <div class="de-flag-ribbon"></div>
             <div class="flex items-center justify-between px-6 py-4 border-b border-black/10 flex-shrink-0">
-                <h3 class="font-display font-semibold text-flag-ink truncate" x-text="selectedEvent && selectedEvent.title"></h3>
+                <h3 class="font-semibold text-flag-ink truncate" x-text="selectedEvent && selectedEvent.title"></h3>
                 <button @click="closeEvent()" class="text-flag-ink/40 hover:text-flag-red flex-shrink-0 ms-4"><i class="fas fa-times"></i></button>
             </div>
             <div class="overflow-y-auto">
