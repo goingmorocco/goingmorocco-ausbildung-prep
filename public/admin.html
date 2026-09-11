@@ -588,8 +588,8 @@
                     </div>
                     <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mb-5">
                         <div class="flex items-center gap-2 flex-wrap" :class="activeTestFilterMode === 'exam' ? 'opacity-40 pointer-events-none' : ''">
-                            <button @click="setTestFilterMode('skill')" class="text-xs font-semibold transition-colors"
-                                    :class="activeTestFilterMode === 'skill' ? 'text-emerald-600' : 'text-flag-ink/40'">المهارة:</button>
+                            <button @click="setTestFilterMode('skill')" class="px-3 py-1 rounded-full text-xs font-semibold transition-colors"
+                                    :class="activeTestFilterMode === 'skill' ? 'bg-emerald-600 text-white' : 'text-flag-ink/40'">المهارة:</button>
                             <button @click="testFilterSkill = null; activeTestFilterMode = 'skill'" class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
                                     :class="testFilterSkill === null ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10'">الكل</button>
                             <template x-for="s in [['reading','القراءة'],['listening','الاستماع'],['writing','الكتابة']]" :key="s[0]">
@@ -607,8 +607,8 @@
                             </template>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap" :class="activeTestFilterMode === 'skill' ? 'opacity-40 pointer-events-none' : ''">
-                            <button @click="setTestFilterMode('exam')" class="text-xs font-semibold transition-colors"
-                                    :class="activeTestFilterMode === 'exam' ? 'text-emerald-600' : 'text-flag-ink/40'">الامتحان الرسمي:</button>
+                            <button @click="setTestFilterMode('exam')" class="px-3 py-1 rounded-full text-xs font-semibold transition-colors"
+                                    :class="activeTestFilterMode === 'exam' ? 'bg-emerald-600 text-white' : 'text-flag-ink/40'">الامتحان الرسمي:</button>
                             <button @click="testFilterExamFamily = null; activeTestFilterMode = 'exam'" class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
                                     :class="testFilterExamFamily === null ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10'">الكل</button>
                             <template x-for="ex in [['telc','telc'],['goethe','Goethe'],['osd','ÖSD']]" :key="ex[0]">
