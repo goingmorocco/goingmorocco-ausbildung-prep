@@ -57,7 +57,34 @@
   align-items: center;
   overflow: hidden;
   color: var(--de-ink);
-  background-color: var(--de-paper);
+  background-color: transparent;
+}
+.hp-hero-flag-bg {
+  position: absolute;
+  inset: -5%;
+  z-index: -3;
+  background-image: url("../../images/germanflag.webp");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(14px);
+  opacity: 0.22;
+  transform: scale(1.1);
+}
+.hp-hero-glass {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.82) 45%, rgba(255,255,255,0.92) 100%);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+.hp-hero-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(120deg, rgba(255,255,255,0.5) 0%, transparent 30%, transparent 70%, rgba(255,255,255,0.3) 100%);
 }
 /* hero decorative background layers (photo/scrim/grid/spotlight/orbs)
    removed -- hero now uses a plain solid background via .hp-hero's own
