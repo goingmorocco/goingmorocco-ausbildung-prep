@@ -587,7 +587,7 @@
                         </button>
                     </div>
                     <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mb-5">
-                        <div class="flex items-center gap-2 flex-wrap">
+                        <div class="flex items-center gap-2 flex-wrap" :class="testFilterExamFamily !== null ? 'opacity-40 pointer-events-none' : ''">
                             <span class="text-xs font-medium text-flag-ink/40">المهارة:</span>
                             <button @click="testFilterSkill = null" class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
                                     :class="testFilterSkill === null ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10'">الكل</button>
@@ -595,6 +595,7 @@
                                 <button @click="testFilterSkill = s[0]" class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
                                         :class="testFilterSkill === s[0] ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10'" x-text="s[1]"></button>
                             </template>
+                            <span class="text-xs text-flag-ink/40" x-show="testFilterExamFamily !== null">(غير قابل للتطبيق على الامتحانات الرسمية)</span>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="text-xs font-medium text-flag-ink/40">المستوى:</span>
@@ -1320,7 +1321,16 @@
                         const examOk = this.testFilterExamFamily === null ? true
                             : this.testFilterExamFamily === 'all' ? !t.is_skill_practice
                             : (t.test_type || '').toLowerCase().startsWith(this.testFilterExamFamily);
-                        return (!this.testFilterSkill || t.skill === this.testFilterSkill) &&
+                        // Official exams cover all four skills at once, so
+                        // filtering by a single skill is meaningless for
+                        // them (and would silently return zero results,
+                        // since full exams never have `skill` populated).
+                        // Once an exam-family filter is active, suppress
+                        // the skill filter entirely rather than AND it in.
+                        const skillOk = this.testFilterExamFamily !== null
+                            ? true
+                            : (!this.testFilterSkill || t.skill === this.testFilterSkill);
+                        return skillOk &&
                                (!this.testFilterLevel || t.level === this.testFilterLevel) &&
                                examOk;
                     });
