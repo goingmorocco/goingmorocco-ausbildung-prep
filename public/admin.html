@@ -587,15 +587,15 @@
                         </button>
                     </div>
                     <div class="flex flex-wrap items-center gap-x-5 gap-y-2 mb-5">
-                        <div class="flex items-center gap-2 flex-wrap" :class="testFilterExamFamily !== null ? 'opacity-40 pointer-events-none' : ''">
-                            <span class="text-xs font-medium text-flag-ink/40">المهارة:</span>
-                            <button @click="testFilterSkill = null" class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
+                        <div class="flex items-center gap-2 flex-wrap" :class="activeTestFilterMode === 'exam' ? 'opacity-40 pointer-events-none' : ''">
+                            <button @click="setTestFilterMode('skill')" class="text-xs font-semibold transition-colors"
+                                    :class="activeTestFilterMode === 'skill' ? 'text-emerald-600' : 'text-flag-ink/40'">المهارة:</button>
+                            <button @click="testFilterSkill = null; activeTestFilterMode = 'skill'" class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
                                     :class="testFilterSkill === null ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10'">الكل</button>
                             <template x-for="s in [['reading','القراءة'],['listening','الاستماع'],['writing','الكتابة']]" :key="s[0]">
-                                <button @click="testFilterSkill = s[0]" class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
+                                <button @click="testFilterSkill = s[0]; activeTestFilterMode = 'skill'" class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
                                         :class="testFilterSkill === s[0] ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10'" x-text="s[1]"></button>
                             </template>
-                            <span class="text-xs text-flag-ink/40" x-show="testFilterExamFamily !== null">(غير قابل للتطبيق على الامتحانات الرسمية)</span>
                         </div>
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="text-xs font-medium text-flag-ink/40">المستوى:</span>
@@ -606,16 +606,20 @@
                                         :class="testFilterLevel === lvl ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10'" x-text="lvl"></button>
                             </template>
                         </div>
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span class="text-xs font-medium text-flag-ink/40">الامتحان الرسمي:</span>
-                            <button @click="testFilterExamFamily = testFilterExamFamily === 'all' ? null : 'all'" class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
-                                    :class="testFilterExamFamily === 'all' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10'">الكل</button>
+                        <div class="flex items-center gap-2 flex-wrap" :class="activeTestFilterMode === 'skill' ? 'opacity-40 pointer-events-none' : ''">
+                            <button @click="setTestFilterMode('exam')" class="text-xs font-semibold transition-colors"
+                                    :class="activeTestFilterMode === 'exam' ? 'text-emerald-600' : 'text-flag-ink/40'">الامتحان الرسمي:</button>
+                            <button @click="testFilterExamFamily = null; activeTestFilterMode = 'exam'" class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
+                                    :class="testFilterExamFamily === null ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10'">الكل</button>
                             <template x-for="ex in [['telc','telc'],['goethe','Goethe'],['osd','ÖSD']]" :key="ex[0]">
-                                <button @click="testFilterExamFamily = ex[0]" class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
+                                <button @click="testFilterExamFamily = ex[0]; activeTestFilterMode = 'exam'" class="px-3 py-1 rounded-full text-xs font-medium transition-colors"
                                         :class="testFilterExamFamily === ex[0] ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10'" x-text="ex[1]"></button>
                             </template>
                         </div>
                     </div>
+                    <p class="text-xs text-flag-ink/40 mb-5" x-show="activeTestFilterMode === null">
+                        <i class="fas fa-circle-info"></i> اضغط على اسم فلتر (المهارة أو الامتحان الرسمي) لتفعيله.
+                    </p>
                     <div class="de-card rounded-2xl overflow-hidden divide-y divide-black/5">
                         <template x-for="t in filteredTests" :key="t.id">
                             <div class="p-4 sm:p-5 flex items-center justify-between gap-4">
@@ -1315,24 +1319,22 @@
                 resources: [], resourcesLoading: false, deleteResourceTarget: null,
 
                 tests: [], testsLoading: false, testBuilderOpen: false, savingTest: false,
-                testFilterSkill: null, testFilterLevel: null, testFilterExamFamily: null,
+                testFilterSkill: null, testFilterLevel: null, testFilterExamFamily: null, activeTestFilterMode: null,
+                setTestFilterMode(mode) {
+                    this.activeTestFilterMode = this.activeTestFilterMode === mode ? null : mode;
+                },
                 get filteredTests() {
                     return this.tests.filter(t => {
-                        const examOk = this.testFilterExamFamily === null ? true
-                            : this.testFilterExamFamily === 'all' ? !t.is_skill_practice
-                            : (t.test_type || '').toLowerCase().startsWith(this.testFilterExamFamily);
-                        // Official exams cover all four skills at once, so
-                        // filtering by a single skill is meaningless for
-                        // them (and would silently return zero results,
-                        // since full exams never have `skill` populated).
-                        // Once an exam-family filter is active, suppress
-                        // the skill filter entirely rather than AND it in.
-                        const skillOk = this.testFilterExamFamily !== null
-                            ? true
-                            : (!this.testFilterSkill || t.skill === this.testFilterSkill);
-                        return skillOk &&
-                               (!this.testFilterLevel || t.level === this.testFilterLevel) &&
-                               examOk;
+                        let modeOk = true;
+                        if (this.activeTestFilterMode === 'skill') {
+                            // Skill mode only makes sense for skill-practice
+                            // drills -- official exams cover all four skills
+                            // at once and never have a single `skill` value.
+                            modeOk = t.is_skill_practice && (!this.testFilterSkill || t.skill === this.testFilterSkill);
+                        } else if (this.activeTestFilterMode === 'exam') {
+                            modeOk = !t.is_skill_practice && (!this.testFilterExamFamily || (t.test_type || '').toLowerCase().startsWith(this.testFilterExamFamily));
+                        }
+                        return modeOk && (!this.testFilterLevel || t.level === this.testFilterLevel);
                     });
                 },
                 testBuilderError: '', deleteTestTarget: null, testKeyCounter: 0,
