@@ -202,25 +202,26 @@
     <main id="main">
         <!-- Hero -->
         <section class="hp-hero pt-8 pb-16 px-4 sm:px-6 lg:px-8">
-            <div class="hp-hero-flag-bg"></div>
-            <div class="hp-hero-glass"></div>
-            <div class="hp-hero-sheen"></div>
+            <div class="hp-hero-navy-bg"></div>
+            <div class="hp-hero-grid"></div>
+            <div class="hp-hero-glow-a"></div>
+            <div class="hp-hero-glow-b"></div>
 
             <div class="max-w-7xl mx-auto relative w-full">
                 <div class="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
                     <div class="lg:col-span-6">
-                        <div class="hp-kicker hp-fade-up hp-d1 mb-6">
+                        <div class="hp-kicker on-dark hp-fade-up hp-d1 mb-6">
                             <span class="hp-kicker-dot"></span>
-                            منصة عربية · Goethe · telc · ÖSD · B1/B2
+                            منصة EuroPass Academy · Goethe · telc · ÖSD · B1/B2
                         </div>
 
-                        <h1 class="hp-hero-title hp-fade-up hp-d2 text-4xl sm:text-5xl lg:text-[3.4rem] mb-6">
+                        <h1 class="hp-hero-title hp-fade-up hp-d2 text-5xl sm:text-6xl lg:text-[4rem] mb-6 text-white">
                             اجتز اختبار <span class="hp-mark">Ausbildung</span>
-                            <span class="block text-flag-ink/90 mt-1">كما سيأتي في قاعة الامتحان</span>
+                            <span class="block text-white/90 mt-2">كما سيأتي في قاعة الامتحان</span>
                         </h1>
 
-                        <p class="hp-fade-up hp-d3 text-lg sm:text-xl text-flag-ink/70 mb-8 max-w-xl leading-relaxed">
-                            محاكاة دقيقة لاختبارات اللغة الألمانية المطلوبة للتدريب المهني في ألمانيا — تصحيح فوري، شرح لكل سؤال، وإعادة غير محدودة حتى تطمئن.
+                        <p class="hp-fade-up hp-d3 text-lg sm:text-xl text-white/70 mb-8 max-w-xl leading-relaxed">
+                            محاكاة دقيقة لاختبارات اللغة الألمانية المطلوبة للتدريب المهني (Ausbildung) في ألمانيا — تصحيح فوري، شرح لكل سؤال، وإعادة غير محدودة حتى تطمئن. من إنتاج <span class="text-white font-semibold">EuroPass Academy</span>، مدرسة لغات فعلية بخميسات، المغرب.
                         </p>
 
                         <div class="hp-fade-up hp-d4 flex flex-col sm:flex-row gap-3 mb-8">
@@ -229,7 +230,7 @@
                                     <button @click="openSignup()" class="de-btn de-btn-gold de-glow-pulse text-base py-3.5 px-8">
                                         <i class="fas fa-play"></i> ابدأ التدريب مجانًا
                                     </button>
-                                    <a href="#available-tests" class="de-btn hp-btn-ghost text-base py-3.5 px-8">
+                                    <a href="#available-tests" class="de-btn hp-btn-ghost on-dark text-base py-3.5 px-8">
                                         <i class="fas fa-clipboard-list"></i> استكشف الاختبارات
                                     </a>
                                 </div>
@@ -241,7 +242,7 @@
                             </template>
                         </div>
 
-                        <div class="hp-fade-up hp-d5 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-flag-ink/65">
+                        <div class="hp-fade-up hp-d5 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-white/65">
                             <span class="inline-flex items-center gap-2"><i class="fas fa-check-circle text-emerald-400"></i> تدريب مجاني للتجربة</span>
                             <span class="inline-flex items-center gap-2"><i class="fas fa-check-circle text-emerald-400"></i> 200 درهم / شهر بعدها</span>
                             <span class="inline-flex items-center gap-2"><i class="fas fa-check-circle text-emerald-400"></i> واجهة عربية بالكامل</span>
@@ -313,6 +314,7 @@
         <div class="hp-marquee">
             <div class="hp-marquee-track">
                 <div class="flex items-center gap-3 pe-3">
+                    <span class="hp-marquee-chip"><i class="fas fa-school"></i> EuroPass Academy</span>
                     <span class="hp-marquee-chip"><i class="fas fa-certificate"></i> Goethe-Institut</span>
                     <span class="hp-marquee-chip"><i class="fas fa-certificate"></i> telc GmbH</span>
                     <span class="hp-marquee-chip"><i class="fas fa-certificate"></i> ÖSD Zertifikat</span>
@@ -321,6 +323,7 @@
                     <span class="hp-marquee-chip"><i class="fas fa-location-dot"></i> الدار البيضاء · الرباط · فاس</span>
                 </div>
                 <div class="flex items-center gap-3 pe-3" aria-hidden="true">
+                    <span class="hp-marquee-chip"><i class="fas fa-school"></i> EuroPass Academy</span>
                     <span class="hp-marquee-chip"><i class="fas fa-certificate"></i> Goethe-Institut</span>
                     <span class="hp-marquee-chip"><i class="fas fa-certificate"></i> telc GmbH</span>
                     <span class="hp-marquee-chip"><i class="fas fa-certificate"></i> ÖSD Zertifikat</span>
@@ -330,6 +333,54 @@
                 </div>
             </div>
         </div>
+
+        <!-- About — the real school behind the platform -->
+        <section class="py-20 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-6xl mx-auto">
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <div class="de-reveal" x-intersect.once="$el.classList.add('de-in')">
+                        <span class="hp-section-kicker">من نحن</span>
+                        <h2 class="text-3xl sm:text-4xl font-bold text-flag-red mt-4 mb-5">LisanTest، إنتاج EuroPass Academy</h2>
+                        <p class="text-flag-ink/70 leading-relaxed mb-4">
+                            <strong class="text-flag-ink">EuroPass Academy</strong> مدرسة فعلية للغات والتمريض بمدينة خميسات، المغرب — صفوف حضورية، أساتذة بالاسم، وفريق مرافقة لطلاب Ausbildung حتى توقيع العقد مع صاحب العمل الألماني. LisanTest هو الذراع الرقمي لهذه المدرسة: منصة محاكاة الامتحانات التي يستخدمها طلابها فعليًا للتحضير لاختبارات اللغة الألمانية.
+                        </p>
+                        <p class="text-flag-ink/70 leading-relaxed mb-6">
+                            ألمانيا تحتاج آلاف المتدربين سنويًا في التمريض والميكاترونيك والمعلوميات والفندقة — لكن كل عقد Ausbildung يبدأ بشرط واحد: مستوى لغة معتمد (B1 أو B2 غالبًا). LisanTest يضمن أنك تصل لذلك المستوى وأنت متمرّن على شكل الامتحان الحقيقي، لا على تخمينات.
+                        </p>
+                        <a href="https://europassacademy.com" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-sm font-semibold text-flag-red hover:text-flag-reddeep">
+                            تعرّف على EuroPass Academy <i class="fas fa-arrow-left text-xs"></i>
+                        </a>
+                    </div>
+                    <div class="de-reveal" x-intersect.once="$el.classList.add('de-in')" style="animation-delay:.1s">
+                        <div class="hp-academy-panel mb-5">
+                            <img src="images/europass-ma-logo.png" alt="EuroPass Academy">
+                            <div>
+                                <p class="font-semibold">EuroPass Academy</p>
+                                <p class="text-xs text-white/60">مدرسة لغات وتمريض · خميسات، المغرب</p>
+                            </div>
+                        </div>
+                        <div class="grid sm:grid-cols-2 gap-4">
+                            <div class="hp-fact-chip">
+                                <i class="fas fa-calendar-days"></i>
+                                <div><strong>2–3.5 سنوات</strong><span>مدة التدريب المهني (Ausbildung) المعتادة في ألمانيا</span></div>
+                            </div>
+                            <div class="hp-fact-chip">
+                                <i class="fas fa-sack-dollar"></i>
+                                <div><strong>أجر تدريبي شهري</strong><span>Ausbildung تدريب مدفوع، وليس تطوعًا</span></div>
+                            </div>
+                            <div class="hp-fact-chip">
+                                <i class="fas fa-certificate"></i>
+                                <div><strong>شهادة معترف بها</strong><span>مؤهل مهني رسمي في ألمانيا وأوروبا</span></div>
+                            </div>
+                            <div class="hp-fact-chip">
+                                <i class="fas fa-language"></i>
+                                <div><strong>B1 – B2</strong><span>المستوى الذي يطلبه معظم أصحاب العمل</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <!-- Stats -->
         <section class="py-16 px-4 sm:px-6 lg:px-8">
@@ -361,14 +412,14 @@
                 <div class="grid md:grid-cols-2 gap-6">
                     <div class="de-card rounded-3xl p-8 de-reveal" x-intersect.once="$el.classList.add('de-in')">
                         <span class="de-badge de-badge-red mb-5 inline-block">المشكلة</span>
-                        <h2 class="text-2xl font-bold text-flag-ink mb-4">التدريب العشوائي لا يشبه الامتحان</h2>
+                        <h2 class="text-2xl font-bold text-flag-red mb-4">التدريب العشوائي لا يشبه الامتحان</h2>
                         <ul class="space-y-3 text-flag-ink/70">
                             <li class="flex gap-3"><i class="fas fa-times text-flag-accent mt-1"></i> أسئلة عامة لا تتبع هيكل Goethe / telc / ÖSD</li>
                             <li class="flex gap-3"><i class="fas fa-times text-flag-accent mt-1"></i> لا يوجد مؤقت ولا ضغط قاعة حقيقي</li>
                             <li class="flex gap-3"><i class="fas fa-times text-flag-accent mt-1"></i> بعد الخطأ… لا تعرف لماذا أخطأت</li>
                         </ul>
                     </div>
-                    <div class="de-card-dark rounded-3xl p-8 text-white de-reveal" x-intersect.once="$el.classList.add('de-in')" style="animation-delay:.08s; background: linear-gradient(135deg, var(--de-blue-bright), var(--de-blue-deep));">
+                    <div class="de-card-dark rounded-3xl p-8 text-white de-reveal" x-intersect.once="$el.classList.add('de-in')" style="animation-delay:.08s; background: linear-gradient(135deg, var(--de-navy-800), var(--de-navy-950));">
                         <span class="de-badge mb-5 inline-block" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4);">الحل</span>
                         <h2 class="text-2xl font-bold mb-4">LisanTest يضعك في الامتحان قبل يومه</h2>
                         <ul class="space-y-3 text-white/75">
@@ -386,7 +437,7 @@
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-14 de-reveal" x-intersect.once="$el.classList.add('de-in')">
                     <span class="hp-section-kicker">FÄHIGKEITEN</span>
-                    <h2 class="text-3xl sm:text-4xl font-bold text-flag-ink mt-4 mb-3">أربع مهارات. امتحان واحد تجتازه بثقة.</h2>
+                    <h2 class="text-3xl sm:text-4xl font-bold text-flag-red mt-4 mb-3">أربع مهارات. امتحان واحد تجتازه بثقة.</h2>
                     <p class="text-lg text-flag-ink/60 max-w-2xl mx-auto">تدرّب على كل جزء كما سيُختبر به — لا ملخصات عامة، بل شكل الامتحان نفسه.</p>
                 </div>
                 <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -423,7 +474,7 @@
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-16 de-reveal" x-intersect.once="$el.classList.add('de-in')">
                     <span class="hp-section-kicker">DER WEG</span>
-                    <h2 class="text-3xl sm:text-4xl font-bold text-flag-ink mt-4 mb-3">ثلاث خطوات. ثم أنت داخل الامتحان.</h2>
+                    <h2 class="text-3xl sm:text-4xl font-bold text-flag-red mt-4 mb-3">ثلاث خطوات. ثم أنت داخل الامتحان.</h2>
                     <p class="text-lg text-flag-ink/60">من إنشاء الحساب إلى أول نتيجة تفصيلية في أقل من عشر دقائق.</p>
                 </div>
                 <div class="grid md:grid-cols-3 gap-6">
@@ -447,7 +498,7 @@
         </section>
 
         <!-- Available tests -->
-        <section id="available-tests" class="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-flag-bluebright via-flag-blue to-flag-blueddeep relative overflow-hidden">
+        <section id="available-tests" class="py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden" style="background: linear-gradient(135deg, var(--de-navy-700), var(--de-navy-900) 55%, var(--de-navy-950));">
             <div class="de-corner-mark top-6 end-6 rounded-tr-2xl hidden sm:block" style="border-color: rgba(255,255,255,0.35);"></div>
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-16 de-reveal" x-intersect.once="$el.classList.add('de-in')">
@@ -495,8 +546,26 @@
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-12 de-reveal" x-intersect.once="$el.classList.add('de-in')">
                     <span class="hp-section-kicker">AUSBILDUNG</span>
-                    <h2 class="text-3xl sm:text-4xl font-bold text-flag-ink mt-4 mb-3">اللغة هي بوابة المهنة التي تريدها</h2>
-                    <p class="text-lg text-flag-ink/60">B1 يكفي لبعض البرامج. B2 يفتح التقنية والصحة والتجارة. حضّر المستوى الذي يطلبه عقدك.</p>
+                    <h2 class="text-3xl sm:text-4xl font-bold text-flag-red mt-4 mb-3">اللغة هي بوابة المهنة التي تريدها</h2>
+                    <p class="text-lg text-flag-ink/60 max-w-2xl mx-auto">B1 يكفي لبعض البرامج. B2 يفتح التقنية والصحة والتجارة. حضّر المستوى الذي يطلبه عقدك. ألمانيا تفتح آلاف مقاعد Ausbildung كل سنة في التمريض والميكاترونيك والمعلوميات والفندقة — النظام هناك يجمع بين دراسة في Berufsschule وتدريب فعلي داخل شركة، لينتهي بشهادة مهنية معترف بها في ألمانيا وأوروبا.</p>
+                </div>
+                <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+                    <div class="hp-fact-chip">
+                        <i class="fas fa-calendar-days"></i>
+                        <div><strong>2–3.5 سنوات</strong><span>مدة التدريب المهني (Ausbildung) المعتادة</span></div>
+                    </div>
+                    <div class="hp-fact-chip">
+                        <i class="fas fa-sack-dollar"></i>
+                        <div><strong>أجر تدريبي شهري</strong><span>Ausbildung تدريب مدفوع، وليس تطوعًا</span></div>
+                    </div>
+                    <div class="hp-fact-chip">
+                        <i class="fas fa-certificate"></i>
+                        <div><strong>شهادة معترف بها</strong><span>مؤهل مهني رسمي في ألمانيا وأوروبا</span></div>
+                    </div>
+                    <div class="hp-fact-chip">
+                        <i class="fas fa-language"></i>
+                        <div><strong>B1 – B2</strong><span>المستوى الذي يطلبه معظم أصحاب العمل</span></div>
+                    </div>
                 </div>
                 <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div class="hp-dest-card de-reveal" x-intersect.once="$el.classList.add('de-in')">
@@ -540,7 +609,7 @@
             <div class="max-w-5xl mx-auto">
                 <div class="text-center mb-16 de-reveal" x-intersect.once="$el.classList.add('de-in')">
                     <span class="hp-section-kicker">TARIF</span>
-                    <h2 class="text-3xl sm:text-4xl font-bold text-flag-ink mt-4 mb-3">سعر واضح. وصول كامل.</h2>
+                    <h2 class="text-3xl sm:text-4xl font-bold text-flag-red mt-4 mb-3">سعر واضح. وصول كامل.</h2>
                     <p class="text-lg text-flag-ink/60">جرّب مجانًا ثم افتح كل المحاكيات باشتراك شهري يُلغى متى شئت.</p>
                 </div>
 
@@ -560,8 +629,8 @@
                         </button>
                     </div>
 
-                    <div class="de-card-dark hp-price-featured rounded-3xl p-8 text-white relative overflow-hidden de-reveal" x-intersect.once="$el.classList.add('de-in')" style="animation-delay:.08s; background: linear-gradient(135deg, var(--de-blue-bright), var(--de-blue-deep));">
-                        <div class="absolute top-5 end-[-38px] rotate-45 text-xs font-bold font-mono px-10 py-1" style="background: white; color: var(--de-blue);">الأكثر طلبًا</div>
+                    <div class="de-card-dark hp-price-featured rounded-3xl p-8 text-white relative overflow-hidden de-reveal" x-intersect.once="$el.classList.add('de-in')" style="animation-delay:.08s; background: linear-gradient(135deg, var(--de-navy-700), var(--de-navy-950));">
+                        <div class="absolute top-5 end-[-38px] rotate-45 text-xs font-bold font-mono px-10 py-1" style="background: white; color: var(--de-navy-800);">الأكثر طلبًا</div>
                         <p class="text-sm font-mono text-white/85 mb-2">PREMIUM</p>
                         <h3 class="text-2xl font-bold mb-2">الخطة المميزة</h3>
                         <p class="text-4xl font-bold text-white mb-1">200 <span class="text-base font-normal text-white/70">درهم</span></p>
@@ -573,7 +642,7 @@
                             <li class="flex items-center gap-3"><i class="fas fa-check-circle text-white"></i> تتبع التقدم والإحصاءات الشخصية</li>
                             <li class="flex items-center gap-3"><i class="fas fa-check-circle text-white"></i> أولوية في الدعم الفني</li>
                         </ul>
-                        <button @click="goPrimary()" class="de-btn w-full text-sm py-3" style="background: white; color: var(--de-blue);">
+                        <button @click="goPrimary()" class="de-btn w-full text-sm py-3" style="background: white; color: var(--de-navy-800);">
                             <i class="fas fa-credit-card"></i> <span x-text="user ? 'تفعيل الاشتراك' : 'ابدأ الآن'"></span>
                         </button>
                         <p class="mt-5 text-xs text-white/60">
@@ -585,7 +654,7 @@
         </section>
 
         <!-- Testimonials -->
-        <section id="testimonials" class="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-flag-redbright via-flag-red to-flag-reddeep relative overflow-hidden">
+        <section id="testimonials" class="py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden" style="background: linear-gradient(135deg, var(--de-navy-700), var(--de-navy-900) 55%, var(--de-navy-950));">
             <div class="de-corner-mark top-6 end-6 rounded-tr-2xl hidden sm:block" style="border-color: rgba(255,255,255,0.35);"></div>
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-16 de-reveal" x-intersect.once="$el.classList.add('de-in')">
@@ -621,7 +690,7 @@
                 <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-12">
                     <div>
                         <span class="hp-section-kicker">BLOG</span>
-                        <h2 class="text-3xl font-bold text-flag-ink mt-3 mb-2">من المدونة</h2>
+                        <h2 class="text-3xl font-bold text-flag-red mt-3 mb-2">من المدونة</h2>
                         <p class="text-flag-ink/60">دروس مكتوبة ومقالات لتحضير اختباراتك بثقة</p>
                     </div>
                     <a href="blog.html" class="de-btn de-btn-ghost text-sm py-2.5 px-5 self-start sm:self-auto">
@@ -652,7 +721,7 @@
             <div class="max-w-3xl mx-auto">
                 <div class="text-center mb-12 de-reveal" x-intersect.once="$el.classList.add('de-in')">
                     <span class="hp-section-kicker">FAQ</span>
-                    <h2 class="text-3xl font-bold text-flag-ink mt-4">الأسئلة الشائعة</h2>
+                    <h2 class="text-3xl font-bold text-flag-red mt-4">الأسئلة الشائعة</h2>
                 </div>
                 <div class="space-y-3">
                     <template x-for="(item, i) in faqs" :key="i">
@@ -676,10 +745,11 @@
         <section class="hp-final">
             <div class="hp-final-photo"></div>
             <div class="hp-final-scrim"></div>
+            <div class="hp-final-glow"></div>
             <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
-                <span class="hp-kicker mb-6 inline-flex">مقعد Ausbildung يبدأ من شهادة اللغة</span>
-                <h2 class="text-3xl sm:text-5xl font-bold mb-5 leading-tight">لا تدخل قاعة الامتحان وأنت تخمّن شكل الأسئلة.</h2>
-                <p class="text-lg text-flag-ink/70 mb-10 max-w-2xl mx-auto">سجّل مجانًا اليوم، جرّب المحاكاة، ثم قرر إن كانت 200 درهم شهريًا تستحق عقد التدريب في ألمانيا.</p>
+                <span class="hp-kicker on-dark mb-6 inline-flex">مقعد Ausbildung يبدأ من شهادة اللغة</span>
+                <h2 class="text-3xl sm:text-5xl font-bold mb-5 leading-tight text-white">لا تدخل قاعة الامتحان وأنت تخمّن شكل الأسئلة.</h2>
+                <p class="text-lg text-white/70 mb-10 max-w-2xl mx-auto">سجّل مجانًا اليوم، جرّب المحاكاة، ثم قرر إن كانت 200 درهم شهريًا تستحق عقد التدريب في ألمانيا.</p>
                 <template x-if="!user">
                     <button @click="openSignup()" class="de-btn de-btn-gold de-glow-pulse text-base py-3.5 px-10">
                         <i class="fas fa-rocket"></i> ابدأ مجانًا الآن

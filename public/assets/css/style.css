@@ -20,6 +20,14 @@
   --de-paper: #FFFFFF;
   --de-ink: #0F172A;
 
+  /* Navy — the site's "dark section" color everywhere a black background
+     would otherwise be used (hero, trust strip, final CTA, feature cards) */
+  --de-navy-950: #060f1f;
+  --de-navy-900: #0A1F3D;
+  --de-navy-800: #0E2A4C;
+  --de-navy-700: #163B63;
+  --de-navy-600: #1F4C78;
+
   --shadow-stamp: 0 20px 45px rgba(14,42,76, 0.18);
 }
 

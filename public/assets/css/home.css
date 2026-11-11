@@ -56,41 +56,52 @@
   display: flex;
   align-items: center;
   overflow: hidden;
-  color: var(--de-ink);
-  background-color: transparent;
+  color: #fff;
+  background-color: var(--de-navy-900);
 }
-.hp-hero-flag-bg {
-  position: absolute;
-  inset: -5%;
-  z-index: -3;
-  background-image: url("../../images/germanflag.webp");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  filter: blur(14px);
-  opacity: 0.38;
-  transform: scale(1.1);
-}
-.hp-hero-glass {
+/* Navy hero background — replaces the old blurred-flag + glass treatment.
+   Deliberately flat and dark (navy, never literal black) so the huge
+   headline reads with maximum contrast, like the reference layout. */
+.hp-hero-navy-bg {
   position: absolute;
   inset: 0;
-  z-index: -2;
-  background: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.38) 45%, rgba(255,255,255,0.48) 100%);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  z-index: -3;
+  background: linear-gradient(155deg, var(--de-navy-950) 0%, var(--de-navy-900) 45%, var(--de-navy-700) 78%, var(--de-blue-deep) 100%);
 }
-.hp-hero-sheen {
+.hp-hero-glow-a {
+  position: absolute;
+  z-index: -2;
+  width: 620px;
+  height: 620px;
+  border-radius: 50%;
+  top: -220px;
+  inset-inline-end: -180px;
+  background: radial-gradient(circle, rgba(37,99,235,0.35) 0%, transparent 70%);
+  filter: blur(10px);
+}
+.hp-hero-glow-b {
+  position: absolute;
+  z-index: -2;
+  width: 480px;
+  height: 480px;
+  border-radius: 50%;
+  bottom: -200px;
+  inset-inline-start: -120px;
+  background: radial-gradient(circle, rgba(220,38,38,0.22) 0%, transparent 70%);
+  filter: blur(10px);
+}
+.hp-hero-grid {
   position: absolute;
   inset: 0;
   z-index: -1;
-  pointer-events: none;
-  background: linear-gradient(120deg, rgba(255,255,255,0.5) 0%, transparent 30%, transparent 70%, rgba(255,255,255,0.3) 100%);
+  opacity: 0.5;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 44px 44px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, #000 40%, transparent 85%);
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, #000 40%, transparent 85%);
 }
-/* hero decorative background layers (photo/scrim/grid/spotlight/orbs)
-   removed -- hero now uses a plain solid background via .hp-hero's own
-   background-color: var(--de-paper) declaration below. */
-/* .hp-orb + hpOrb/hpKenBurns keyframes removed along with the hero
-   background layers -- no longer used anywhere. */
 
 .hp-kicker {
   display: inline-flex;
@@ -103,6 +114,11 @@
   font-size: 0.8rem;
   letter-spacing: 0.02em;
   color: var(--de-ink);
+}
+.hp-kicker.on-dark {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
 }
 .hp-kicker-dot {
   width: 8px;
@@ -134,7 +150,7 @@
 
 .hp-hero-title {
   font-weight: 800;
-  line-height: 2.4;
+  line-height: 1.25;
   letter-spacing: -0.02em;
   text-wrap: balance;
 }
@@ -278,8 +294,8 @@
 
 /* ---- Marquee / stats ----------------------------------------------------- */
 .hp-marquee {
-  background: #f8fafc;
-  border-block: 1px solid rgba(229, 231, 235, 0.3);
+  background: linear-gradient(90deg, var(--de-navy-950), var(--de-navy-800), var(--de-navy-950));
+  border-block: 1px solid rgba(255, 255, 255, 0.08);
   overflow: hidden;
   padding: 1.1rem 0;
 }
@@ -300,16 +316,15 @@
   gap: 0.55rem;
   padding: 0.55rem 1.1rem;
   border-radius: 999px;
-  background: #fff;
-  border: 1px solid rgba(37, 99, 235, 0.14);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--de-ink);
+  color: #fff;
   white-space: nowrap;
 }
 .hp-marquee-chip i {
-  color: var(--de-red);
+  color: var(--de-red-bright);
   font-size: 0.78rem;
 }
 
@@ -438,8 +453,8 @@
 .hp-final {
   position: relative;
   overflow: hidden;
-  color: var(--de-ink);
-  background-color: var(--de-paper);
+  color: #fff;
+  background: linear-gradient(155deg, var(--de-navy-950) 0%, var(--de-navy-900) 50%, var(--de-navy-700) 100%);
 }
 .hp-final-photo {
   position: absolute;
@@ -447,15 +462,26 @@
   background-image: url("../../images/germany.webp");
   background-size: cover;
   background-position: center;
-  filter: saturate(0.85);
-  opacity: 0.2;
+  filter: saturate(0.7) brightness(0.55);
+  opacity: 0.3;
   transform: scale(1.06);
 }
 .hp-final-scrim {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.9) 100%);
+    linear-gradient(180deg, rgba(6,15,31,0.55) 0%, rgba(6,15,31,0.88) 100%);
+}
+.hp-final-glow {
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  bottom: -240px;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgba(220,38,38,0.22) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .hp-sticky-cta {
@@ -494,6 +520,61 @@
   padding: 1.25rem;
 }
 
+/* ---- Fact chips (duration / allowance / level) — used in the Ausbildung
+   explainer block, and the EuroPass Academy trust panel --------------- */
+.hp-fact-chip {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.95rem 1.1rem;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+}
+.hp-fact-chip i {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: rgba(220, 38, 38, 0.08);
+  color: var(--de-red);
+  font-size: 0.95rem;
+}
+.hp-fact-chip strong {
+  display: block;
+  font-size: 0.92rem;
+  color: var(--de-ink);
+  margin-bottom: 0.15rem;
+}
+.hp-fact-chip span {
+  font-size: 0.8rem;
+  color: rgba(15, 23, 42, 0.55);
+  line-height: 1.5;
+}
+
+/* EuroPass Academy trust panel — pairs the real, on-the-ground school with
+   the online test-prep platform */
+.hp-academy-panel {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.1rem 1.3rem;
+  border-radius: 20px;
+  background: var(--de-navy-800);
+  color: #fff;
+}
+.hp-academy-panel img {
+  height: 44px;
+  width: 44px;
+  border-radius: 12px;
+  background: #fff;
+  padding: 6px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .hp-wave {
   display: block;
   width: 100%;
@@ -510,6 +591,14 @@
 .hp-btn-ghost:hover {
   background: rgba(249, 250, 251, 0.7);
   transform: translateY(-2px);
+}
+.hp-btn-ghost.on-dark {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+}
+.hp-btn-ghost.on-dark:hover {
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .hp-logo-word {
