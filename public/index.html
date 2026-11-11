@@ -201,11 +201,15 @@
 
     <main id="main">
         <!-- Hero -->
-        <section class="hp-hero pt-8 pb-16 px-4 sm:px-6 lg:px-8">
+        <section class="hp-hero pt-8 pb-16 px-4 sm:px-6 lg:px-8" @mousemove="onHeroMove($event)">
             <div class="hp-hero-navy-bg"></div>
             <div class="hp-hero-grid"></div>
             <div class="hp-hero-glow-a"></div>
             <div class="hp-hero-glow-b"></div>
+            <div class="hp-float-shape s1" :style="'transform: translate(' + ((spotX-72)/10) + 'px,' + ((spotY-38)/10 - 22) + 'px)'"></div>
+            <div class="hp-float-shape s2" :style="'transform: translate(' + ((spotX-72)/-14) + 'px,' + ((spotY-38)/-14) + 'px) rotate(18deg)'"></div>
+            <div class="hp-float-shape s3" :style="'transform: translate(' + ((spotX-72)/18) + 'px,' + ((spotY-38)/18) + 'px)'"></div>
+            <div class="hp-float-shape s4"></div>
 
             <div class="max-w-7xl mx-auto relative w-full">
                 <div class="grid lg:grid-cols-12 gap-12 lg:gap-8 items-center">
@@ -215,9 +219,9 @@
                             منصة EuroPass Academy · Goethe · telc · ÖSD · B1/B2
                         </div>
 
-                        <h1 class="hp-hero-title hp-fade-up hp-d2 text-5xl sm:text-6xl lg:text-[4rem] mb-6 text-white">
+                        <h1 class="hp-hero-title hp-display hp-fade-up hp-d2 text-6xl sm:text-7xl lg:text-[5.5rem] mb-6 text-white">
                             اجتز اختبار <span class="hp-mark">Ausbildung</span>
-                            <span class="block text-white/90 mt-2">كما سيأتي في قاعة الامتحان</span>
+                            <span class="block text-white/90 mt-3">كما سيأتي في قاعة الامتحان</span>
                         </h1>
 
                         <p class="hp-fade-up hp-d3 text-lg sm:text-xl text-white/70 mb-8 max-w-xl leading-relaxed">
@@ -340,7 +344,7 @@
                 <div class="grid lg:grid-cols-2 gap-12 items-center">
                     <div class="de-reveal" x-intersect.once="$el.classList.add('de-in')">
                         <span class="hp-section-kicker">من نحن</span>
-                        <h2 class="text-3xl sm:text-4xl font-bold text-flag-red mt-4 mb-5">LisanTest، إنتاج EuroPass Academy</h2>
+                        <h2 class="hp-display text-4xl sm:text-5xl text-flag-red mt-4 mb-5 leading-none">LisanTest، إنتاج EuroPass Academy</h2>
                         <p class="text-flag-ink/70 leading-relaxed mb-4">
                             <strong class="text-flag-ink">EuroPass Academy</strong> مدرسة فعلية للغات والتمريض بمدينة خميسات، المغرب — صفوف حضورية، أساتذة بالاسم، وفريق مرافقة لطلاب Ausbildung حتى توقيع العقد مع صاحب العمل الألماني. LisanTest هو الذراع الرقمي لهذه المدرسة: منصة محاكاة الامتحانات التي يستخدمها طلابها فعليًا للتحضير لاختبارات اللغة الألمانية.
                         </p>
@@ -437,7 +441,7 @@
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-14 de-reveal" x-intersect.once="$el.classList.add('de-in')">
                     <span class="hp-section-kicker">FÄHIGKEITEN</span>
-                    <h2 class="text-3xl sm:text-4xl font-bold text-flag-red mt-4 mb-3">أربع مهارات. امتحان واحد تجتازه بثقة.</h2>
+                    <h2 class="hp-display text-4xl sm:text-5xl text-flag-red mt-4 mb-3 leading-none">أربع مهارات. امتحان واحد تجتازه بثقة.</h2>
                     <p class="text-lg text-flag-ink/60 max-w-2xl mx-auto">تدرّب على كل جزء كما سيُختبر به — لا ملخصات عامة، بل شكل الامتحان نفسه.</p>
                 </div>
                 <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -471,70 +475,75 @@
 
         <!-- How it works -->
         <section id="how-it-works" class="py-20 px-4 sm:px-6 lg:px-8 bg-flag-cream/60">
-            <div class="max-w-6xl mx-auto">
-                <div class="text-center mb-16 de-reveal" x-intersect.once="$el.classList.add('de-in')">
+            <div class="max-w-5xl mx-auto">
+                <div class="mb-14 de-reveal" x-intersect.once="$el.classList.add('de-in')">
                     <span class="hp-section-kicker">DER WEG</span>
-                    <h2 class="text-3xl sm:text-4xl font-bold text-flag-red mt-4 mb-3">ثلاث خطوات. ثم أنت داخل الامتحان.</h2>
+                    <h2 class="hp-display text-4xl sm:text-5xl lg:text-6xl text-flag-red mt-4 mb-3 leading-none">ثلاث خطوات. ثم أنت داخل الامتحان.</h2>
                     <p class="text-lg text-flag-ink/60">من إنشاء الحساب إلى أول نتيجة تفصيلية في أقل من عشر دقائق.</p>
                 </div>
-                <div class="grid md:grid-cols-3 gap-6">
-                    <div class="de-card hp-step rounded-3xl p-8 de-reveal" x-intersect.once="$el.classList.add('de-in')">
-                        <div class="hp-step-num mb-4">01</div>
-                        <h3 class="text-xl font-semibold text-flag-ink mb-3">أنشئ حسابك</h3>
-                        <p class="text-flag-ink/60">بريد إلكتروني وكلمة مرور. تجربة مجانية قصيرة لتلمس شكل الأسئلة فورًا.</p>
+                <div class="hp-rowlist">
+                    <div class="hp-rowlist-item de-reveal" x-intersect.once="$el.classList.add('de-in')">
+                        <span class="hp-rowlist-num">01</span>
+                        <div>
+                            <h3 class="text-xl sm:text-2xl font-bold text-flag-ink mb-2">أنشئ حسابك</h3>
+                            <p class="text-flag-ink/60">بريد إلكتروني وكلمة مرور. تجربة مجانية قصيرة لتلمس شكل الأسئلة فورًا.</p>
+                        </div>
                     </div>
-                    <div class="de-card hp-step rounded-3xl p-8 de-reveal" x-intersect.once="$el.classList.add('de-in')" style="animation-delay:.08s">
-                        <div class="hp-step-num mb-4">02</div>
-                        <h3 class="text-xl font-semibold text-flag-ink mb-3">فعّل اشتراكك</h3>
-                        <p class="text-flag-ink/60">200 درهم شهريًا لفتح كل الاختبارات والمواد وتتبع التقدم. يُفعَّل بعد تأكيد الإدارة.</p>
+                    <div class="hp-rowlist-item de-reveal" x-intersect.once="$el.classList.add('de-in')" style="animation-delay:.08s">
+                        <span class="hp-rowlist-num">02</span>
+                        <div>
+                            <h3 class="text-xl sm:text-2xl font-bold text-flag-ink mb-2">فعّل اشتراكك</h3>
+                            <p class="text-flag-ink/60">200 درهم شهريًا لفتح كل الاختبارات والمواد وتتبع التقدم. يُفعَّل بعد تأكيد الإدارة.</p>
+                        </div>
                     </div>
-                    <div class="de-card hp-step rounded-3xl p-8 de-reveal" x-intersect.once="$el.classList.add('de-in')" style="animation-delay:.16s">
-                        <div class="hp-step-num mb-4">03</div>
-                        <h3 class="text-xl font-semibold text-flag-ink mb-3">تدرّب حتى تطمئن</h3>
-                        <p class="text-flag-ink/60">خذ المحاكاة، اقرأ الشرح، أعد الكرّة. لوحة التحكم تريك أين تتحسّن أسبوعًا بعد أسبوع.</p>
+                    <div class="hp-rowlist-item de-reveal" x-intersect.once="$el.classList.add('de-in')" style="animation-delay:.16s">
+                        <span class="hp-rowlist-num">03</span>
+                        <div>
+                            <h3 class="text-xl sm:text-2xl font-bold text-flag-ink mb-2">تدرّب حتى تطمئن</h3>
+                            <p class="text-flag-ink/60">خذ المحاكاة، اقرأ الشرح، أعد الكرّة. لوحة التحكم تريك أين تتحسّن أسبوعًا بعد أسبوع.</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
+
         <!-- Available tests -->
         <section id="available-tests" class="py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden" style="background: linear-gradient(135deg, var(--de-navy-700), var(--de-navy-900) 55%, var(--de-navy-950));">
             <div class="de-corner-mark top-6 end-6 rounded-tr-2xl hidden sm:block" style="border-color: rgba(255,255,255,0.35);"></div>
-            <div class="max-w-6xl mx-auto">
-                <div class="text-center mb-16 de-reveal" x-intersect.once="$el.classList.add('de-in')">
+            <div class="max-w-4xl mx-auto">
+                <div class="mb-14 de-reveal" x-intersect.once="$el.classList.add('de-in')">
                     <span class="de-badge" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4);">PRÜFUNGEN</span>
-                    <h2 class="text-3xl sm:text-4xl font-bold text-white mt-4 mb-4">اختر الامتحان الذي تحتاجه لـ Ausbildung</h2>
-                    <p class="text-lg text-white/80 max-w-2xl mx-auto">ستة محاكيات مصممة على هيكل Goethe و telc و ÖSD — نفس الأقسام، نفس إيقاع الوقت، نفس عتبة النجاح.</p>
+                    <h2 class="hp-display text-4xl sm:text-5xl text-white mt-4 mb-4 leading-none">اختر الامتحان الذي تحتاجه لـ Ausbildung</h2>
+                    <p class="text-lg text-white/80 max-w-2xl">ستة محاكيات مصممة على هيكل Goethe و telc و ÖSD — انقر على أي اختبار لعرض تفاصيله.</p>
                 </div>
 
-                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="hp-acc de-reveal" x-intersect.once="$el.classList.add('de-in')">
                     <template x-for="(test, i) in tests" :key="test.name">
-                        <div class="de-card de-ticket-edge hp-test rounded-3xl p-6 de-reveal"
-                             x-intersect.once="$el.classList.add('de-in')"
-                             :style="'animation-delay:' + (i * 0.05) + 's'">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="h-12 w-12 rounded-xl flex items-center justify-center"
-                                         :class="test.tone === 'gold' ? 'bg-flag-gold/15' : 'bg-flag-red/10'">
-                                        <i class="text-xl" :class="[test.icon, test.tone === 'gold' ? 'text-flag-ink' : 'text-flag-red']"></i>
-                                    </div>
-                                    <div>
-                                        <h3 class="font-semibold text-flag-ink" x-text="test.name"></h3>
-                                        <p class="text-sm text-flag-ink/50" x-text="test.subtitle"></p>
+                        <div class="hp-acc-row" :class="{'is-open': openExam === i}">
+                            <button @click="openExam = openExam === i ? null : i" class="hp-acc-trigger">
+                                <span class="hp-acc-num" x-text="(i+1).toString().padStart(2,'0')"></span>
+                                <i class="text-lg w-6 text-center" :class="[test.icon, test.tone === 'gold' ? 'text-flag-gold' : 'text-flag-red']"></i>
+                                <span class="font-semibold flex-1" x-text="test.name"></span>
+                                <span class="de-badge hidden sm:inline-flex" :class="test.tone === 'gold' ? 'de-badge-gold' : 'de-badge-red'" x-text="test.level"></span>
+                                <i class="fas fa-chevron-down hp-acc-chevron"></i>
+                            </button>
+                            <div class="hp-acc-panel" :class="{'is-open': openExam === i}">
+                                <div>
+                                    <div class="pb-6 ps-10 pe-4">
+                                        <p class="text-white/70 text-sm mb-4" x-text="test.desc"></p>
+                                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs text-white/60 font-mono mb-5">
+                                            <div><i class="fas fa-clock me-1"></i> <span x-text="test.minutes"></span> دقيقة</div>
+                                            <div><i class="fas fa-question-circle me-1"></i> <span x-text="test.questions"></span> سؤال</div>
+                                            <div><i class="fas fa-check-circle me-1 text-emerald-400"></i> 60% للنجاح</div>
+                                            <div><i class="fas fa-user-graduate me-1"></i> <span x-text="test.note"></span></div>
+                                        </div>
+                                        <button @click="goPrimary()" class="de-btn de-btn-primary text-sm py-2.5 px-6">
+                                            <i class="fas fa-play"></i> <span x-text="user ? 'ابدأ من لوحة التحكم' : 'سجّل وجرّب مجانًا'"></span>
+                                        </button>
                                     </div>
                                 </div>
-                                <span class="de-badge" :class="test.tone === 'gold' ? 'de-badge-gold' : 'de-badge-red'" x-text="test.level"></span>
                             </div>
-                            <p class="text-flag-ink/65 mb-4 text-sm" x-text="test.desc"></p>
-                            <div class="grid grid-cols-2 gap-3 text-xs text-flag-ink/60 font-mono mb-5">
-                                <div><i class="fas fa-clock me-1"></i> <span x-text="test.minutes"></span> دقيقة</div>
-                                <div><i class="fas fa-question-circle me-1"></i> <span x-text="test.questions"></span> سؤال</div>
-                                <div><i class="fas fa-check-circle me-1 text-emerald-600"></i> 60% للنجاح</div>
-                                <div><i class="fas fa-user-graduate me-1"></i> <span x-text="test.note"></span></div>
-                            </div>
-                            <button @click="goPrimary()" class="de-btn de-btn-primary w-full text-sm py-2.5">
-                                <i class="fas fa-play"></i> <span x-text="user ? 'ابدأ من لوحة التحكم' : 'سجّل وجرّب مجانًا'"></span>
-                            </button>
                         </div>
                     </template>
                 </div>
@@ -546,7 +555,7 @@
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-12 de-reveal" x-intersect.once="$el.classList.add('de-in')">
                     <span class="hp-section-kicker">AUSBILDUNG</span>
-                    <h2 class="text-3xl sm:text-4xl font-bold text-flag-red mt-4 mb-3">اللغة هي بوابة المهنة التي تريدها</h2>
+                    <h2 class="hp-display text-4xl sm:text-5xl text-flag-red mt-4 mb-3 leading-none">اللغة هي بوابة المهنة التي تريدها</h2>
                     <p class="text-lg text-flag-ink/60 max-w-2xl mx-auto">B1 يكفي لبعض البرامج. B2 يفتح التقنية والصحة والتجارة. حضّر المستوى الذي يطلبه عقدك. ألمانيا تفتح آلاف مقاعد Ausbildung كل سنة في التمريض والميكاترونيك والمعلوميات والفندقة — النظام هناك يجمع بين دراسة في Berufsschule وتدريب فعلي داخل شركة، لينتهي بشهادة مهنية معترف بها في ألمانيا وأوروبا.</p>
                 </div>
                 <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
@@ -609,7 +618,7 @@
             <div class="max-w-5xl mx-auto">
                 <div class="text-center mb-16 de-reveal" x-intersect.once="$el.classList.add('de-in')">
                     <span class="hp-section-kicker">TARIF</span>
-                    <h2 class="text-3xl sm:text-4xl font-bold text-flag-red mt-4 mb-3">سعر واضح. وصول كامل.</h2>
+                    <h2 class="hp-display text-4xl sm:text-5xl text-flag-red mt-4 mb-3 leading-none">سعر واضح. وصول كامل.</h2>
                     <p class="text-lg text-flag-ink/60">جرّب مجانًا ثم افتح كل المحاكيات باشتراك شهري يُلغى متى شئت.</p>
                 </div>
 
@@ -659,14 +668,15 @@
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-16 de-reveal" x-intersect.once="$el.classList.add('de-in')">
                     <span class="de-badge" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4);">ERFOLGE</span>
-                    <h2 class="text-3xl sm:text-4xl font-bold text-white mt-4 mb-4">طلاب اجتازوا. وأنت التالي.</h2>
+                    <h2 class="hp-display text-4xl sm:text-5xl text-white mt-4 mb-4 leading-none">طلاب اجتازوا. وأنت التالي.</h2>
                     <p class="text-lg text-white/80">آراء من حضّروا اختبارات Ausbildungsaufnahme على المنصة.</p>
                 </div>
                 <div class="grid md:grid-cols-3 gap-6">
                     <template x-for="(t, i) in testimonials" :key="t.name">
-                        <div class="de-card hp-quote rounded-3xl p-6 de-reveal"
+                        <div class="de-card hp-quote rounded-3xl p-6 de-reveal relative"
                              x-intersect.once="$el.classList.add('de-in')"
                              :style="'animation-delay:' + (i * 0.08) + 's'">
+                            <span class="hp-quote-badge"><i class="fas fa-quote-right"></i></span>
                             <div class="flex items-center gap-3 mb-4">
                                 <span class="de-avatar h-12 w-12" x-text="t.initials"></span>
                                 <div>
@@ -746,9 +756,12 @@
             <div class="hp-final-photo"></div>
             <div class="hp-final-scrim"></div>
             <div class="hp-final-glow"></div>
+            <div class="hp-float-shape s1" style="top:4%; inset-inline-start:6%;"></div>
+            <div class="hp-float-shape s2" style="bottom:12%; inset-inline-end:8%; inset-inline-start:auto;"></div>
+            <div class="hp-float-shape s4" style="top:20%; inset-inline-end:14%;"></div>
             <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
                 <span class="hp-kicker on-dark mb-6 inline-flex">مقعد Ausbildung يبدأ من شهادة اللغة</span>
-                <h2 class="text-3xl sm:text-5xl font-bold mb-5 leading-tight text-white">لا تدخل قاعة الامتحان وأنت تخمّن شكل الأسئلة.</h2>
+                <h2 class="hp-display text-4xl sm:text-6xl lg:text-7xl mb-6 leading-none text-white">لا تدخل قاعة الامتحان<br> وأنت تخمّن شكل الأسئلة.</h2>
                 <p class="text-lg text-white/70 mb-10 max-w-2xl mx-auto">سجّل مجانًا اليوم، جرّب المحاكاة، ثم قرر إن كانت 200 درهم شهريًا تستحق عقد التدريب في ألمانيا.</p>
                 <template x-if="!user">
                     <button @click="openSignup()" class="de-btn de-btn-gold de-glow-pulse text-base py-3.5 px-10">
@@ -775,12 +788,15 @@
                         <h3 class="font-semibold">LisanTest<span class="text-flag-red">.com</span></h3>
                     </div>
                     <p class="text-sm text-white/60 mb-5">منصة شاملة للتحضير لاختبارات اللغة الألمانية المطلوبة لبرامج Ausbildung في ألمانيا</p>
-                    <div class="flex gap-4 text-white/60">
+                    <div class="flex gap-4 text-white/60 mb-6">
                         <a href="#" class="hover:text-flag-gold transition-colors" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
                         <a href="#" class="hover:text-flag-gold transition-colors" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
                         <a href="#" class="hover:text-flag-gold transition-colors" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
                         <a href="#" class="hover:text-flag-gold transition-colors" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
                         <a href="#" class="hover:text-flag-gold transition-colors" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                    </div>
+                    <div class="hp-footer-shapes" aria-hidden="true">
+                        <span class="hp-fs-1"></span><span class="hp-fs-2"></span><span class="hp-fs-3"></span><span class="hp-fs-4"></span><span class="hp-fs-5"></span>
                     </div>
                 </div>
                 <div>

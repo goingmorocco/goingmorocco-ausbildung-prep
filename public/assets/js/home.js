@@ -19,6 +19,7 @@ function homeApp() {
         showRegisterPasswordConfirm: false,
         latestPosts: [],
         openFaq: null,
+        openExam: null,
         statsPlayed: false,
         statExams: 0,
         statQuestions: 0,
