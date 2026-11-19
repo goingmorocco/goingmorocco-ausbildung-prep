@@ -1,0 +1,941 @@
+From e8a45839e1cc80cc3932d77a8dc546cfc7ddfe8a Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Wed, 18 Nov 2026 23:57:42 +0000
+Subject: [PATCH] Add live classes: groups, sessions, click-to-join attendance
+
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01KuDt9nXHfUYSa44m17MJAt
+---
+ public/admin.html                             |   3 +
+ public/dashboard.html                         |   6 +
+ public/live.html                              | 216 +++++++++++
+ public/teacher.html                           | 353 ++++++++++++++++++
+ .../20240121000000_live_classes.sql           | 295 +++++++++++++++
+ 5 files changed, 873 insertions(+)
+ create mode 100644 public/live.html
+ create mode 100644 public/teacher.html
+ create mode 100644 supabase/migrations/20240121000000_live_classes.sql
+
+diff --git a/public/admin.html b/public/admin.html
+index db69589..8471aa0 100644
+--- a/public/admin.html
++++ b/public/admin.html
+@@ -166,6 +166,9 @@
+                     </div>
+                     <div class="flex items-center gap-4">
+                         <span class="text-sm text-flag-ink/70 hidden sm:inline" x-text="admin.full_name"></span>
++                        <a href="teacher.html" class="text-flag-ink/50 hover:text-flag-red transition-colors text-sm" title="الحصص المباشرة">
++                            <i class="fas fa-video"></i>
++                        </a>
+                         <a href="index.html" class="text-flag-ink/50 hover:text-flag-red transition-colors text-sm" title="العودة إلى الموقع">
+                             <i class="fas fa-arrow-up-right-from-square"></i>
+                         </a>
+diff --git a/public/dashboard.html b/public/dashboard.html
+index 8f820c9..1c3e3fa 100644
+--- a/public/dashboard.html
++++ b/public/dashboard.html
+@@ -111,6 +111,9 @@
+                                 <a href="classroom.html" class="text-sm font-medium text-flag-ink/70 hover:text-flag-red transition-colors">
+                                     <i class="fas fa-chalkboard"></i> الفصل الدراسي
+                                 </a>
++                                <a href="live.html" class="text-sm font-medium text-flag-ink/70 hover:text-flag-red transition-colors">
++                                    <i class="fas fa-video"></i> الحصص المباشرة
++                                </a>
+                                 <a href="events.html" class="text-sm font-medium text-flag-ink/70 hover:text-flag-red transition-colors">
+                                     <i class="fas fa-calendar-days"></i> الفعاليات
+                                 </a>
+@@ -182,6 +185,9 @@
+                                 <a href="classroom.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#0F172A;">
+                                     <i class="fas fa-chalkboard"></i> الفصل الدراسي
+                                 </a>
++                                <a href="live.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#0F172A;">
++                                    <i class="fas fa-video"></i> الحصص المباشرة
++                                </a>
+                                 <a href="events.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#0F172A;">
+                                     <i class="fas fa-calendar-days"></i> الفعاليات
+                                 </a>
+diff --git a/public/live.html b/public/live.html
+new file mode 100644
+index 0000000..3a6ddf3
+--- /dev/null
++++ b/public/live.html
+@@ -0,0 +1,216 @@
++<!DOCTYPE html>
++<html lang="ar" dir="rtl">
++<head>
++    <meta charset="UTF-8">
++    <meta name="viewport" content="width=device-width, initial-scale=1.0">
++    <title>الحصص المباشرة - LisanTest.com</title>
++    <meta name="description" content="جدول الحصص المباشرة والانضمام إليها">
++    <meta name="robots" content="noindex, nofollow">
++
++    <link rel="icon" type="image/x-icon" href="favicon.ico">
++
++    <link rel="preconnect" href="https://fonts.googleapis.com">
++    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
++    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
++
++    <script src="https://cdn.tailwindcss.com"></script>
++    <script>
++      tailwind.config = {
++        theme: {
++          extend: {
++            colors: {
++              flag: {
++                black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
++                red: '#DC2626', redbright: '#EF4444', reddeep: '#B91C1C',
++                blue: '#2563EB', bluebright: '#3B82F6', blueddeep: '#1D4ED8',
++                gold: '#DC2626', goldbright: '#EF4444', golddeep: '#B91C1C',
++                accent: '#DC2626', accentbright: '#EF4444', accentdeep: '#B91C1C',
++                cream: '#FFFFFF', paper: '#FFFFFF', ink: '#0F172A'
++              }
++            },
++            fontFamily: {
++              arabic: ['Cairo', 'sans-serif'],
++              mono: ['"JetBrains Mono"', 'monospace']
++            }
++          }
++        }
++      }
++    </script>
++
++    <link rel="stylesheet" href="assets/css/style.css">
++    <link rel="stylesheet" href="assets/css/responsive.css">
++
++    <!-- Supabase client (must load before Alpine, since x-init calls into it) -->
++    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
++    <script src="assets/js/supabase-client.js"></script>
++
++    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
++    <style>[x-cloak]{display:none !important;}</style>
++</head>
++<body class="font-arabic de-paper-bg text-flag-ink antialiased min-h-screen" x-data="liveApp()" x-init="init()">
++
++<div x-show="!authChecked" class="min-h-screen flex items-center justify-center de-dark-bg text-white"><i class="fas fa-circle-notch fa-spin text-2xl"></i></div>
++
++<template x-if="authChecked && user && gateStatus !== 'ok'">
++  <div class="min-h-screen de-dark-bg flex items-center justify-center p-4">
++    <div class="de-card w-full max-w-md p-8 text-center">
++      <span class="de-stamp de-stamp-onlight h-16 w-16 text-xs mx-auto mb-5"><i class="fas fa-lock"></i></span>
++      <h1 class="text-xl font-bold mb-2">الحصص المباشرة للأعضاء المشتركين فقط</h1>
++      <p class="text-sm text-flag-ink/60 mb-6">فعّل اشتراكك للانضمام إلى الحصص المباشرة.</p>
++      <a href="dashboard.html" class="de-btn de-btn-primary text-sm px-6 py-2.5">العودة إلى لوحة التحكم</a>
++    </div>
++  </div>
++</template>
++
++<template x-if="authChecked && user && gateStatus === 'ok'">
++  <div>
++    <header class="sticky top-0 z-30 de-light-bg border-b border-black/5 shadow-sm">
++      <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
++        <a href="dashboard.html" class="flex items-center gap-3">
++          <span class="de-stamp de-stamp-onlight h-10 w-10 text-xs"><i class="fas fa-video"></i></span>
++          <span class="font-semibold">الحصص المباشرة</span>
++        </a>
++        <div class="flex items-center gap-3 text-sm">
++          <a x-show="isStaff" x-cloak href="teacher.html" class="text-flag-red font-medium"><i class="fas fa-chalkboard-user"></i> لوحة المدرّس</a>
++          <a href="dashboard.html" class="text-flag-ink/60 hover:text-flag-red"><i class="fas fa-arrow-right"></i> لوحة التحكم</a>
++        </div>
++      </div>
++    </header>
++
++    <main class="max-w-4xl mx-auto px-4 py-8">
++      <div x-show="toast" x-cloak x-transition class="fixed top-20 inset-x-0 z-50 flex justify-center px-4">
++        <div class="bg-flag-black text-white text-sm rounded-full px-5 py-2.5 shadow-lg" x-text="toast"></div>
++      </div>
++
++      <div x-show="loading" class="text-center py-16 text-flag-ink/40"><i class="fas fa-circle-notch fa-spin text-xl"></i></div>
++
++      <div x-show="!loading && sessions.length === 0" x-cloak class="de-card p-10 text-center">
++        <i class="fas fa-calendar-xmark text-3xl text-flag-ink/30 mb-4"></i>
++        <h2 class="font-bold mb-1">لا توجد حصص مجدولة</h2>
++        <p class="text-sm text-flag-ink/60">ستظهر هنا حصصك المباشرة بمجرد تسجيلك في مجموعة ونشر المدرّس للموعد.</p>
++      </div>
++
++      <template x-if="!loading && upcoming.length">
++        <section class="mb-10">
++          <h2 class="text-lg font-bold mb-4">الحصص القادمة</h2>
++          <div class="space-y-4">
++            <template x-for="s in upcoming" :key="s.session_id">
++              <article class="de-card p-5 flex flex-col sm:flex-row sm:items-center gap-4">
++                <div class="flex-shrink-0 text-center sm:w-24">
++                  <div class="text-2xl font-bold font-mono" x-text="timeOf(s.starts_at)"></div>
++                  <div class="text-xs text-flag-ink/50" x-text="dayOf(s.starts_at)"></div>
++                </div>
++                <div class="flex-1 min-w-0">
++                  <div class="flex flex-wrap items-center gap-2 mb-1">
++                    <h3 class="font-bold" x-text="s.title"></h3>
++                    <span class="text-[11px] px-2 py-0.5 rounded-full bg-flag-cream text-flag-ink/60" x-text="s.group_name + (s.level ? ' · ' + s.level : '')"></span>
++                    <span x-show="s.joinable" class="text-[11px] px-2 py-0.5 rounded-full bg-green-100 text-green-700"><i class="fas fa-circle text-[6px]"></i> مفتوحة الآن</span>
++                  </div>
++                  <p class="text-sm text-flag-ink/60" x-text="s.duration_minutes + ' دقيقة · ' + platformName(s.platform)"></p>
++                  <p x-show="s.notes" class="text-sm text-flag-ink/70 mt-1 whitespace-pre-line" x-text="s.notes"></p>
++                </div>
++                <div class="flex-shrink-0">
++                  <button @click="join(s)" :disabled="!s.joinable || joining === s.session_id"
++                          class="de-btn de-btn-primary text-sm px-6 py-2.5 disabled:opacity-40 disabled:cursor-not-allowed">
++                    <i class="fas" :class="joining === s.session_id ? 'fa-circle-notch fa-spin' : 'fa-video'"></i>
++                    <span x-text="s.joinable ? 'انضم الآن' : 'يفتح قبل 15 دقيقة'"></span>
++                  </button>
++                </div>
++              </article>
++            </template>
++          </div>
++        </section>
++      </template>
++
++      <template x-if="!loading && past.length">
++        <section>
++          <h2 class="text-lg font-bold mb-4">الحصص السابقة</h2>
++          <div class="space-y-3">
++            <template x-for="s in past" :key="s.session_id">
++              <article class="de-card p-4 flex flex-wrap items-center gap-3 text-sm">
++                <div class="flex-1 min-w-0">
++                  <div class="font-semibold" x-text="s.title"></div>
++                  <div class="text-xs text-flag-ink/50" x-text="dayOf(s.starts_at) + ' · ' + timeOf(s.starts_at) + ' · ' + s.group_name"></div>
++                </div>
++                <span class="text-xs px-2.5 py-1 rounded-full" :class="s.attended ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-600'"
++                      x-text="s.attended ? 'حضرت' : 'غياب'"></span>
++                <a x-show="s.recording_url" :href="s.recording_url" target="_blank" rel="noopener noreferrer" class="text-flag-red text-xs font-medium"><i class="fas fa-play"></i> التسجيل</a>
++              </article>
++            </template>
++          </div>
++        </section>
++      </template>
++    </main>
++  </div>
++</template>
++
++<script>
++function liveApp() {
++  return {
++    user: null, authChecked: false, gateStatus: 'ok', isStaff: false,
++    sessions: [], loading: true, joining: null, toast: '', _t: null,
++
++    get upcoming() {
++      const now = Date.now();
++      return this.sessions.filter(s => now <= new Date(s.starts_at).getTime() + (s.duration_minutes + 30) * 60000);
++    },
++    get past() {
++      const now = Date.now();
++      return this.sessions.filter(s => now > new Date(s.starts_at).getTime() + (s.duration_minutes + 30) * 60000).reverse();
++    },
++
++    async init() {
++      const { data: { session } } = await sb.auth.getSession();
++      if (!session) { window.location.href = 'index.html'; return; }
++      try {
++        const profile = await sbGetProfile(session.user.id);
++        if (profile.role === 'admin') { window.location.href = 'teacher.html'; return; }
++        this.user = profile;
++        this.isStaff = profile.role === 'teacher';
++        this.gateStatus = profile.membership_status === 'active' ? 'ok' : profile.membership_status;
++        this.authChecked = true;
++        if (this.gateStatus === 'ok') {
++          await this.load();
++          setInterval(() => this.load(true), 60000);
++        }
++      } catch (e) { console.error(e); this.authChecked = true; }
++    },
++
++    async load(silent) {
++      if (!silent) this.loading = true;
++      const { data, error } = await sb.rpc('get_my_class_sessions');
++      if (error) { console.error(error); this.say('تعذّر تحميل الحصص'); }
++      else this.sessions = data || [];
++      this.loading = false;
++    },
++
++    async join(s) {
++      this.joining = s.session_id;
++      // Open the tab synchronously on click so popup blockers allow it.
++      const w = window.open('', '_blank');
++      try {
++        const { data, error } = await sb.rpc('join_class_session', { sid: s.session_id });
++        if (error) throw error;
++        if (w) { w.opener = null; w.location.href = data; } else { window.location.href = data; }
++        this.say('تم تسجيل حضورك ✓');
++        this.load(true);
++      } catch (e) {
++        if (w) w.close();
++        const m = (e.message || '');
++        this.say(m.includes('too_early') ? 'الحصة لم تفتح بعد'
++               : m.includes('session_ended') ? 'انتهت هذه الحصة'
++               : m.includes('not_enrolled') ? 'أنت غير مسجّل في هذه المجموعة'
++               : m.includes('membership') ? 'يلزم اشتراك نشط' : 'تعذّر الانضمام، حاول مرة أخرى');
++        this.load(true);
++      } finally { this.joining = null; }
++    },
++
++    say(m) { this.toast = m; clearTimeout(this._t); this._t = setTimeout(() => this.toast = '', 3500); },
++    platformName(p) { return p === 'zoom' ? 'Zoom' : p === 'meet' ? 'Google Meet' : 'رابط مباشر'; },
++    timeOf(iso) { return new Date(iso).toLocaleTimeString('fr-MA', { hour: '2-digit', minute: '2-digit' }); },
++    dayOf(iso) { return new Date(iso).toLocaleDateString('ar-MA-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long' }); }
++  };
++}
++</script>
++</body>
++</html>
+diff --git a/public/teacher.html b/public/teacher.html
+new file mode 100644
+index 0000000..2701b83
+--- /dev/null
++++ b/public/teacher.html
+@@ -0,0 +1,353 @@
++<!DOCTYPE html>
++<html lang="ar" dir="rtl">
++<head>
++    <meta charset="UTF-8">
++    <meta name="viewport" content="width=device-width, initial-scale=1.0">
++    <title>لوحة المدرّس - LisanTest.com</title>
++    <meta name="description" content="إدارة المجموعات والحصص المباشرة والحضور">
++    <meta name="robots" content="noindex, nofollow">
++
++    <link rel="icon" type="image/x-icon" href="favicon.ico">
++
++    <link rel="preconnect" href="https://fonts.googleapis.com">
++    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
++    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
++
++    <script src="https://cdn.tailwindcss.com"></script>
++    <script>
++      tailwind.config = {
++        theme: {
++          extend: {
++            colors: {
++              flag: {
++                black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
++                red: '#DC2626', redbright: '#EF4444', reddeep: '#B91C1C',
++                blue: '#2563EB', bluebright: '#3B82F6', blueddeep: '#1D4ED8',
++                gold: '#DC2626', goldbright: '#EF4444', golddeep: '#B91C1C',
++                accent: '#DC2626', accentbright: '#EF4444', accentdeep: '#B91C1C',
++                cream: '#FFFFFF', paper: '#FFFFFF', ink: '#0F172A'
++              }
++            },
++            fontFamily: {
++              arabic: ['Cairo', 'sans-serif'],
++              mono: ['"JetBrains Mono"', 'monospace']
++            }
++          }
++        }
++      }
++    </script>
++
++    <link rel="stylesheet" href="assets/css/style.css">
++    <link rel="stylesheet" href="assets/css/responsive.css">
++
++    <!-- Supabase client (must load before Alpine, since x-init calls into it) -->
++    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
++    <script src="assets/js/supabase-client.js"></script>
++
++    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
++    <style>[x-cloak]{display:none !important;}</style>
++</head>
++<body class="font-arabic de-paper-bg text-flag-ink antialiased min-h-screen" x-data="teacherApp()" x-init="init()">
++
++<div x-show="!authChecked" class="min-h-screen flex items-center justify-center de-dark-bg text-white"><i class="fas fa-circle-notch fa-spin text-2xl"></i></div>
++
++<template x-if="authChecked && !allowed">
++  <div class="min-h-screen de-dark-bg flex items-center justify-center p-4">
++    <div class="de-card w-full max-w-md p-8 text-center">
++      <span class="de-stamp de-stamp-onlight h-16 w-16 text-xs mx-auto mb-5"><i class="fas fa-lock"></i></span>
++      <h1 class="text-xl font-bold mb-2">هذه الصفحة للمدرّسين والإدارة فقط</h1>
++      <a href="dashboard.html" class="de-btn de-btn-primary text-sm px-6 py-2.5 mt-4">العودة</a>
++    </div>
++  </div>
++</template>
++
++<template x-if="authChecked && allowed">
++<div>
++  <header class="sticky top-0 z-30 de-light-bg border-b border-black/5 shadow-sm">
++    <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
++      <div class="flex items-center gap-3">
++        <span class="de-stamp de-stamp-onlight h-10 w-10 text-xs"><i class="fas fa-chalkboard-user"></i></span>
++        <span class="font-semibold">لوحة المدرّس</span>
++      </div>
++      <a :href="isAdmin ? 'admin.html' : 'live.html'" class="text-sm text-flag-ink/60 hover:text-flag-red"><i class="fas fa-arrow-right"></i> رجوع</a>
++    </div>
++  </header>
++
++  <main class="max-w-5xl mx-auto px-4 py-8">
++    <div x-show="toast" x-cloak x-transition class="fixed top-20 inset-x-0 z-50 flex justify-center px-4">
++      <div class="bg-flag-black text-white text-sm rounded-full px-5 py-2.5 shadow-lg" x-text="toast"></div>
++    </div>
++
++    <div class="grid lg:grid-cols-3 gap-6">
++      <!-- Groups column -->
++      <aside class="lg:col-span-1 space-y-4">
++        <div class="de-card p-4">
++          <h2 class="font-bold mb-3">المجموعات</h2>
++          <p x-show="!groups.length" class="text-sm text-flag-ink/50">لا توجد مجموعات بعد.</p>
++          <div class="space-y-2">
++            <template x-for="g in groups" :key="g.id">
++              <button @click="selectGroup(g)" class="w-full text-start px-3 py-2.5 rounded-xl border text-sm transition-colors"
++                      :class="current && current.id === g.id ? 'border-flag-red bg-red-50' : 'border-black/10 hover:bg-flag-cream'">
++                <div class="font-semibold" x-text="g.name"></div>
++                <div class="text-xs text-flag-ink/50" x-text="(g.level || '') + (g.is_active ? '' : ' · غير نشطة')"></div>
++              </button>
++            </template>
++          </div>
++        </div>
++
++        <div x-show="isAdmin" x-cloak class="de-card p-4 space-y-2">
++          <h3 class="font-bold text-sm">مجموعة جديدة</h3>
++          <input x-model="newGroup.name" placeholder="اسم المجموعة" class="w-full px-3 py-2 rounded-lg border border-black/10 text-sm">
++          <input x-model="newGroup.level" placeholder="المستوى (B1, B2…)" class="w-full px-3 py-2 rounded-lg border border-black/10 text-sm">
++          <button @click="createGroup()" class="de-btn de-btn-primary text-sm w-full py-2">إنشاء</button>
++        </div>
++
++        <div x-show="isAdmin" x-cloak class="de-card p-4 space-y-2">
++          <h3 class="font-bold text-sm">إدارة المدرّسين</h3>
++          <p class="text-xs text-flag-ink/50">أدخل البريد الإلكتروني للمستخدم لترقيته إلى مدرّس.</p>
++          <input x-model="teacherEmail" type="email" dir="ltr" placeholder="email@example.com" class="w-full px-3 py-2 rounded-lg border border-black/10 text-sm">
++          <div class="flex gap-2">
++            <button @click="setTeacher(true)" class="de-btn de-btn-primary text-sm flex-1 py-2">ترقية</button>
++            <button @click="setTeacher(false)" class="flex-1 py-2 text-sm rounded-full border border-black/10">إزالة</button>
++          </div>
++        </div>
++      </aside>
++
++      <!-- Detail column -->
++      <section class="lg:col-span-2 space-y-6">
++        <div x-show="!current" class="de-card p-10 text-center text-flag-ink/50">اختر مجموعة للبدء.</div>
++
++        <template x-if="current">
++          <div class="space-y-6">
++            <div class="de-card p-5">
++              <div class="flex flex-wrap items-center justify-between gap-2">
++                <div>
++                  <h2 class="text-lg font-bold" x-text="current.name"></h2>
++                  <p class="text-xs text-flag-ink/50" x-text="'المدرّس: ' + (teacherName || 'غير معيّن')"></p>
++                </div>
++                <div x-show="isAdmin" x-cloak class="flex items-center gap-2">
++                  <input x-model="assignEmail" dir="ltr" placeholder="بريد المدرّس" class="px-3 py-1.5 rounded-lg border border-black/10 text-xs w-44">
++                  <button @click="assignTeacher()" class="text-xs px-3 py-1.5 rounded-full bg-flag-black text-white">تعيين</button>
++                </div>
++              </div>
++            </div>
++
++            <!-- New session -->
++            <div class="de-card p-5">
++              <h3 class="font-bold mb-3">جدولة حصة</h3>
++              <div class="grid sm:grid-cols-2 gap-3">
++                <input x-model="form.title" placeholder="عنوان الحصة" class="px-3 py-2 rounded-lg border border-black/10 text-sm sm:col-span-2">
++                <input x-model="form.starts" type="datetime-local" class="px-3 py-2 rounded-lg border border-black/10 text-sm">
++                <input x-model.number="form.duration" type="number" min="5" max="480" placeholder="المدة (دقيقة)" class="px-3 py-2 rounded-lg border border-black/10 text-sm">
++                <input x-model="form.url" type="url" dir="ltr" placeholder="https://zoom.us/j/… أو https://meet.google.com/…" class="px-3 py-2 rounded-lg border border-black/10 text-sm sm:col-span-2">
++                <textarea x-model="form.notes" rows="2" placeholder="ملاحظات للطلاب (اختياري)" class="px-3 py-2 rounded-lg border border-black/10 text-sm sm:col-span-2"></textarea>
++              </div>
++              <button @click="createSession()" class="de-btn de-btn-primary text-sm px-6 py-2 mt-3"><i class="fas fa-plus"></i> نشر الحصة</button>
++            </div>
++
++            <!-- Sessions -->
++            <div class="de-card p-5">
++              <h3 class="font-bold mb-3">الحصص</h3>
++              <p x-show="!sessions.length" class="text-sm text-flag-ink/50">لا توجد حصص.</p>
++              <div class="space-y-2">
++                <template x-for="s in sessions" :key="s.id">
++                  <div class="border border-black/10 rounded-xl p-3">
++                    <div class="flex flex-wrap items-center gap-2 justify-between">
++                      <div>
++                        <div class="font-semibold text-sm" x-text="s.title"></div>
++                        <div class="text-xs text-flag-ink/50" x-text="fmt(s.starts_at) + ' · ' + s.duration_minutes + ' د'"></div>
++                      </div>
++                      <div class="flex gap-2 text-xs">
++                        <button @click="openAttendance(s)" class="px-3 py-1.5 rounded-full bg-flag-cream"><i class="fas fa-clipboard-check"></i> الحضور</button>
++                        <button @click="removeSession(s)" class="px-3 py-1.5 rounded-full text-red-600 bg-red-50"><i class="fas fa-trash"></i></button>
++                      </div>
++                    </div>
++                    <div x-show="openSession === s.id" x-cloak class="mt-3 border-t border-black/5 pt-3">
++                      <div class="flex items-center gap-2 mb-3">
++                        <input :value="s.recording_url || ''" @change="saveRecording(s, $event.target.value)" dir="ltr" placeholder="رابط التسجيل (اختياري)" class="flex-1 px-3 py-1.5 rounded-lg border border-black/10 text-xs">
++                      </div>
++                      <div class="text-xs text-flag-ink/60 mb-2" x-text="'الحاضرون: ' + attendance.filter(a => a.present).length + ' / ' + attendance.length"></div>
++                      <template x-for="a in attendance" :key="a.student_id">
++                        <label class="flex items-center justify-between py-1.5 text-sm cursor-pointer">
++                          <span x-text="a.full_name"></span>
++                          <span class="flex items-center gap-2">
++                            <span x-show="a.present && a.source === 'click'" class="text-[10px] text-flag-ink/40" x-text="'نقر · ' + a.join_count + '×'"></span>
++                            <span x-show="a.present && a.source === 'manual'" class="text-[10px] text-flag-ink/40">يدوي</span>
++                            <input type="checkbox" :checked="a.present" @change="mark(s, a, $event.target.checked)">
++                          </span>
++                        </label>
++                      </template>
++                      <button @click="exportCsv(s)" class="mt-3 text-xs text-flag-red font-medium"><i class="fas fa-download"></i> تصدير CSV</button>
++                    </div>
++                  </div>
++                </template>
++              </div>
++            </div>
++
++            <!-- Roster -->
++            <div class="de-card p-5">
++              <h3 class="font-bold mb-3" x-text="'الطلاب (' + roster.length + ')'"></h3>
++              <div class="flex gap-2 mb-3">
++                <input x-model="enrollEmail" type="email" dir="ltr" placeholder="بريد الطالب للتسجيل" class="flex-1 px-3 py-2 rounded-lg border border-black/10 text-sm">
++                <button @click="enroll()" class="de-btn de-btn-primary text-sm px-5">تسجيل</button>
++              </div>
++              <template x-for="r in roster" :key="r.student_id">
++                <div class="flex items-center justify-between py-1.5 text-sm">
++                  <div><span x-text="r.full_name"></span> <span class="text-xs text-flag-ink/40" dir="ltr" x-text="r.email"></span>
++                    <span x-show="r.membership_status !== 'active'" class="text-[10px] px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700">اشتراك غير نشط</span></div>
++                  <button @click="unenroll(r)" class="text-xs text-red-600"><i class="fas fa-user-minus"></i></button>
++                </div>
++              </template>
++            </div>
++          </div>
++        </template>
++      </section>
++    </div>
++  </main>
++</div>
++</template>
++
++<script>
++function teacherApp() {
++  return {
++    user: null, authChecked: false, allowed: false, isAdmin: false,
++    groups: [], current: null, sessions: [], roster: [], attendance: [], openSession: null,
++    teacherName: '', toast: '', _t: null,
++    newGroup: { name: '', level: '' }, teacherEmail: '', assignEmail: '', enrollEmail: '',
++    form: { title: '', starts: '', duration: 60, url: '', notes: '' },
++
++    async init() {
++      const { data: { session } } = await sb.auth.getSession();
++      if (!session) { window.location.href = 'index.html'; return; }
++      try {
++        const p = await sbGetProfile(session.user.id);
++        this.user = p; this.isAdmin = p.role === 'admin';
++        this.allowed = p.role === 'admin' || p.role === 'teacher';
++        this.authChecked = true;
++        if (this.allowed) await this.loadGroups();
++      } catch (e) { console.error(e); this.authChecked = true; }
++    },
++
++    say(m) { this.toast = m; clearTimeout(this._t); this._t = setTimeout(() => this.toast = '', 3500); },
++    fmt(iso) { return new Date(iso).toLocaleString('fr-MA', { dateStyle: 'medium', timeStyle: 'short' }); },
++    fail(e, fallback) { console.error(e); this.say((e && e.message && /forbidden|not_enrolled/.test(e.message)) ? 'غير مسموح' : fallback); },
++
++    async loadGroups() {
++      const { data, error } = await sb.from('class_groups').select('*').order('created_at', { ascending: false });
++      if (error) return this.fail(error, 'تعذّر تحميل المجموعات');
++      this.groups = data || [];
++      if (this.current) this.current = this.groups.find(g => g.id === this.current.id) || null;
++    },
++
++    async selectGroup(g) {
++      this.current = g; this.openSession = null; this.attendance = [];
++      this.teacherName = '';
++      if (g.teacher_id) {
++        const { data } = await sb.from('users').select('full_name').eq('id', g.teacher_id).maybeSingle();
++        this.teacherName = data ? data.full_name : '';
++      }
++      await Promise.all([this.loadSessions(), this.loadRoster()]);
++    },
++
++    async loadSessions() {
++      const { data, error } = await sb.from('class_sessions').select('*').eq('group_id', this.current.id).order('starts_at', { ascending: false });
++      if (error) return this.fail(error, 'تعذّر تحميل الحصص');
++      this.sessions = data || [];
++    },
++    async loadRoster() {
++      const { data, error } = await sb.rpc('get_group_roster', { gid: this.current.id });
++      if (error) return this.fail(error, 'تعذّر تحميل الطلاب');
++      this.roster = data || [];
++    },
++
++    async createGroup() {
++      if (!this.newGroup.name.trim()) return this.say('أدخل اسم المجموعة');
++      const { error } = await sb.from('class_groups').insert({ name: this.newGroup.name.trim(), level: this.newGroup.level.trim() || null });
++      if (error) return this.fail(error, 'تعذّر إنشاء المجموعة');
++      this.newGroup = { name: '', level: '' }; this.say('تم إنشاء المجموعة'); this.loadGroups();
++    },
++
++    async setTeacher(flag) {
++      const { data, error } = await sb.rpc('find_user_by_email', { q: this.teacherEmail });
++      if (error || !data || !data.length) return this.say('لم يتم العثور على المستخدم');
++      const { error: e2 } = await sb.rpc('set_user_teacher', { uid: data[0].id, make_teacher: flag });
++      if (e2) return this.fail(e2, 'تعذّر التحديث');
++      this.say(flag ? 'تمت الترقية إلى مدرّس' : 'تمت إزالة صلاحية المدرّس'); this.teacherEmail = '';
++    },
++
++    async assignTeacher() {
++      const { data, error } = await sb.rpc('find_user_by_email', { q: this.assignEmail });
++      if (error || !data || !data.length) return this.say('لم يتم العثور على المستخدم');
++      if (data[0].role !== 'teacher' && data[0].role !== 'admin') return this.say('هذا المستخدم ليس مدرّسًا، قم بترقيته أولًا');
++      const { error: e2 } = await sb.from('class_groups').update({ teacher_id: data[0].id }).eq('id', this.current.id);
++      if (e2) return this.fail(e2, 'تعذّر التعيين');
++      this.assignEmail = ''; this.say('تم تعيين المدرّس');
++      await this.loadGroups(); this.selectGroup(this.current);
++    },
++
++    async enroll() {
++      const { data, error } = await sb.rpc('find_user_by_email', { q: this.enrollEmail });
++      if (error || !data || !data.length) return this.say('لم يتم العثور على الطالب');
++      const { error: e2 } = await sb.from('class_enrollments').insert({ group_id: this.current.id, student_id: data[0].id });
++      if (e2) return this.say(e2.code === '23505' ? 'الطالب مسجّل بالفعل' : 'تعذّر التسجيل');
++      this.enrollEmail = ''; this.say('تم تسجيل الطالب'); this.loadRoster();
++    },
++    async unenroll(r) {
++      if (!confirm('إزالة ' + r.full_name + ' من المجموعة؟')) return;
++      const { error } = await sb.from('class_enrollments').delete().eq('group_id', this.current.id).eq('student_id', r.student_id);
++      if (error) return this.fail(error, 'تعذّرت الإزالة');
++      this.loadRoster();
++    },
++
++    async createSession() {
++      const f = this.form;
++      if (!f.title.trim() || !f.starts || !/^https?:\/\//i.test(f.url.trim())) return this.say('أكمل العنوان والموعد والرابط (يبدأ بـ https://)');
++      const u = f.url.trim();
++      const platform = /zoom\./i.test(u) ? 'zoom' : /meet\.google\./i.test(u) ? 'meet' : 'other';
++      const { error } = await sb.from('class_sessions').insert({
++        group_id: this.current.id, title: f.title.trim(), starts_at: new Date(f.starts).toISOString(),
++        duration_minutes: f.duration || 60, join_url: u, platform, notes: f.notes.trim() || null, created_by: this.user.id
++      });
++      if (error) return this.fail(error, 'تعذّر نشر الحصة');
++      this.form = { title: '', starts: '', duration: 60, url: '', notes: '' };
++      this.say('تم نشر الحصة'); this.loadSessions();
++    },
++    async removeSession(s) {
++      if (!confirm('حذف هذه الحصة وسجل حضورها؟')) return;
++      const { error } = await sb.from('class_sessions').delete().eq('id', s.id);
++      if (error) return this.fail(error, 'تعذّر الحذف');
++      this.loadSessions();
++    },
++    async saveRecording(s, url) {
++      const { error } = await sb.from('class_sessions').update({ recording_url: url.trim() || null }).eq('id', s.id);
++      if (error) return this.fail(error, 'تعذّر الحفظ');
++      s.recording_url = url.trim() || null; this.say('تم الحفظ');
++    },
++
++    async openAttendance(s) {
++      if (this.openSession === s.id) { this.openSession = null; return; }
++      this.openSession = s.id; await this.loadAttendance(s);
++    },
++    async loadAttendance(s) {
++      const { data, error } = await sb.rpc('get_session_attendance', { sid: s.id });
++      if (error) return this.fail(error, 'تعذّر تحميل الحضور');
++      this.attendance = data || [];
++    },
++    async mark(s, a, present) {
++      const { error } = await sb.rpc('set_attendance', { sid: s.id, student: a.student_id, present });
++      if (error) this.fail(error, 'تعذّر التحديث');
++      this.loadAttendance(s);
++    },
++    exportCsv(s) {
++      const esc = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
++      const rows = [['Name', 'Present', 'Joined at', 'Join count', 'Source']]
++        .concat(this.attendance.map(a => [a.full_name, a.present ? 'yes' : 'no', a.joined_at || '', a.join_count ?? '', a.source || '']));
++      const blob = new Blob(['﻿' + rows.map(r => r.map(esc).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' });
++      const el = document.createElement('a');
++      el.href = URL.createObjectURL(blob); el.download = 'attendance-' + s.starts_at.slice(0, 10) + '.csv'; el.click();
++    }
++  };
++}
++</script>
++</body>
++</html>
+diff --git a/supabase/migrations/20240121000000_live_classes.sql b/supabase/migrations/20240121000000_live_classes.sql
+new file mode 100644
+index 0000000..1eaca95
+--- /dev/null
++++ b/supabase/migrations/20240121000000_live_classes.sql
+@@ -0,0 +1,295 @@
++-- Live classes: groups, enrollments, scheduled sessions (teacher-pasted Zoom/Meet
++-- links) and click-to-join attendance.
++--
++-- Security model: students have NO direct SELECT on class_sessions, so the
++-- join_url can't be read or scraped. They go through SECURITY DEFINER RPCs that
++-- check enrollment + active membership + time window, log attendance, and only
++-- then return the link.
++
++-- ---------------------------------------------------------------------------
++-- 0. Close a privilege hole: the "Users can update their own profile" policy
++--    lets any user UPDATE their own row, including role / membership_status.
++--    Block that for non-admins. auth.uid() IS NULL (SQL editor, service role,
++--    edge functions) is allowed through.
++-- ---------------------------------------------------------------------------
++CREATE OR REPLACE FUNCTION public.protect_user_privileged_columns()
++RETURNS TRIGGER
++LANGUAGE plpgsql
++SECURITY DEFINER
++SET search_path = public
++AS $$
++BEGIN
++    IF auth.uid() IS NOT NULL AND NOT public.is_admin() THEN
++        IF NEW.role IS DISTINCT FROM OLD.role
++           OR NEW.membership_status IS DISTINCT FROM OLD.membership_status THEN
++            RAISE EXCEPTION 'Not allowed to change role or membership status';
++        END IF;
++    END IF;
++    RETURN NEW;
++END;
++$$;
++
++DROP TRIGGER IF EXISTS trg_protect_user_privileged_columns ON public.users;
++CREATE TRIGGER trg_protect_user_privileged_columns
++    BEFORE UPDATE ON public.users
++    FOR EACH ROW EXECUTE FUNCTION public.protect_user_privileged_columns();
++
++-- ---------------------------------------------------------------------------
++-- 1. Tables
++-- ---------------------------------------------------------------------------
++CREATE TABLE IF NOT EXISTS public.class_groups (
++    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
++    name TEXT NOT NULL,
++    level TEXT,
++    description TEXT,
++    teacher_id UUID REFERENCES public.users(id) ON DELETE SET NULL,
++    is_active BOOLEAN NOT NULL DEFAULT TRUE,
++    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
++);
++
++CREATE TABLE IF NOT EXISTS public.class_enrollments (
++    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
++    group_id UUID NOT NULL REFERENCES public.class_groups(id) ON DELETE CASCADE,
++    student_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
++    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
++    UNIQUE (group_id, student_id)
++);
++
++CREATE TABLE IF NOT EXISTS public.class_sessions (
++    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
++    group_id UUID NOT NULL REFERENCES public.class_groups(id) ON DELETE CASCADE,
++    title TEXT NOT NULL,
++    starts_at TIMESTAMPTZ NOT NULL,
++    duration_minutes INT NOT NULL DEFAULT 60 CHECK (duration_minutes BETWEEN 5 AND 480),
++    join_url TEXT NOT NULL,
++    platform TEXT NOT NULL DEFAULT 'zoom' CHECK (platform IN ('zoom', 'meet', 'other')),
++    notes TEXT,
++    recording_url TEXT,
++    created_by UUID REFERENCES public.users(id) ON DELETE SET NULL,
++    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
++);
++CREATE INDEX IF NOT EXISTS idx_class_sessions_group_start ON public.class_sessions (group_id, starts_at);
++
++CREATE TABLE IF NOT EXISTS public.class_attendance (
++    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
++    session_id UUID NOT NULL REFERENCES public.class_sessions(id) ON DELETE CASCADE,
++    student_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
++    joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
++    last_joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
++    join_count INT NOT NULL DEFAULT 1,
++    source TEXT NOT NULL DEFAULT 'click' CHECK (source IN ('click', 'manual')),
++    UNIQUE (session_id, student_id)
++);
++
++ALTER TABLE public.class_groups ENABLE ROW LEVEL SECURITY;
++ALTER TABLE public.class_enrollments ENABLE ROW LEVEL SECURITY;
++ALTER TABLE public.class_sessions ENABLE ROW LEVEL SECURITY;
++ALTER TABLE public.class_attendance ENABLE ROW LEVEL SECURITY;
++
++-- ---------------------------------------------------------------------------
++-- 2. Helper functions (SECURITY DEFINER to avoid RLS recursion)
++-- ---------------------------------------------------------------------------
++CREATE OR REPLACE FUNCTION public.is_teacher()
++RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER SET search_path = public STABLE AS $$
++    SELECT EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'teacher');
++$$;
++
++CREATE OR REPLACE FUNCTION public.is_staff()
++RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER SET search_path = public STABLE AS $$
++    SELECT EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role IN ('admin', 'teacher'));
++$$;
++
++CREATE OR REPLACE FUNCTION public.teaches_group(gid UUID)
++RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER SET search_path = public STABLE AS $$
++    SELECT public.is_admin()
++        OR EXISTS (SELECT 1 FROM public.class_groups WHERE id = gid AND teacher_id = auth.uid());
++$$;
++
++CREATE OR REPLACE FUNCTION public.is_enrolled(gid UUID)
++RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER SET search_path = public STABLE AS $$
++    SELECT EXISTS (SELECT 1 FROM public.class_enrollments WHERE group_id = gid AND student_id = auth.uid());
++$$;
++
++-- ---------------------------------------------------------------------------
++-- 3. RLS policies
++-- ---------------------------------------------------------------------------
++-- Groups: admin all; teacher reads/updates own; enrolled students read.
++CREATE POLICY "Admins manage groups" ON public.class_groups
++    FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
++CREATE POLICY "Teachers read own groups" ON public.class_groups
++    FOR SELECT USING (teacher_id = auth.uid());
++CREATE POLICY "Students read enrolled groups" ON public.class_groups
++    FOR SELECT USING (public.is_enrolled(id));
++
++-- Enrollments: admin all; teacher manages for own groups; student sees own.
++CREATE POLICY "Admins manage enrollments" ON public.class_enrollments
++    FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
++CREATE POLICY "Teachers manage own group enrollments" ON public.class_enrollments
++    FOR ALL USING (public.teaches_group(group_id)) WITH CHECK (public.teaches_group(group_id));
++CREATE POLICY "Students read own enrollments" ON public.class_enrollments
++    FOR SELECT USING (student_id = auth.uid());
++
++-- Sessions: staff only. Students deliberately get NO policy (link stays hidden).
++CREATE POLICY "Admins manage sessions" ON public.class_sessions
++    FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
++CREATE POLICY "Teachers manage own sessions" ON public.class_sessions
++    FOR ALL USING (public.teaches_group(group_id)) WITH CHECK (public.teaches_group(group_id));
++
++-- Attendance: staff read/manage for their groups; student reads own. Writes by
++-- students only via join_class_session().
++CREATE POLICY "Admins manage attendance" ON public.class_attendance
++    FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
++CREATE POLICY "Teachers manage own attendance" ON public.class_attendance
++    FOR ALL USING (
++        EXISTS (SELECT 1 FROM public.class_sessions s
++                WHERE s.id = session_id AND public.teaches_group(s.group_id))
++    ) WITH CHECK (
++        EXISTS (SELECT 1 FROM public.class_sessions s
++                WHERE s.id = session_id AND public.teaches_group(s.group_id))
++    );
++CREATE POLICY "Students read own attendance" ON public.class_attendance
++    FOR SELECT USING (student_id = auth.uid());
++
++-- Teachers need to see basic profile info of their students (names for rosters).
++-- Done through get_group_roster() below instead of widening users RLS.
++
++-- ---------------------------------------------------------------------------
++-- 4. RPCs
++-- ---------------------------------------------------------------------------
++-- Student: upcoming + recent sessions for my groups. NO join_url here.
++CREATE OR REPLACE FUNCTION public.get_my_class_sessions()
++RETURNS TABLE (
++    session_id UUID, group_id UUID, group_name TEXT, level TEXT, title TEXT,
++    starts_at TIMESTAMPTZ, duration_minutes INT, platform TEXT, notes TEXT,
++    recording_url TEXT, joinable BOOLEAN, attended BOOLEAN
++)
++LANGUAGE sql SECURITY DEFINER SET search_path = public STABLE AS $$
++    SELECT s.id, g.id, g.name, g.level, s.title, s.starts_at, s.duration_minutes,
++           s.platform, s.notes, s.recording_url,
++           (NOW() BETWEEN s.starts_at - INTERVAL '15 minutes'
++                      AND s.starts_at + make_interval(mins => s.duration_minutes) + INTERVAL '30 minutes') AS joinable,
++           EXISTS (SELECT 1 FROM public.class_attendance a
++                   WHERE a.session_id = s.id AND a.student_id = auth.uid()) AS attended
++    FROM public.class_sessions s
++    JOIN public.class_groups g ON g.id = s.group_id AND g.is_active
++    JOIN public.class_enrollments e ON e.group_id = g.id AND e.student_id = auth.uid()
++    WHERE s.starts_at > NOW() - INTERVAL '30 days'
++      AND EXISTS (SELECT 1 FROM public.users u WHERE u.id = auth.uid() AND u.membership_status = 'active')
++    ORDER BY s.starts_at;
++$$;
++
++-- Student: click Join. Checks everything, logs attendance, returns the link.
++CREATE OR REPLACE FUNCTION public.join_class_session(sid UUID)
++RETURNS TEXT
++LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
++DECLARE
++    s public.class_sessions%ROWTYPE;
++BEGIN
++    IF auth.uid() IS NULL THEN RAISE EXCEPTION 'not_authenticated'; END IF;
++
++    SELECT * INTO s FROM public.class_sessions WHERE id = sid;
++    IF NOT FOUND THEN RAISE EXCEPTION 'session_not_found'; END IF;
++
++    IF NOT EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND membership_status = 'active') THEN
++        RAISE EXCEPTION 'membership_required';
++    END IF;
++    IF NOT EXISTS (SELECT 1 FROM public.class_groups WHERE id = s.group_id AND is_active)
++       OR NOT public.is_enrolled(s.group_id) THEN
++        RAISE EXCEPTION 'not_enrolled';
++    END IF;
++    IF NOW() < s.starts_at - INTERVAL '15 minutes' THEN RAISE EXCEPTION 'too_early'; END IF;
++    IF NOW() > s.starts_at + make_interval(mins => s.duration_minutes) + INTERVAL '30 minutes' THEN
++        RAISE EXCEPTION 'session_ended';
++    END IF;
++
++    INSERT INTO public.class_attendance (session_id, student_id)
++    VALUES (sid, auth.uid())
++    ON CONFLICT (session_id, student_id)
++    DO UPDATE SET last_joined_at = NOW(), join_count = public.class_attendance.join_count + 1;
++
++    RETURN s.join_url;
++END;
++$$;
++
++-- Staff: roster of a group (names/emails of enrolled students).
++CREATE OR REPLACE FUNCTION public.get_group_roster(gid UUID)
++RETURNS TABLE (student_id UUID, full_name TEXT, email TEXT, membership_status TEXT)
++LANGUAGE plpgsql SECURITY DEFINER SET search_path = public STABLE AS $$
++BEGIN
++    IF NOT public.teaches_group(gid) THEN RAISE EXCEPTION 'forbidden'; END IF;
++    RETURN QUERY
++        SELECT u.id, u.full_name::TEXT, u.email::TEXT, u.membership_status::TEXT
++        FROM public.class_enrollments e JOIN public.users u ON u.id = e.student_id
++        WHERE e.group_id = gid ORDER BY u.full_name;
++END;
++$$;
++
++-- Staff: attendance sheet for one session (every enrolled student, present or not).
++CREATE OR REPLACE FUNCTION public.get_session_attendance(sid UUID)
++RETURNS TABLE (student_id UUID, full_name TEXT, present BOOLEAN, joined_at TIMESTAMPTZ,
++               join_count INT, source TEXT)
++LANGUAGE plpgsql SECURITY DEFINER SET search_path = public STABLE AS $$
++DECLARE gid UUID;
++BEGIN
++    SELECT group_id INTO gid FROM public.class_sessions WHERE id = sid;
++    IF gid IS NULL OR NOT public.teaches_group(gid) THEN RAISE EXCEPTION 'forbidden'; END IF;
++    RETURN QUERY
++        SELECT u.id, u.full_name::TEXT, (a.id IS NOT NULL), a.joined_at, a.join_count, a.source
++        FROM public.class_enrollments e
++        JOIN public.users u ON u.id = e.student_id
++        LEFT JOIN public.class_attendance a ON a.session_id = sid AND a.student_id = u.id
++        WHERE e.group_id = gid ORDER BY u.full_name;
++END;
++$$;
++
++-- Staff: manually mark present/absent (e.g. student joined from another device).
++CREATE OR REPLACE FUNCTION public.set_attendance(sid UUID, student UUID, present BOOLEAN)
++RETURNS VOID
++LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
++DECLARE gid UUID;
++BEGIN
++    SELECT group_id INTO gid FROM public.class_sessions WHERE id = sid;
++    IF gid IS NULL OR NOT public.teaches_group(gid) THEN RAISE EXCEPTION 'forbidden'; END IF;
++    IF NOT EXISTS (SELECT 1 FROM public.class_enrollments WHERE group_id = gid AND student_id = student) THEN
++        RAISE EXCEPTION 'not_enrolled';
++    END IF;
++    IF present THEN
++        INSERT INTO public.class_attendance (session_id, student_id, source, join_count)
++        VALUES (sid, student, 'manual', 0)
++        ON CONFLICT (session_id, student_id) DO NOTHING;
++    ELSE
++        DELETE FROM public.class_attendance WHERE session_id = sid AND student_id = student;
++    END IF;
++END;
++$$;
++
++-- Admin: find a user by email (to enroll / promote to teacher).
++CREATE OR REPLACE FUNCTION public.find_user_by_email(q TEXT)
++RETURNS TABLE (id UUID, full_name TEXT, email TEXT, role TEXT, membership_status TEXT)
++LANGUAGE plpgsql SECURITY DEFINER SET search_path = public STABLE AS $$
++BEGIN
++    IF NOT public.is_staff() THEN RAISE EXCEPTION 'forbidden'; END IF;
++    RETURN QUERY
++        SELECT u.id, u.full_name::TEXT, u.email::TEXT, u.role::TEXT, u.membership_status::TEXT
++        FROM public.users u WHERE lower(u.email) = lower(trim(q)) LIMIT 1;
++END;
++$$;
++
++-- Admin: promote/demote teacher.
++CREATE OR REPLACE FUNCTION public.set_user_teacher(uid UUID, make_teacher BOOLEAN)
++RETURNS VOID
++LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
++BEGIN
++    IF NOT public.is_admin() THEN RAISE EXCEPTION 'forbidden'; END IF;
++    UPDATE public.users
++       SET role = CASE WHEN make_teacher THEN 'teacher' ELSE 'student' END
++     WHERE id = uid AND role <> 'admin';
++END;
++$$;
++
++GRANT EXECUTE ON FUNCTION
++    public.get_my_class_sessions(), public.join_class_session(UUID),
++    public.get_group_roster(UUID), public.get_session_attendance(UUID),
++    public.set_attendance(UUID, UUID, BOOLEAN), public.find_user_by_email(TEXT),
++    public.set_user_teacher(UUID, BOOLEAN)
++TO authenticated;
+-- 
+2.43.0
+
