@@ -202,7 +202,7 @@ Deno.serve(async (req) => {
     if (body.action === 'list') {
       const { data: attempts, error } = await admin
         .from('user_test_attempts')
-        .select('*, tests(title)')
+        .select('*, tests(title, track)')
         .eq('user_id', user.id)
         .order('completed_at', { ascending: false, nullsFirst: false })
         .order('started_at', { ascending: false });
@@ -212,6 +212,7 @@ Deno.serve(async (req) => {
         id: a.id,
         test_id: a.test_id,
         test_title: a.tests?.title || 'اختبار غير معروف',
+        track: a.tests?.track || 'de',
         started_at: a.started_at,
         completed_at: a.completed_at,
         score_percentage: a.score,

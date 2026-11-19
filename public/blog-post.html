@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="page-title">مقال - LisanTest.com</title>
+    <title id="page-title">مقال - EuroPass Academy</title>
     <meta id="meta-description" name="description" content="دروس ومقالات لتحضير اختبارات اللغة الألمانية">
     <meta name="robots" content="index, follow">
-    <meta id="og-title" property="og:title" content="LisanTest.com">
+    <meta id="og-title" property="og:title" content="EuroPass Academy">
     <meta id="og-description" property="og:description" content="">
     <meta id="og-image" property="og:image" content="">
     <meta property="og:type" content="article">
@@ -24,11 +24,11 @@
           extend: {
             colors: {
               flag: {
-                black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
-                red: '#DC2626', redbright: '#EF4444', reddeep: '#B91C1C',
-                blue: '#2563EB', bluebright: '#3B82F6', blueddeep: '#1D4ED8',
-                gold: '#DC2626', goldbright: '#EF4444', golddeep: '#B91C1C',
-                accent: '#DC2626', accentbright: '#EF4444', accentdeep: '#B91C1C',
+                black: '#06226E', blacksoft: '#0A2F8A', charcoal: '#0B3AA8',
+                red: '#DC0212', redbright: '#F0202F', reddeep: '#B00010',
+                blue: '#042A97', bluebright: '#3B82F6', blueddeep: '#1D4ED8',
+                gold: '#DC0212', goldbright: '#F0202F', golddeep: '#B00010',
+                accent: '#DC0212', accentbright: '#F0202F', accentdeep: '#B00010',
                 cream: '#FFFFFF', paper: '#FFFFFF', ink: '#0F172A'
               }
             },
@@ -41,6 +41,8 @@
       }
     </script>
 
+    <script src="assets/js/i18n-dict.js"></script>
+    <script src="assets/js/i18n.js"></script>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/responsive.css">
 
@@ -52,11 +54,11 @@
         [x-cloak]{display:none !important;}
         .blog-content img { border-radius: 0.75rem; max-width: 100%; height: auto; margin: 1.25rem 0; }
         .blog-content iframe { max-width: 100%; border-radius: 0.75rem; margin: 1.25rem 0; }
-        .blog-content h1, .blog-content h2, .blog-content h3 { font-family: 'Cairo', sans-serif; font-weight: 700; margin: 1.5rem 0 0.75rem; color: #0E2A4C; }
+        .blog-content h1, .blog-content h2, .blog-content h3 { font-family: 'Cairo', sans-serif; font-weight: 700; margin: 1.5rem 0 0.75rem; color: #06226E; }
         .blog-content p { margin-bottom: 1rem; line-height: 1.9; }
         .blog-content ul, .blog-content ol { margin: 0 1.5rem 1rem; }
-        .blog-content a { color: #2563EB; text-decoration: underline; }
-        .blog-content blockquote { border-inline-start: 4px solid #2563EB; padding-inline-start: 1rem; color: #0F172A99; margin: 1rem 0; }
+        .blog-content a { color: #042A97; text-decoration: underline; }
+        .blog-content blockquote { border-inline-start: 4px solid #042A97; padding-inline-start: 1rem; color: #0F172A99; margin: 1rem 0; }
     </style>
 </head>
 <body class="font-arabic de-paper-bg text-flag-ink antialiased min-h-screen" x-data="blogPostApp()" x-init="init()">
@@ -66,8 +68,8 @@
             <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between h-16 items-center">
                     <a href="index.html" class="flex items-center gap-3">
-                        <img src="images/lisantest-logo.png" alt="LisanTest" class="h-10 w-auto">
-                        <span class="font-semibold hidden sm:block">LisanTest<span class="text-flag-red">.com</span></span>
+                        <img src="images/europass-academy-logo.png" alt="EuroPass Academy" class="h-10 w-auto">
+                        <span class="font-semibold hidden sm:block">EuroPass <span class="text-flag-red">Academy</span></span>
                     </a>
                     <a href="blog.html" class="text-sm text-flag-ink/60 hover:text-flag-red transition-colors">
                         <i class="fas fa-arrow-right"></i> <span class="hidden sm:inline">المدونة</span>
@@ -114,11 +116,11 @@
                     <div class="de-corner-mark top-4 end-4 rounded-tr-xl border-b-0 border-s-0 hidden sm:block"></div>
                     <div class="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-start">
                         <div class="h-14 w-14 bg-white rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-                            <img src="images/lisantest-logo.png" alt="LisanTest" class="h-9 w-auto">
+                            <img src="images/europass-academy-logo.png" alt="EuroPass Academy" class="h-9 w-auto">
                         </div>
                         <div class="flex-1">
-                            <h3 class="text-lg font-bold mb-1">LisanTest.com</h3>
-                            <p class="text-sm text-white/70">منصة شاملة للتحضير لاختبارات اللغة الألمانية Ausbildungsaufnahme — تدريبات قراءة واستماع وكتابة، مع تقييم فوري بالذكاء الاصطناعي.</p>
+                            <h3 class="text-lg font-bold mb-1">EuroPass Academy</h3>
+                            <p class="text-sm text-white/70">أكاديمية لتعلّم الألمانية والإنجليزية والفرنسية والإسبانية، مع الحصص المباشرة والتحضير للاختبارات الدولية — تدريبات قراءة واستماع وكتابة، مع تقييم فوري بالذكاء الاصطناعي.</p>
                         </div>
                         <a href="index.html?signup=1" class="de-btn de-btn-gold text-sm py-3 px-6 flex-shrink-0 whitespace-nowrap">
                             <i class="fas fa-bolt"></i> جرّب تدريبًا مجانيًا
@@ -174,11 +176,11 @@
                 <div>
                     <div class="flex items-center gap-2 mb-4">
                         <div class="h-9 w-9 bg-white rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-                            <img src="images/lisantest-logo.png" alt="LisanTest" class="h-6 w-auto">
+                            <img src="images/europass-academy-logo.png" alt="EuroPass Academy" class="h-6 w-auto">
                         </div>
-                        <h3 class="font-semibold">LisanTest<span class="text-flag-red">.com</span></h3>
+                        <h3 class="font-semibold">EuroPass <span class="text-flag-red">Academy</span></h3>
                     </div>
-                    <p class="text-sm text-white/60 mb-5">منصة شاملة للتحضير لاختبارات اللغة الألمانية المطلوبة لبرامج Ausbildung في ألمانيا</p>
+                    <p class="text-sm text-white/60 mb-5">أكاديمية لتعلّم الألمانية والإنجليزية والفرنسية والإسبانية، مع الحصص المباشرة والتحضير للاختبارات الدولية</p>
                     <div class="flex gap-4 text-white/60">
                         <a href="#" class="hover:text-flag-gold transition-colors"><i class="fab fa-facebook-f"></i></a>
                         <a href="#" class="hover:text-flag-gold transition-colors"><i class="fab fa-twitter"></i></a>
@@ -204,7 +206,7 @@
                     <h3 class="font-semibold mb-4">اتصل بنا</h3>
                     <p class="text-sm text-white/60 mb-2"><i class="fas fa-map-marker-alt me-2"></i> الدار البيضاء، المغرب</p>
                     <p class="text-sm text-white/60 mb-2"><i class="fas fa-phone me-2"></i> +212680901375</p>
-                    <p class="text-sm text-white/60 mb-5"><i class="fas fa-envelope me-2"></i> hello@lisantest.com</p>
+                    <p class="text-sm text-white/60 mb-5"><i class="fas fa-envelope me-2"></i> hello@europassacademy.com</p>
 
                     <form class="space-y-3" @submit.prevent>
                         <input type="email" placeholder="بريدك الإلكتروني للنشرة الإخبارية"
@@ -217,7 +219,7 @@
             </div>
 
             <div class="mt-12 pt-6 border-t border-white/10 text-center text-sm text-white/40">
-                <span x-text="'© ' + new Date().getFullYear() + ' LisanTest.com. جميع الحقوق محفوظة.'"></span>
+                <span x-text="'© ' + new Date().getFullYear() + ' EuroPass Academy. جميع الحقوق محفوظة.'"></span>
                 <br class="sm:hidden">
                 <a href="#" class="hover:text-flag-gold transition-colors mx-2">سياسة الخصوصية</a>
                 <span class="text-white/20">|</span>
@@ -275,7 +277,7 @@
                 },
 
                 applySeoTags(post) {
-                    document.title = post.title + ' - LisanTest.com';
+                    document.title = post.title + ' - EuroPass Academy';
                     const desc = post.excerpt || post.title;
                     document.getElementById('meta-description').setAttribute('content', desc);
                     document.getElementById('og-title').setAttribute('content', post.title);
@@ -357,7 +359,7 @@
 
                 formatDate(iso) {
                     if (!iso) return '';
-                    return new Date(iso).toLocaleDateString('ar-MA', { year: 'numeric', month: 'long', day: 'numeric' });
+                    return new Date(iso).toLocaleDateString(window.epLocale || 'ar-MA', { year: 'numeric', month: 'long', day: 'numeric' });
                 }
             };
         }

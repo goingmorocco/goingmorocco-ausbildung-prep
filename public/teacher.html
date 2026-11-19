@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة المدرّس - LisanTest.com</title>
+    <title>لوحة المدرّس - EuroPass Academy</title>
     <meta name="description" content="إدارة المجموعات والحصص المباشرة والحضور">
     <meta name="robots" content="noindex, nofollow">
 
@@ -20,11 +20,11 @@
           extend: {
             colors: {
               flag: {
-                black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
-                red: '#DC2626', redbright: '#EF4444', reddeep: '#B91C1C',
-                blue: '#2563EB', bluebright: '#3B82F6', blueddeep: '#1D4ED8',
-                gold: '#DC2626', goldbright: '#EF4444', golddeep: '#B91C1C',
-                accent: '#DC2626', accentbright: '#EF4444', accentdeep: '#B91C1C',
+                black: '#06226E', blacksoft: '#0A2F8A', charcoal: '#0B3AA8',
+                red: '#DC0212', redbright: '#F0202F', reddeep: '#B00010',
+                blue: '#042A97', bluebright: '#3B82F6', blueddeep: '#1D4ED8',
+                gold: '#DC0212', goldbright: '#F0202F', golddeep: '#B00010',
+                accent: '#DC0212', accentbright: '#F0202F', accentdeep: '#B00010',
                 cream: '#FFFFFF', paper: '#FFFFFF', ink: '#0F172A'
               }
             },
@@ -89,7 +89,7 @@
               <button @click="selectGroup(g)" class="w-full text-start px-3 py-2.5 rounded-xl border text-sm transition-colors"
                       :class="current && current.id === g.id ? 'border-flag-red bg-red-50' : 'border-black/10 hover:bg-flag-cream'">
                 <div class="font-semibold" x-text="g.name"></div>
-                <div class="text-xs text-flag-ink/50" x-text="(g.level || '') + (g.is_active ? '' : ' · غير نشطة')"></div>
+                <div class="text-xs text-flag-ink/50" x-text="({de:'🇩🇪',en:'🇬🇧',fr:'🇫🇷',es:'🇪🇸'}[g.track] || '') + ' ' + (g.level || '') + (g.is_active ? '' : ' · غير نشطة')"></div>
               </button>
             </template>
           </div>
@@ -99,6 +99,10 @@
           <h3 class="font-bold text-sm">مجموعة جديدة</h3>
           <input x-model="newGroup.name" placeholder="اسم المجموعة" class="w-full px-3 py-2 rounded-lg border border-black/10 text-sm">
           <input x-model="newGroup.level" placeholder="المستوى (B1, B2…)" class="w-full px-3 py-2 rounded-lg border border-black/10 text-sm">
+          <select x-model="newGroup.track" class="w-full px-3 py-2 rounded-lg border border-black/10 text-sm bg-white">
+            <option value="de">🇩🇪 الألمانية</option><option value="en">🇬🇧 الإنجليزية</option>
+            <option value="fr">🇫🇷 الفرنسية</option><option value="es">🇪🇸 الإسبانية</option>
+          </select>
           <button @click="createGroup()" class="de-btn de-btn-primary text-sm w-full py-2">إنشاء</button>
         </div>
 
@@ -213,7 +217,7 @@ function teacherApp() {
     user: null, authChecked: false, allowed: false, isAdmin: false,
     groups: [], current: null, sessions: [], roster: [], attendance: [], openSession: null,
     teacherName: '', toast: '', _t: null,
-    newGroup: { name: '', level: '' }, teacherEmail: '', assignEmail: '', enrollEmail: '',
+    newGroup: { name: '', level: '', track: 'de' }, teacherEmail: '', assignEmail: '', enrollEmail: '',
     form: { title: '', starts: '', duration: 60, url: '', notes: '' },
 
     async init() {
@@ -262,9 +266,9 @@ function teacherApp() {
 
     async createGroup() {
       if (!this.newGroup.name.trim()) return this.say('أدخل اسم المجموعة');
-      const { error } = await sb.from('class_groups').insert({ name: this.newGroup.name.trim(), level: this.newGroup.level.trim() || null });
+      const { error } = await sb.from('class_groups').insert({ name: this.newGroup.name.trim(), level: this.newGroup.level.trim() || null, track: this.newGroup.track });
       if (error) return this.fail(error, 'تعذّر إنشاء المجموعة');
-      this.newGroup = { name: '', level: '' }; this.say('تم إنشاء المجموعة'); this.loadGroups();
+      this.newGroup = { name: '', level: '', track: 'de' }; this.say('تم إنشاء المجموعة'); this.loadGroups();
     },
 
     async setTeacher(flag) {

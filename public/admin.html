@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم المشرف - LisanTest.com</title>
+    <title>لوحة تحكم المشرف - EuroPass Academy</title>
     <meta name="robots" content="noindex, nofollow">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,11 +17,11 @@
           extend: {
             colors: {
               flag: {
-                black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
-                red: '#DC2626', redbright: '#EF4444', reddeep: '#B91C1C',
-                blue: '#2563EB', bluebright: '#3B82F6', blueddeep: '#1D4ED8',
-                gold: '#DC2626', goldbright: '#EF4444', golddeep: '#B91C1C',
-                accent: '#DC2626', accentbright: '#EF4444', accentdeep: '#B91C1C',
+                black: '#06226E', blacksoft: '#0A2F8A', charcoal: '#0B3AA8',
+                red: '#DC0212', redbright: '#F0202F', reddeep: '#B00010',
+                blue: '#042A97', bluebright: '#3B82F6', blueddeep: '#1D4ED8',
+                gold: '#DC0212', goldbright: '#F0202F', golddeep: '#B00010',
+                accent: '#DC0212', accentbright: '#F0202F', accentdeep: '#B00010',
                 cream: '#FFFFFF', paper: '#FFFFFF', ink: '#0F172A'
               }
             },
@@ -161,7 +161,7 @@
                         <span class="de-stamp de-stamp-onlight h-10 w-10 text-xs"><i class="fas fa-user-shield"></i></span>
                         <div class="hidden sm:block">
                             <div class="font-semibold text-sm leading-tight">لوحة تحكم المشرف</div>
-                            <div class="text-xs text-flag-ink/50">LisanTest.com</div>
+                            <div class="text-xs text-flag-ink/50">EuroPass Academy</div>
                         </div>
                     </div>
                     <div class="flex items-center gap-4">
@@ -514,6 +514,14 @@
                                        class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/30">
                             </div>
                             <div>
+                                <label class="block text-sm font-medium text-flag-ink/70 mb-2">لغة الدراسة</label>
+                                <select x-model="resourceTrack" class="w-full px-4 py-2.5 border border-black/15 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                                    <option value="">كل اللغات</option>
+                                    <option value="de">🇩🇪 الألمانية</option><option value="en">🇬🇧 الإنجليزية</option>
+                                    <option value="fr">🇫🇷 الفرنسية</option><option value="es">🇪🇸 الإسبانية</option>
+                                </select>
+                            </div>
+                            <div>
                                 <label class="block text-sm font-medium text-flag-ink/70 mb-2">المهارة (لعرضها في صفحات التدريب السريع)</label>
                                 <select x-model="resourceSkill"
                                         class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/30 bg-white">
@@ -678,6 +686,13 @@
                                 <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">رمز النوع (فريد، بالإنجليزية، بدون مسافات)</label>
                                 <input type="text" x-model="testBuilder.test_type" placeholder="مثال: skill_reading_hotel" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-flag-red/30">
                             </div>
+                            <div>
+                                <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">لغة الدراسة</label>
+                                <select x-model="testBuilder.track" class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-flag-red/30">
+                                    <option value="de">🇩🇪 الألمانية</option><option value="en">🇬🇧 الإنجليزية</option>
+                                    <option value="fr">🇫🇷 الفرنسية</option><option value="es">🇪🇸 الإسبانية</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="mb-4">
                             <label class="block text-xs font-medium text-flag-ink/60 mb-1.5">الوصف</label>
@@ -756,7 +771,7 @@
 
                             <!-- Questions -->
                             <template x-for="(q, qIndex) in section.questions" :key="q._key">
-                                <div class="de-card rounded-xl p-4 mb-3" style="border-color:rgba(37,99,235,0.25);">
+                                <div class="de-card rounded-xl p-4 mb-3" style="border-color:rgba(4,42,151,0.25);">
                                     <div class="flex items-center justify-between mb-3">
                                         <span class="text-xs font-medium text-flag-ink/50">سؤال <span x-text="qIndex + 1"></span></span>
                                         <button @click="removeQuestion(sIndex, qIndex)" class="text-xs text-red-600 hover:text-red-700"><i class="fas fa-trash"></i></button>
@@ -1352,11 +1367,11 @@
                 quillInstance: null, deletePostTarget: null, newCategoryName: '',
                 allComments: [], commentsLoading: false,
                 postForm: { id: null, title: '', slug: '', excerpt: '', category_id: null, cover_image_path: null, is_published: false, published_at: null },
-                testBuilder: { id: null, title: '', description: '', test_type: '', level: 'B1', duration_minutes: 30, passing_score: 60, is_active: true, is_skill_practice: false, skill: '', sections: [], writing: { enabled: false, name: '', prompt: '', sample_answer: '' } },
+                testBuilder: { id: null, title: '', description: '', test_type: '', track: 'de', level: 'B1', duration_minutes: 30, passing_score: 60, is_active: true, is_skill_practice: false, skill: '', sections: [], writing: { enabled: false, name: '', prompt: '', sample_answer: '' } },
 
                 threads: [], threadsLoading: false, activeThread: null, threadMessages: [],
                 adminNewMessage: '', adminSending: false, totalUnread: 0, supportChannel: null,
-                resourceType: 'pdf', resourceTitle: '', resourceDescription: '', resourceCategory: '', resourceSkill: '',
+                resourceType: 'pdf', resourceTitle: '', resourceDescription: '', resourceCategory: '', resourceTrack: 'de', resourceSkill: '',
                 resourceFile: null, resourceYoutubeUrl: '', uploading: false, uploadError: '',
 
                 deleteTarget: null,
@@ -1550,6 +1565,7 @@
                             title: this.resourceTitle.trim(),
                             description: this.resourceDescription.trim() || null,
                             category: this.resourceCategory.trim() || null,
+                            track: this.resourceTrack || null,
                             skill: this.resourceSkill || null,
                             type: this.resourceType,
                             uploaded_by: this.admin.id
@@ -2117,7 +2133,7 @@
 
                 newTest() {
                     this.testBuilder = {
-                        id: null, title: '', description: '', test_type: '', level: 'B1',
+                        id: null, title: '', description: '', test_type: '', track: 'de', level: 'B1',
                         duration_minutes: 30, passing_score: 60, is_active: true,
                         is_skill_practice: false, skill: '',
                         sections: [this.blankSection()],
@@ -2134,7 +2150,7 @@
 
                         this.testBuilder = {
                             id: data.test.id, title: data.test.title, description: data.test.description || '',
-                            test_type: data.test.test_type, level: data.test.level,
+                            test_type: data.test.test_type, track: data.test.track || 'de', level: data.test.level,
                             duration_minutes: data.test.duration_minutes, passing_score: data.test.passing_score,
                             is_active: data.test.is_active, is_skill_practice: data.test.is_skill_practice,
                             skill: data.test.skill || '',
@@ -2213,7 +2229,7 @@
                     try {
                         const payload = {
                             id: this.testBuilder.id, title: this.testBuilder.title.trim(),
-                            description: this.testBuilder.description, test_type: this.testBuilder.test_type.trim(),
+                            description: this.testBuilder.description, test_type: this.testBuilder.test_type.trim(), track: this.testBuilder.track || 'de',
                             level: this.testBuilder.level, duration_minutes: this.testBuilder.duration_minutes,
                             passing_score: this.testBuilder.passing_score, is_active: this.testBuilder.is_active,
                             is_skill_practice: this.testBuilder.is_skill_practice, skill: this.testBuilder.skill || null,

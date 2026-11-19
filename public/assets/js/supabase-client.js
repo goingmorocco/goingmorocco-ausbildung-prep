@@ -137,3 +137,37 @@ function supportChat() {
     }
   };
 }
+
+
+// ---------------------------------------------------------------------------
+// Language tracks (course language the student follows). The interface language
+// (AR/EN/FR/ES) is separate and handled by i18n.js.
+// ---------------------------------------------------------------------------
+const EP_TRACKS = [
+    { id: 'de', flag: '🇩🇪', ar: 'الألمانية' },
+    { id: 'en', flag: '🇬🇧', ar: 'الإنجليزية' },
+    { id: 'fr', flag: '🇫🇷', ar: 'الفرنسية' },
+    { id: 'es', flag: '🇪🇸', ar: 'الإسبانية' }
+];
+
+function epTrack() {
+    try {
+        const v = localStorage.getItem('ep_track');
+        if (EP_TRACKS.some(t => t.id === v)) return v;
+    } catch (e) { /* storage unavailable */ }
+    return 'de';
+}
+
+function epSetTrack(id) {
+    try { localStorage.setItem('ep_track', id); } catch (e) { /* ignore */ }
+}
+
+async function epLoadTracks(userId) {
+    const { data } = await sb.from('user_tracks').select('track').eq('user_id', userId);
+    return (data || []).map(r => r.track);
+}
+
+async function epAddTrack(userId, id) {
+    const { error } = await sb.from('user_tracks').insert({ user_id: userId, track: id });
+    return !error || error.code === '23505';
+}

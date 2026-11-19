@@ -151,6 +151,7 @@ Deno.serve(async (req) => {
             title: t.title,
             description: t.description || null,
             test_type: t.test_type,
+            track: ['de', 'en', 'fr', 'es'].includes(t.track) ? t.track : 'de',
             level: t.level || 'B1',
             duration_minutes: t.duration_minutes || 30,
             total_questions: totalQuestions,

@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم - LisanTest.com</title>
-    <meta name="description" content="لوحة التحكم الشخصية لمتابعة تقدمك في تحضير اختبارات Ausbildungsaufnahme عبر LisanTest.com">
+    <title>لوحة التحكم - EuroPass Academy</title>
+    <meta name="description" content="لوحة التحكم الشخصية لمتابعة تقدمك في تحضير اختبارات Ausbildungsaufnahme عبر EuroPass Academy">
     <meta name="robots" content="noindex, nofollow">
 
     <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -20,11 +20,11 @@
           extend: {
             colors: {
               flag: {
-                black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
-                red: '#DC2626', redbright: '#EF4444', reddeep: '#B91C1C',
-                blue: '#2563EB', bluebright: '#3B82F6', blueddeep: '#1D4ED8',
-                gold: '#2563EB', goldbright: '#3B82F6', golddeep: '#1D4ED8',
-                accent: '#DC2626', accentbright: '#EF4444', accentdeep: '#B91C1C',
+                black: '#06226E', blacksoft: '#0A2F8A', charcoal: '#0B3AA8',
+                red: '#DC0212', redbright: '#F0202F', reddeep: '#B00010',
+                blue: '#042A97', bluebright: '#3B82F6', blueddeep: '#1D4ED8',
+                gold: '#042A97', goldbright: '#3B82F6', golddeep: '#1D4ED8',
+                accent: '#DC0212', accentbright: '#F0202F', accentdeep: '#B00010',
                 cream: '#FFFFFF', paper: '#FFFFFF', ink: '#0F172A'
               }
             },
@@ -37,6 +37,8 @@
       }
     </script>
 
+    <script src="assets/js/i18n-dict.js"></script>
+    <script src="assets/js/i18n.js"></script>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/responsive.css">
 
@@ -62,11 +64,11 @@
             <div class="de-card w-full max-w-md overflow-hidden text-center">
                 <div class="de-flag-ribbon"></div>
                 <div class="p-8">
-                    <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5" style="border-color:#DC2626;color:#DC2626;"><i class="fas fa-circle-xmark"></i></span>
+                    <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5" style="border-color:#DC0212;color:#DC0212;"><i class="fas fa-circle-xmark"></i></span>
                     <h1 class="text-xl font-bold text-flag-ink mb-3">تعذّر تفعيل حسابك</h1>
                     <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">
                         لم تتم الموافقة على عضويتك. تواصل معنا على
-                        <a href="mailto:hello@lisantest.com" class="text-flag-red">hello@lisantest.com</a>
+                        <a href="mailto:hello@europassacademy.com" class="text-flag-red">hello@europassacademy.com</a>
                         لمزيد من المعلومات.
                     </p>
                     <button @click="logout()" class="de-btn w-full text-sm py-3" style="background:#EEEAE0;color:#0F172A;">
@@ -86,8 +88,8 @@
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div class="flex justify-between h-16 items-center">
                             <a href="index.html" class="flex items-center gap-3">
-                                <img src="images/lisantest-logo.png" alt="LisanTest" class="h-10 w-auto">
-                                <span class="font-semibold hidden sm:block">LisanTest<span class="text-flag-red">.com</span></span>
+                                <img src="images/europass-academy-logo.png" alt="EuroPass Academy" class="h-10 w-auto">
+                                <span class="font-semibold hidden sm:block">EuroPass <span class="text-flag-red">Academy</span></span>
                             </a>
 
                             <div class="hidden md:flex items-center gap-4">
@@ -128,7 +130,7 @@
                                     </div>
                                 </div>
 
-                                <span class="de-badge" :class="subscription && subscription.status === 'active' ? 'de-badge-gold' : ''" style="background:rgba(37,99,235,0.1);color:#2563EB;border:1px solid rgba(37,99,235,0.3);" x-show="!(subscription && subscription.status === 'active')">
+                                <span class="de-badge" :class="subscription && subscription.status === 'active' ? 'de-badge-gold' : ''" style="background:rgba(4,42,151,0.1);color:#042A97;border:1px solid rgba(4,42,151,0.3);" x-show="!(subscription && subscription.status === 'active')">
                                     غير مفعّل
                                 </span>
                                 <span class="de-badge de-badge-gold" x-show="subscription && subscription.status === 'active'">نشط</span>
@@ -226,8 +228,23 @@
                         </div>
                         <div>
                             <h2 class="text-xl font-bold mb-1">مرحبًا، <span x-text="user.full_name"></span>!</h2>
-                            <p class="text-sm text-white/70">جاهز لبدء استعدادك لاختبارات Ausbildungsaufnahme اليوم؟</p>
+                            <p class="text-sm text-white/70">جاهز لبدء تدريبك اليوم؟</p>
                         </div>
+                    </div>
+                    <!-- Course language switcher -->
+                    <div class="mt-5 flex flex-wrap items-center gap-2">
+                        <span class="text-xs text-white/60 me-1">لغة الدراسة:</span>
+                        <template x-for="id in myTracks" :key="id">
+                            <button @click="switchTrack(id)"
+                                    class="px-3.5 py-1.5 rounded-full text-sm font-medium border transition-colors"
+                                    :class="currentTrack === id ? 'bg-white text-flag-black border-white' : 'border-white/30 text-white/80 hover:bg-white/10'">
+                                <span x-text="trackInfo(id).flag"></span> <span x-text="trackInfo(id).ar"></span>
+                            </button>
+                        </template>
+                        <button x-show="myTracks.length < tracks.length" @click="showTrackPicker = true"
+                                class="px-3 py-1.5 rounded-full text-sm border border-dashed border-white/40 text-white/70 hover:bg-white/10">
+                            <i class="fas fa-plus"></i> إضافة لغة
+                        </button>
                     </div>
                 </div>
 
@@ -361,6 +378,11 @@
                             <i class="fas fa-lock"></i> للمشتركين فقط
                         </span>
                     </div>
+                    <div x-show="availableTests.length === 0" x-cloak class="de-card rounded-2xl p-8 text-center">
+                        <div class="text-3xl mb-2" x-text="trackInfo(currentTrack).flag"></div>
+                        <p class="font-semibold text-flag-ink mb-1">الاختبارات لهذه اللغة ستتوفر قريبًا</p>
+                        <p class="text-sm text-flag-ink/50">يمكنك الاطلاع على الفصل الدراسي والحصص المباشرة في هذه الأثناء.</p>
+                    </div>
                     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
                         <template x-for="test in availableTests" :key="test.id">
                             <div class="de-card de-ticket-edge rounded-2xl p-6">
@@ -425,6 +447,25 @@
                     </div>
                 </div>
             </main>
+
+            <!-- Course language picker -->
+            <div x-show="showTrackPicker" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+                <div class="de-card rounded-2xl w-full max-w-md p-6">
+                    <div class="flex items-start justify-between mb-1">
+                        <h2 class="text-lg font-bold">ما اللغة التي تدرسها؟</h2>
+                        <button x-show="myTracks.length" @click="showTrackPicker = false" class="text-flag-ink/40 hover:text-flag-ink"><i class="fas fa-times"></i></button>
+                    </div>
+                    <p class="text-sm text-flag-ink/60 mb-4">سنعرض لك الاختبارات والمواد والحصص الخاصة بهذه اللغة. يمكنك إضافة لغات أخرى لاحقًا.</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <template x-for="t in tracks.filter(t => !myTracks.includes(t.id))" :key="t.id">
+                            <button @click="pickTrack(t.id)" class="border border-black/10 hover:border-flag-red hover:bg-red-50 rounded-xl p-4 text-center transition-colors">
+                                <div class="text-3xl mb-1" x-text="t.flag"></div>
+                                <div class="font-semibold text-sm" x-text="t.ar"></div>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </div>
 
             <!-- ============ Support chat widget ============ -->
             <div x-data="supportChat()" x-init="initChat(user.id)">
@@ -632,7 +673,7 @@
                         <div class="text-start space-y-3 max-w-xl mx-auto mb-8">
                             <h4 class="font-semibold text-flag-ink text-sm mb-2">مراجعة الأسئلة</h4>
                             <template x-for="q in testResults.questions_review" :key="q.id">
-                                <div class="de-card rounded-xl p-4" :style="{ borderInlineStartWidth: '4px', borderInlineStartColor: q.is_correct ? '#059669' : '#DC2626' }">
+                                <div class="de-card rounded-xl p-4" :style="{ borderInlineStartWidth: '4px', borderInlineStartColor: q.is_correct ? '#059669' : '#DC0212' }">
                                     <span class="de-badge de-badge-gold mb-2 inline-block" x-show="q.section_name" x-text="q.section_name"></span>
                                     <p class="text-sm font-medium text-flag-ink mb-2" x-text="q.question_text"></p>
                                     <p class="text-xs text-flag-ink/60">إجابتك: <span x-text="q.selected_answer_text || '—'"></span></p>
@@ -645,7 +686,7 @@
                         <!-- Writing practice, shown after the graded review, with real AI grading -->
                         <div class="text-start max-w-xl mx-auto" x-show="activeTest && activeTest.writing">
                             <template x-if="activeTest && activeTest.writing">
-                                <div class="de-card rounded-xl p-5" style="border-color:rgba(37,99,235,0.4);">
+                                <div class="de-card rounded-xl p-5" style="border-color:rgba(4,42,151,0.4);">
                                     <div class="flex items-center gap-2 mb-2">
                                         <span class="de-badge de-badge-gold" x-text="activeTest.writing.name"></span>
                                         <span class="text-xs text-flag-ink/40">
@@ -783,7 +824,7 @@
                         <div class="text-start space-y-3 max-w-xl mx-auto" x-show="selectedAttemptDetail.questions_review && selectedAttemptDetail.questions_review.length > 0">
                             <h4 class="font-semibold text-flag-ink text-sm mb-2">مراجعة الأسئلة</h4>
                             <template x-for="q in selectedAttemptDetail.questions_review" :key="q.id">
-                                <div class="de-card rounded-xl p-4" :style="{ borderInlineStartWidth: '4px', borderInlineStartColor: q.is_correct ? '#059669' : '#DC2626' }">
+                                <div class="de-card rounded-xl p-4" :style="{ borderInlineStartWidth: '4px', borderInlineStartColor: q.is_correct ? '#059669' : '#DC0212' }">
                                     <span class="de-badge de-badge-gold mb-2 inline-block" x-show="q.section_name" x-text="q.section_name"></span>
                                     <p class="text-sm font-medium text-flag-ink mb-2" x-text="q.question_text"></p>
                                     <p class="text-xs text-flag-ink/60">إجابتك: <span x-text="q.selected_answer_text || '—'"></span></p>
@@ -903,7 +944,12 @@
 
                 subscription: null,
                 testAttempts: [],
+                allAttempts: [],
                 availableTests: [],
+                tracks: EP_TRACKS,
+                myTracks: [],
+                currentTrack: 'de',
+                showTrackPicker: false,
 
                 showMobileMenu: false,
                 showSubscriptionModal: false,
@@ -962,6 +1008,7 @@
                         this.authChecked = true;
 
                         if (this.gateStatus === 'ok') {
+                            await this.initTracks();
                             this.loadDashboardData();
                             if (this.isFreeTier) this.loadFreeQuota();
                         }
@@ -971,16 +1018,63 @@
                     }
                 },
 
+                async initTracks() {
+                    try { this.myTracks = await epLoadTracks(this.user.id); } catch (e) { this.myTracks = []; }
+                    if (!this.myTracks.length) {
+                        // New student: ask which language they are learning.
+                        this.currentTrack = epTrack();
+                        this.showTrackPicker = true;
+                        return;
+                    }
+                    const saved = epTrack();
+                    this.currentTrack = this.myTracks.includes(saved) ? saved : this.myTracks[0];
+                    epSetTrack(this.currentTrack);
+                },
+
+                trackInfo(id) { return this.tracks.find(t => t.id === id) || this.tracks[0]; },
+
+                async pickTrack(id) {
+                    if (!this.myTracks.includes(id)) {
+                        const ok = await epAddTrack(this.user.id, id);
+                        if (!ok) { this.showToast('تعذّر حفظ اللغة'); return; }
+                        this.myTracks.push(id);
+                    }
+                    this.showTrackPicker = false;
+                    this.switchTrack(id);
+                },
+
+                async switchTrack(id) {
+                    this.currentTrack = id;
+                    epSetTrack(id);
+                    this.applyTrackToAttempts();
+                    this.availableTests = [];
+                    await this.loadTracksTests();
+                },
+
+                applyTrackToAttempts() {
+                    this.testAttempts = this.allAttempts.filter(a => (a.track || 'de') === this.currentTrack);
+                },
+
+                async loadTracksTests() {
+                    const { data } = await sb.from('tests').select('*').eq('is_active', true)
+                        .eq('is_skill_practice', false).eq('track', this.currentTrack);
+                    this.availableTests = (data || []).map(t => ({
+                        id: t.id, title: t.title, description: t.description, test_type: t.test_type,
+                        level: t.level, duration_minutes: t.duration_minutes, total_questions: t.total_questions,
+                        passing_score: t.passing_score, trial_question_count: t.total_questions
+                    }));
+                },
+
                 async loadDashboardData() {
                     try {
                         const [subRes, attemptsData, testsRes] = await Promise.all([
                             sb.from('subscriptions').select('*').eq('user_id', this.user.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
                             sbInvoke('test-attempt', { action: 'list' }),
-                            sb.from('tests').select('*').eq('is_active', true).eq('is_skill_practice', false)
+                            sb.from('tests').select('*').eq('is_active', true).eq('is_skill_practice', false).eq('track', this.currentTrack)
                         ]);
 
                         if (subRes.data) this.subscription = subRes.data;
-                        if (attemptsData.success) this.testAttempts = attemptsData.attempts;
+                        if (attemptsData.success) { this.allAttempts = attemptsData.attempts; this.applyTrackToAttempts(); }
                         if (testsRes.data) {
                             this.availableTests = testsRes.data.map(t => ({
                                 id: t.id, title: t.title, description: t.description, test_type: t.test_type,
@@ -1081,7 +1175,7 @@
                         type: 'bar',
                         data: {
                             labels: keys.map(k => this.skillLabel(k)),
-                            datasets: [{ data, backgroundColor: '#2563EB', borderRadius: 8, maxBarThickness: 36 }]
+                            datasets: [{ data, backgroundColor: '#042A97', borderRadius: 8, maxBarThickness: 36 }]
                         },
                         options: {
                             indexAxis: 'y',
@@ -1141,7 +1235,7 @@
                             if (this.performanceReport.trend && this.performanceReport.trend.length) {
                                 const trend = this.performanceReport.trend;
                                 const passColor = '#059669';   // emerald-600
-                                const failColor = '#DC2626';   // bright red, matching the rebrand
+                                const failColor = '#DC0212';   // bright red, matching the rebrand
                                 this.trendChart = new Chart(trendCanvas, {
                                     type: 'line',
                                     data: {
@@ -1153,7 +1247,7 @@
                                             },
                                             pointBackgroundColor: (ctx) => trend[ctx.dataIndex]?.passed ? passColor : failColor,
                                             pointBorderColor: (ctx) => trend[ctx.dataIndex]?.passed ? passColor : failColor,
-                                            backgroundColor: 'rgba(37,99,235,0.06)',
+                                            backgroundColor: 'rgba(4,42,151,0.06)',
                                             tension: 0.3,
                                             fill: true
                                         }]
@@ -1438,7 +1532,7 @@
 
                 formatDate(iso) {
                     if (!iso) return '—';
-                    return new Date(iso).toLocaleDateString('ar-MA', { year: 'numeric', month: 'short', day: 'numeric' });
+                    return new Date(iso).toLocaleDateString(window.epLocale || 'ar-MA', { year: 'numeric', month: 'short', day: 'numeric' });
                 },
 
                 formatDuration(totalSeconds) {

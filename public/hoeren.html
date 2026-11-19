@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hören - تدريبات الاستماع - LisanTest.com</title>
+    <title>Hören - تدريبات الاستماع - EuroPass Academy</title>
     <meta name="description" content="مكتبة متجددة من تدريبات الاستماع القصيرة">
     <meta name="robots" content="noindex, nofollow">
 
@@ -20,11 +20,11 @@
           extend: {
             colors: {
               flag: {
-                black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
-                red: '#DC2626', redbright: '#EF4444', reddeep: '#B91C1C',
-                blue: '#2563EB', bluebright: '#3B82F6', blueddeep: '#1D4ED8',
-                gold: '#2563EB', goldbright: '#3B82F6', golddeep: '#1D4ED8',
-                accent: '#DC2626', accentbright: '#EF4444', accentdeep: '#B91C1C',
+                black: '#06226E', blacksoft: '#0A2F8A', charcoal: '#0B3AA8',
+                red: '#DC0212', redbright: '#F0202F', reddeep: '#B00010',
+                blue: '#042A97', bluebright: '#3B82F6', blueddeep: '#1D4ED8',
+                gold: '#042A97', goldbright: '#3B82F6', golddeep: '#1D4ED8',
+                accent: '#DC0212', accentbright: '#F0202F', accentdeep: '#B00010',
                 cream: '#FFFFFF', paper: '#FFFFFF', ink: '#0F172A'
               }
             },
@@ -37,6 +37,8 @@
       }
     </script>
 
+    <script src="assets/js/i18n-dict.js"></script>
+    <script src="assets/js/i18n.js"></script>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/responsive.css">
 
@@ -59,9 +61,9 @@
             <div class="de-card w-full max-w-md overflow-hidden text-center">
                 <div class="de-flag-ribbon"></div>
                 <div class="p-8">
-                    <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5" style="border-color:#DC2626;color:#DC2626;"><i class="fas fa-circle-xmark"></i></span>
+                    <span class="de-stamp h-16 w-16 text-xs mx-auto mb-5" style="border-color:#DC0212;color:#DC0212;"><i class="fas fa-circle-xmark"></i></span>
                     <h1 class="text-xl font-bold text-flag-ink mb-3">تعذّر تفعيل حسابك</h1>
-                    <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">لم تتم الموافقة على عضويتك. تواصل معنا على <a href="mailto:hello@lisantest.com" class="text-flag-red">hello@lisantest.com</a> لمزيد من المعلومات.</p>
+                    <p class="text-sm text-flag-ink/60 leading-relaxed mb-6">لم تتم الموافقة على عضويتك. تواصل معنا على <a href="mailto:hello@europassacademy.com" class="text-flag-red">hello@europassacademy.com</a> لمزيد من المعلومات.</p>
                     <a href="dashboard.html" class="de-btn w-full text-sm py-3" style="background:#EEEAE0;color:#0F172A;">
                         <i class="fas fa-arrow-right"></i> العودة إلى لوحة التحكم
                     </a>
@@ -302,7 +304,7 @@
                         <div class="text-start space-y-3 max-w-xl mx-auto mb-8">
                             <h4 class="font-semibold text-flag-ink text-sm mb-2">مراجعة الأسئلة</h4>
                             <template x-for="q in testResults.questions_review" :key="q.id">
-                                <div class="de-card rounded-xl p-4" :style="{ borderInlineStartWidth: '4px', borderInlineStartColor: q.is_correct ? '#059669' : '#DC2626' }">
+                                <div class="de-card rounded-xl p-4" :style="{ borderInlineStartWidth: '4px', borderInlineStartColor: q.is_correct ? '#059669' : '#DC0212' }">
                                     <p class="text-sm font-medium text-flag-ink mb-2" x-text="q.question_text"></p>
                                     <p class="text-xs text-flag-ink/60">إجابتك: <span x-text="q.selected_answer_text || '—'"></span></p>
                                     <p class="text-xs text-flag-ink/60">الإجابة الصحيحة: <span x-text="q.correct_answer_text"></span></p>
@@ -469,7 +471,7 @@
                     this.testsLoading = true;
                     try {
                         const { data: tests } = await sb.from('tests').select('*')
-                            .eq('skill', 'listening').eq('is_skill_practice', true).eq('is_active', true)
+                            .eq('skill', 'listening').eq('is_skill_practice', true).eq('is_active', true).eq('track', epTrack())
                             .order('created_at', { ascending: false }); // newest first, older tests move down
                         this.tests = tests || [];
 
@@ -486,7 +488,7 @@
                             this.lastScores = scores;
                         }
 
-                        const { data: allResources } = await sb.from('resources').select('*').order('created_at', { ascending: false });
+                        const { data: allResources } = await sb.from('resources').select('*').or('track.is.null,track.eq.' + epTrack()).order('created_at', { ascending: false });
                         if (allResources) {
                             const matched = allResources.filter(r => r.skill === 'listening');
                             this.resources = matched.length ? matched : allResources.filter(r => !r.skill).slice(0, 4);

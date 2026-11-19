@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الحصص المباشرة - LisanTest.com</title>
+    <title>الحصص المباشرة - EuroPass Academy</title>
     <meta name="description" content="جدول الحصص المباشرة والانضمام إليها">
     <meta name="robots" content="noindex, nofollow">
 
@@ -20,11 +20,11 @@
           extend: {
             colors: {
               flag: {
-                black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
-                red: '#DC2626', redbright: '#EF4444', reddeep: '#B91C1C',
-                blue: '#2563EB', bluebright: '#3B82F6', blueddeep: '#1D4ED8',
-                gold: '#DC2626', goldbright: '#EF4444', golddeep: '#B91C1C',
-                accent: '#DC2626', accentbright: '#EF4444', accentdeep: '#B91C1C',
+                black: '#06226E', blacksoft: '#0A2F8A', charcoal: '#0B3AA8',
+                red: '#DC0212', redbright: '#F0202F', reddeep: '#B00010',
+                blue: '#042A97', bluebright: '#3B82F6', blueddeep: '#1D4ED8',
+                gold: '#DC0212', goldbright: '#F0202F', golddeep: '#B00010',
+                accent: '#DC0212', accentbright: '#F0202F', accentdeep: '#B00010',
                 cream: '#FFFFFF', paper: '#FFFFFF', ink: '#0F172A'
               }
             },
@@ -37,6 +37,8 @@
       }
     </script>
 
+    <script src="assets/js/i18n-dict.js"></script>
+    <script src="assets/js/i18n.js"></script>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/responsive.css">
 
@@ -180,7 +182,7 @@ function liveApp() {
       if (!silent) this.loading = true;
       const { data, error } = await sb.rpc('get_my_class_sessions');
       if (error) { console.error(error); this.say('تعذّر تحميل الحصص'); }
-      else this.sessions = data || [];
+      else this.sessions = (data || []).filter(s => (s.track || 'de') === epTrack());
       this.loading = false;
     },
 
@@ -207,8 +209,8 @@ function liveApp() {
 
     say(m) { this.toast = m; clearTimeout(this._t); this._t = setTimeout(() => this.toast = '', 3500); },
     platformName(p) { return p === 'zoom' ? 'Zoom' : p === 'meet' ? 'Google Meet' : 'رابط مباشر'; },
-    timeOf(iso) { return new Date(iso).toLocaleTimeString('fr-MA', { hour: '2-digit', minute: '2-digit' }); },
-    dayOf(iso) { return new Date(iso).toLocaleDateString('ar-MA-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long' }); }
+    timeOf(iso) { return new Date(iso).toLocaleTimeString(window.epLocale || 'fr-MA', { hour: '2-digit', minute: '2-digit' }); },
+    dayOf(iso) { return new Date(iso).toLocaleDateString((window.epLocale || 'ar-MA')+'-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long' }); }
   };
 }
 </script>

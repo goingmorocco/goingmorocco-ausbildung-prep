@@ -4,29 +4,21 @@
    ========================================================================== */
 
 :root {
-  --de-black: #0E2A4C;
-  --de-black-soft: #163B63;
-  --de-charcoal: #1F4C78;
-  --de-red: #DC2626;
-  --de-red-bright: #EF4444;
-  --de-red-deep: #B91C1C;
-  --de-blue: #2563EB;
+  --de-black: #06226E;
+  --de-black-soft: #0A2F8A;
+  --de-charcoal: #0B3AA8;
+  --de-red: #DC0212;
+  --de-red-bright: #F0202F;
+  --de-red-deep: #B00010;
+  --de-blue: #042A97;
   --de-blue-bright: #3B82F6;
   --de-blue-deep: #1D4ED8;
-  --de-accent: #DC2626;
-  --de-accent-bright: #EF4444;
-  --de-accent-deep: #B91C1C;
+  --de-accent: #DC0212;
+  --de-accent-bright: #F0202F;
+  --de-accent-deep: #B00010;
   --de-cream: #FFFFFF;
   --de-paper: #FFFFFF;
   --de-ink: #0F172A;
-
-  /* Navy — the site's "dark section" color everywhere a black background
-     would otherwise be used (hero, trust strip, final CTA, feature cards) */
-  --de-navy-950: #060f1f;
-  --de-navy-900: #0A1F3D;
-  --de-navy-800: #0E2A4C;
-  --de-navy-700: #163B63;
-  --de-navy-600: #1F4C78;
 
   --shadow-stamp: 0 20px 45px rgba(14,42,76, 0.18);
 }
@@ -63,7 +55,7 @@ body {
 .de-light-bg {
   background-color: var(--de-paper);
   background-image:
-    radial-gradient(circle at 15% 15%, rgba(37,99,235,0.06), transparent 45%),
+    radial-gradient(circle at 15% 15%, rgba(4,42,151,0.06), transparent 45%),
     radial-gradient(circle at 85% 0%, rgba(56,189,248,0.12), transparent 40%),
     radial-gradient(circle at 1px 1px, rgba(15,23,42,0.035) 1px, transparent 0);
   background-size: auto, auto, 24px 24px;
@@ -134,7 +126,7 @@ body {
 .de-stamp-onlight {
   border-color: var(--de-blue);
   color: var(--de-blue);
-  box-shadow: 0 0 0 3px rgba(37,99,235,0.10);
+  box-shadow: 0 0 0 3px rgba(4,42,151,0.10);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -163,7 +155,7 @@ body {
 .de-card:hover {
   transform: translateY(-6px);
   box-shadow: var(--shadow-stamp);
-  border-color: rgba(37,99,235,0.3);
+  border-color: rgba(4,42,151,0.3);
 }
 
 .de-card-dark {
@@ -183,7 +175,7 @@ body {
   top: 0;
   bottom: 0;
   width: 1px;
-  background-image: repeating-linear-gradient(to bottom, rgba(37,99,235,0.18) 0 6px, transparent 6px 12px);
+  background-image: repeating-linear-gradient(to bottom, rgba(4,42,151,0.18) 0 6px, transparent 6px 12px);
 }
 
 /* --------------------------------------------------------------------
@@ -212,11 +204,11 @@ body {
 .de-btn-primary {
   background: linear-gradient(135deg, var(--de-blue-bright), var(--de-blue-deep));
   color: white;
-  box-shadow: 0 10px 25px rgba(37,99,235,0.35);
+  box-shadow: 0 10px 25px rgba(4,42,151,0.35);
 }
 .de-btn-primary:hover {
   transform: translateY(-3px);
-  box-shadow: 0 16px 32px rgba(37,99,235,0.45);
+  box-shadow: 0 16px 32px rgba(4,42,151,0.45);
 }
 
 .de-btn-gold {
@@ -230,12 +222,12 @@ body {
 }
 
 .de-btn-ghost {
-  background: rgba(37,99,235,0.05);
+  background: rgba(4,42,151,0.05);
   color: var(--de-ink);
-  border: 1px solid rgba(37,99,235,0.15);
+  border: 1px solid rgba(4,42,151,0.15);
 }
 .de-btn-ghost:hover {
-  background: rgba(37,99,235,0.09);
+  background: rgba(4,42,151,0.09);
   transform: translateY(-3px);
 }
 
@@ -270,9 +262,9 @@ body {
 }
 
 .de-badge-gold {
-  background: rgba(37,99,235,0.16);
+  background: rgba(4,42,151,0.16);
   color: var(--de-blue-deep);
-  border: 1px solid rgba(37,99,235,0.5);
+  border: 1px solid rgba(4,42,151,0.5);
 }
 
 .de-badge-red {
@@ -340,7 +332,7 @@ body {
   position: absolute;
   width: 64px;
   height: 64px;
-  border: 2px solid rgba(37,99,235,0.5);
+  border: 2px solid rgba(4,42,151,0.5);
   opacity: 0.6;
 }
 
