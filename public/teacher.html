@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة المدرّس - LisanTest.com</title>
+    <meta name="description" content="إدارة المجموعات والحصص المباشرة والحضور">
+    <meta name="robots" content="noindex, nofollow">
+
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              flag: {
+                black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
+                red: '#DC2626', redbright: '#EF4444', reddeep: '#B91C1C',
+                blue: '#2563EB', bluebright: '#3B82F6', blueddeep: '#1D4ED8',
+                gold: '#DC2626', goldbright: '#EF4444', golddeep: '#B91C1C',
+                accent: '#DC2626', accentbright: '#EF4444', accentdeep: '#B91C1C',
+                cream: '#FFFFFF', paper: '#FFFFFF', ink: '#0F172A'
+              }
+            },
+            fontFamily: {
+              arabic: ['Cairo', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'monospace']
+            }
+          }
+        }
+      }
+    </script>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+    <!-- Supabase client (must load before Alpine, since x-init calls into it) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>[x-cloak]{display:none !important;}</style>
+</head>
+<body class="font-arabic de-paper-bg text-flag-ink antialiased min-h-screen" x-data="teacherApp()" x-init="init()">
+
+<div x-show="!authChecked" class="min-h-screen flex items-center justify-center de-dark-bg text-white"><i class="fas fa-circle-notch fa-spin text-2xl"></i></div>
+
+<template x-if="authChecked && !allowed">
+  <div class="min-h-screen de-dark-bg flex items-center justify-center p-4">
+    <div class="de-card w-full max-w-md p-8 text-center">
+      <span class="de-stamp de-stamp-onlight h-16 w-16 text-xs mx-auto mb-5"><i class="fas fa-lock"></i></span>
+      <h1 class="text-xl font-bold mb-2">هذه الصفحة للمدرّسين والإدارة فقط</h1>
+      <a href="dashboard.html" class="de-btn de-btn-primary text-sm px-6 py-2.5 mt-4">العودة</a>
+    </div>
+  </div>
+</template>
+
+<template x-if="authChecked && allowed">
+<div>
+  <header class="sticky top-0 z-30 de-light-bg border-b border-black/5 shadow-sm">
+    <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="de-stamp de-stamp-onlight h-10 w-10 text-xs"><i class="fas fa-chalkboard-user"></i></span>
+        <span class="font-semibold">لوحة المدرّس</span>
+      </div>
+      <a :href="isAdmin ? 'admin.html' : 'live.html'" class="text-sm text-flag-ink/60 hover:text-flag-red"><i class="fas fa-arrow-right"></i> رجوع</a>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-8">
+    <div x-show="toast" x-cloak x-transition class="fixed top-20 inset-x-0 z-50 flex justify-center px-4">
+      <div class="bg-flag-black text-white text-sm rounded-full px-5 py-2.5 shadow-lg" x-text="toast"></div>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-6">
+      <!-- Groups column -->
+      <aside class="lg:col-span-1 space-y-4">
+        <div class="de-card p-4">
+          <h2 class="font-bold mb-3">المجموعات</h2>
+          <p x-show="!groups.length" class="text-sm text-flag-ink/50">لا توجد مجموعات بعد.</p>
+          <div class="space-y-2">
+            <template x-for="g in groups" :key="g.id">
+              <button @click="selectGroup(g)" class="w-full text-start px-3 py-2.5 rounded-xl border text-sm transition-colors"
+                      :class="current && current.id === g.id ? 'border-flag-red bg-red-50' : 'border-black/10 hover:bg-flag-cream'">
+                <div class="font-semibold" x-text="g.name"></div>
+                <div class="text-xs text-flag-ink/50" x-text="(g.level || '') + (g.is_active ? '' : ' · غير نشطة')"></div>
+              </button>
+            </template>
+          </div>
+        </div>
+
+        <div x-show="isAdmin" x-cloak class="de-card p-4 space-y-2">
+          <h3 class="font-bold text-sm">مجموعة جديدة</h3>
+          <input x-model="newGroup.name" placeholder="اسم المجموعة" class="w-full px-3 py-2 rounded-lg border border-black/10 text-sm">
+          <input x-model="newGroup.level" placeholder="المستوى (B1, B2…)" class="w-full px-3 py-2 rounded-lg border border-black/10 text-sm">
+          <button @click="createGroup()" class="de-btn de-btn-primary text-sm w-full py-2">إنشاء</button>
+        </div>
+
+        <div x-show="isAdmin" x-cloak class="de-card p-4 space-y-2">
+          <h3 class="font-bold text-sm">إدارة المدرّسين</h3>
+          <p class="text-xs text-flag-ink/50">أدخل البريد الإلكتروني للمستخدم لترقيته إلى مدرّس.</p>
+          <input x-model="teacherEmail" type="email" dir="ltr" placeholder="email@example.com" class="w-full px-3 py-2 rounded-lg border border-black/10 text-sm">
+          <div class="flex gap-2">
+            <button @click="setTeacher(true)" class="de-btn de-btn-primary text-sm flex-1 py-2">ترقية</button>
+            <button @click="setTeacher(false)" class="flex-1 py-2 text-sm rounded-full border border-black/10">إزالة</button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Detail column -->
+      <section class="lg:col-span-2 space-y-6">
+        <div x-show="!current" class="de-card p-10 text-center text-flag-ink/50">اختر مجموعة للبدء.</div>
+
+        <template x-if="current">
+          <div class="space-y-6">
+            <div class="de-card p-5">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h2 class="text-lg font-bold" x-text="current.name"></h2>
+                  <p class="text-xs text-flag-ink/50" x-text="'المدرّس: ' + (teacherName || 'غير معيّن')"></p>
+                </div>
+                <div x-show="isAdmin" x-cloak class="flex items-center gap-2">
+                  <input x-model="assignEmail" dir="ltr" placeholder="بريد المدرّس" class="px-3 py-1.5 rounded-lg border border-black/10 text-xs w-44">
+                  <button @click="assignTeacher()" class="text-xs px-3 py-1.5 rounded-full bg-flag-black text-white">تعيين</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- New session -->
+            <div class="de-card p-5">
+              <h3 class="font-bold mb-3">جدولة حصة</h3>
+              <div class="grid sm:grid-cols-2 gap-3">
+                <input x-model="form.title" placeholder="عنوان الحصة" class="px-3 py-2 rounded-lg border border-black/10 text-sm sm:col-span-2">
+                <input x-model="form.starts" type="datetime-local" class="px-3 py-2 rounded-lg border border-black/10 text-sm">
+                <input x-model.number="form.duration" type="number" min="5" max="480" placeholder="المدة (دقيقة)" class="px-3 py-2 rounded-lg border border-black/10 text-sm">
+                <input x-model="form.url" type="url" dir="ltr" placeholder="https://zoom.us/j/… أو https://meet.google.com/…" class="px-3 py-2 rounded-lg border border-black/10 text-sm sm:col-span-2">
+                <textarea x-model="form.notes" rows="2" placeholder="ملاحظات للطلاب (اختياري)" class="px-3 py-2 rounded-lg border border-black/10 text-sm sm:col-span-2"></textarea>
+              </div>
+              <button @click="createSession()" class="de-btn de-btn-primary text-sm px-6 py-2 mt-3"><i class="fas fa-plus"></i> نشر الحصة</button>
+            </div>
+
+            <!-- Sessions -->
+            <div class="de-card p-5">
+              <h3 class="font-bold mb-3">الحصص</h3>
+              <p x-show="!sessions.length" class="text-sm text-flag-ink/50">لا توجد حصص.</p>
+              <div class="space-y-2">
+                <template x-for="s in sessions" :key="s.id">
+                  <div class="border border-black/10 rounded-xl p-3">
+                    <div class="flex flex-wrap items-center gap-2 justify-between">
+                      <div>
+                        <div class="font-semibold text-sm" x-text="s.title"></div>
+                        <div class="text-xs text-flag-ink/50" x-text="fmt(s.starts_at) + ' · ' + s.duration_minutes + ' د'"></div>
+                      </div>
+                      <div class="flex gap-2 text-xs">
+                        <button @click="openAttendance(s)" class="px-3 py-1.5 rounded-full bg-flag-cream"><i class="fas fa-clipboard-check"></i> الحضور</button>
+                        <button @click="removeSession(s)" class="px-3 py-1.5 rounded-full text-red-600 bg-red-50"><i class="fas fa-trash"></i></button>
+                      </div>
+                    </div>
+                    <div x-show="openSession === s.id" x-cloak class="mt-3 border-t border-black/5 pt-3">
+                      <div class="flex items-center gap-2 mb-3">
+                        <input :value="s.recording_url || ''" @change="saveRecording(s, $event.target.value)" dir="ltr" placeholder="رابط التسجيل (اختياري)" class="flex-1 px-3 py-1.5 rounded-lg border border-black/10 text-xs">
+                      </div>
+                      <div class="text-xs text-flag-ink/60 mb-2" x-text="'الحاضرون: ' + attendance.filter(a => a.present).length + ' / ' + attendance.length"></div>
+                      <template x-for="a in attendance" :key="a.student_id">
+                        <label class="flex items-center justify-between py-1.5 text-sm cursor-pointer">
+                          <span x-text="a.full_name"></span>
+                          <span class="flex items-center gap-2">
+                            <span x-show="a.present && a.source === 'click'" class="text-[10px] text-flag-ink/40" x-text="'نقر · ' + a.join_count + '×'"></span>
+                            <span x-show="a.present && a.source === 'manual'" class="text-[10px] text-flag-ink/40">يدوي</span>
+                            <input type="checkbox" :checked="a.present" @change="mark(s, a, $event.target.checked)">
+                          </span>
+                        </label>
+                      </template>
+                      <button @click="exportCsv(s)" class="mt-3 text-xs text-flag-red font-medium"><i class="fas fa-download"></i> تصدير CSV</button>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <!-- Roster -->
+            <div class="de-card p-5">
+              <h3 class="font-bold mb-3" x-text="'الطلاب (' + roster.length + ')'"></h3>
+              <div class="flex gap-2 mb-3">
+                <input x-model="enrollEmail" type="email" dir="ltr" placeholder="بريد الطالب للتسجيل" class="flex-1 px-3 py-2 rounded-lg border border-black/10 text-sm">
+                <button @click="enroll()" class="de-btn de-btn-primary text-sm px-5">تسجيل</button>
+              </div>
+              <template x-for="r in roster" :key="r.student_id">
+                <div class="flex items-center justify-between py-1.5 text-sm">
+                  <div><span x-text="r.full_name"></span> <span class="text-xs text-flag-ink/40" dir="ltr" x-text="r.email"></span>
+                    <span x-show="r.membership_status !== 'active'" class="text-[10px] px-1.5 py-0.5 rounded bg-yellow-100 text-yellow-700">اشتراك غير نشط</span></div>
+                  <button @click="unenroll(r)" class="text-xs text-red-600"><i class="fas fa-user-minus"></i></button>
+                </div>
+              </template>
+            </div>
+          </div>
+        </template>
+      </section>
+    </div>
+  </main>
+</div>
+</template>
+
+<script>
+function teacherApp() {
+  return {
+    user: null, authChecked: false, allowed: false, isAdmin: false,
+    groups: [], current: null, sessions: [], roster: [], attendance: [], openSession: null,
+    teacherName: '', toast: '', _t: null,
+    newGroup: { name: '', level: '' }, teacherEmail: '', assignEmail: '', enrollEmail: '',
+    form: { title: '', starts: '', duration: 60, url: '', notes: '' },
+
+    async init() {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { window.location.href = 'index.html'; return; }
+      try {
+        const p = await sbGetProfile(session.user.id);
+        this.user = p; this.isAdmin = p.role === 'admin';
+        this.allowed = p.role === 'admin' || p.role === 'teacher';
+        this.authChecked = true;
+        if (this.allowed) await this.loadGroups();
+      } catch (e) { console.error(e); this.authChecked = true; }
+    },
+
+    say(m) { this.toast = m; clearTimeout(this._t); this._t = setTimeout(() => this.toast = '', 3500); },
+    fmt(iso) { return new Date(iso).toLocaleString('fr-MA', { dateStyle: 'medium', timeStyle: 'short' }); },
+    fail(e, fallback) { console.error(e); this.say((e && e.message && /forbidden|not_enrolled/.test(e.message)) ? 'غير مسموح' : fallback); },
+
+    async loadGroups() {
+      const { data, error } = await sb.from('class_groups').select('*').order('created_at', { ascending: false });
+      if (error) return this.fail(error, 'تعذّر تحميل المجموعات');
+      this.groups = data || [];
+      if (this.current) this.current = this.groups.find(g => g.id === this.current.id) || null;
+    },
+
+    async selectGroup(g) {
+      this.current = g; this.openSession = null; this.attendance = [];
+      this.teacherName = '';
+      if (g.teacher_id) {
+        const { data } = await sb.from('users').select('full_name').eq('id', g.teacher_id).maybeSingle();
+        this.teacherName = data ? data.full_name : '';
+      }
+      await Promise.all([this.loadSessions(), this.loadRoster()]);
+    },
+
+    async loadSessions() {
+      const { data, error } = await sb.from('class_sessions').select('*').eq('group_id', this.current.id).order('starts_at', { ascending: false });
+      if (error) return this.fail(error, 'تعذّر تحميل الحصص');
+      this.sessions = data || [];
+    },
+    async loadRoster() {
+      const { data, error } = await sb.rpc('get_group_roster', { gid: this.current.id });
+      if (error) return this.fail(error, 'تعذّر تحميل الطلاب');
+      this.roster = data || [];
+    },
+
+    async createGroup() {
+      if (!this.newGroup.name.trim()) return this.say('أدخل اسم المجموعة');
+      const { error } = await sb.from('class_groups').insert({ name: this.newGroup.name.trim(), level: this.newGroup.level.trim() || null });
+      if (error) return this.fail(error, 'تعذّر إنشاء المجموعة');
+      this.newGroup = { name: '', level: '' }; this.say('تم إنشاء المجموعة'); this.loadGroups();
+    },
+
+    async setTeacher(flag) {
+      const { data, error } = await sb.rpc('find_user_by_email', { q: this.teacherEmail });
+      if (error || !data || !data.length) return this.say('لم يتم العثور على المستخدم');
+      const { error: e2 } = await sb.rpc('set_user_teacher', { uid: data[0].id, make_teacher: flag });
+      if (e2) return this.fail(e2, 'تعذّر التحديث');
+      this.say(flag ? 'تمت الترقية إلى مدرّس' : 'تمت إزالة صلاحية المدرّس'); this.teacherEmail = '';
+    },
+
+    async assignTeacher() {
+      const { data, error } = await sb.rpc('find_user_by_email', { q: this.assignEmail });
+      if (error || !data || !data.length) return this.say('لم يتم العثور على المستخدم');
+      if (data[0].role !== 'teacher' && data[0].role !== 'admin') return this.say('هذا المستخدم ليس مدرّسًا، قم بترقيته أولًا');
+      const { error: e2 } = await sb.from('class_groups').update({ teacher_id: data[0].id }).eq('id', this.current.id);
+      if (e2) return this.fail(e2, 'تعذّر التعيين');
+      this.assignEmail = ''; this.say('تم تعيين المدرّس');
+      await this.loadGroups(); this.selectGroup(this.current);
+    },
+
+    async enroll() {
+      const { data, error } = await sb.rpc('find_user_by_email', { q: this.enrollEmail });
+      if (error || !data || !data.length) return this.say('لم يتم العثور على الطالب');
+      const { error: e2 } = await sb.from('class_enrollments').insert({ group_id: this.current.id, student_id: data[0].id });
+      if (e2) return this.say(e2.code === '23505' ? 'الطالب مسجّل بالفعل' : 'تعذّر التسجيل');
+      this.enrollEmail = ''; this.say('تم تسجيل الطالب'); this.loadRoster();
+    },
+    async unenroll(r) {
+      if (!confirm('إزالة ' + r.full_name + ' من المجموعة؟')) return;
+      const { error } = await sb.from('class_enrollments').delete().eq('group_id', this.current.id).eq('student_id', r.student_id);
+      if (error) return this.fail(error, 'تعذّرت الإزالة');
+      this.loadRoster();
+    },
+
+    async createSession() {
+      const f = this.form;
+      if (!f.title.trim() || !f.starts || !/^https?:\/\//i.test(f.url.trim())) return this.say('أكمل العنوان والموعد والرابط (يبدأ بـ https://)');
+      const u = f.url.trim();
+      const platform = /zoom\./i.test(u) ? 'zoom' : /meet\.google\./i.test(u) ? 'meet' : 'other';
+      const { error } = await sb.from('class_sessions').insert({
+        group_id: this.current.id, title: f.title.trim(), starts_at: new Date(f.starts).toISOString(),
+        duration_minutes: f.duration || 60, join_url: u, platform, notes: f.notes.trim() || null, created_by: this.user.id
+      });
+      if (error) return this.fail(error, 'تعذّر نشر الحصة');
+      this.form = { title: '', starts: '', duration: 60, url: '', notes: '' };
+      this.say('تم نشر الحصة'); this.loadSessions();
+    },
+    async removeSession(s) {
+      if (!confirm('حذف هذه الحصة وسجل حضورها؟')) return;
+      const { error } = await sb.from('class_sessions').delete().eq('id', s.id);
+      if (error) return this.fail(error, 'تعذّر الحذف');
+      this.loadSessions();
+    },
+    async saveRecording(s, url) {
+      const { error } = await sb.from('class_sessions').update({ recording_url: url.trim() || null }).eq('id', s.id);
+      if (error) return this.fail(error, 'تعذّر الحفظ');
+      s.recording_url = url.trim() || null; this.say('تم الحفظ');
+    },
+
+    async openAttendance(s) {
+      if (this.openSession === s.id) { this.openSession = null; return; }
+      this.openSession = s.id; await this.loadAttendance(s);
+    },
+    async loadAttendance(s) {
+      const { data, error } = await sb.rpc('get_session_attendance', { sid: s.id });
+      if (error) return this.fail(error, 'تعذّر تحميل الحضور');
+      this.attendance = data || [];
+    },
+    async mark(s, a, present) {
+      const { error } = await sb.rpc('set_attendance', { sid: s.id, student: a.student_id, present });
+      if (error) this.fail(error, 'تعذّر التحديث');
+      this.loadAttendance(s);
+    },
+    exportCsv(s) {
+      const esc = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+      const rows = [['Name', 'Present', 'Joined at', 'Join count', 'Source']]
+        .concat(this.attendance.map(a => [a.full_name, a.present ? 'yes' : 'no', a.joined_at || '', a.join_count ?? '', a.source || '']));
+      const blob = new Blob(['﻿' + rows.map(r => r.map(esc).join(',')).join('\n')], { type: 'text/csv;charset=utf-8' });
+      const el = document.createElement('a');
+      el.href = URL.createObjectURL(blob); el.download = 'attendance-' + s.starts_at.slice(0, 10) + '.csv'; el.click();
+    }
+  };
+}
+</script>
+</body>
+</html>

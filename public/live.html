@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الحصص المباشرة - LisanTest.com</title>
+    <meta name="description" content="جدول الحصص المباشرة والانضمام إليها">
+    <meta name="robots" content="noindex, nofollow">
+
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              flag: {
+                black: '#0E2A4C', blacksoft: '#163B63', charcoal: '#1F4C78',
+                red: '#DC2626', redbright: '#EF4444', reddeep: '#B91C1C',
+                blue: '#2563EB', bluebright: '#3B82F6', blueddeep: '#1D4ED8',
+                gold: '#DC2626', goldbright: '#EF4444', golddeep: '#B91C1C',
+                accent: '#DC2626', accentbright: '#EF4444', accentdeep: '#B91C1C',
+                cream: '#FFFFFF', paper: '#FFFFFF', ink: '#0F172A'
+              }
+            },
+            fontFamily: {
+              arabic: ['Cairo', 'sans-serif'],
+              mono: ['"JetBrains Mono"', 'monospace']
+            }
+          }
+        }
+      }
+    </script>
+
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+    <!-- Supabase client (must load before Alpine, since x-init calls into it) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="assets/js/supabase-client.js"></script>
+
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>[x-cloak]{display:none !important;}</style>
+</head>
+<body class="font-arabic de-paper-bg text-flag-ink antialiased min-h-screen" x-data="liveApp()" x-init="init()">
+
+<div x-show="!authChecked" class="min-h-screen flex items-center justify-center de-dark-bg text-white"><i class="fas fa-circle-notch fa-spin text-2xl"></i></div>
+
+<template x-if="authChecked && user && gateStatus !== 'ok'">
+  <div class="min-h-screen de-dark-bg flex items-center justify-center p-4">
+    <div class="de-card w-full max-w-md p-8 text-center">
+      <span class="de-stamp de-stamp-onlight h-16 w-16 text-xs mx-auto mb-5"><i class="fas fa-lock"></i></span>
+      <h1 class="text-xl font-bold mb-2">الحصص المباشرة للأعضاء المشتركين فقط</h1>
+      <p class="text-sm text-flag-ink/60 mb-6">فعّل اشتراكك للانضمام إلى الحصص المباشرة.</p>
+      <a href="dashboard.html" class="de-btn de-btn-primary text-sm px-6 py-2.5">العودة إلى لوحة التحكم</a>
+    </div>
+  </div>
+</template>
+
+<template x-if="authChecked && user && gateStatus === 'ok'">
+  <div>
+    <header class="sticky top-0 z-30 de-light-bg border-b border-black/5 shadow-sm">
+      <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+        <a href="dashboard.html" class="flex items-center gap-3">
+          <span class="de-stamp de-stamp-onlight h-10 w-10 text-xs"><i class="fas fa-video"></i></span>
+          <span class="font-semibold">الحصص المباشرة</span>
+        </a>
+        <div class="flex items-center gap-3 text-sm">
+          <a x-show="isStaff" x-cloak href="teacher.html" class="text-flag-red font-medium"><i class="fas fa-chalkboard-user"></i> لوحة المدرّس</a>
+          <a href="dashboard.html" class="text-flag-ink/60 hover:text-flag-red"><i class="fas fa-arrow-right"></i> لوحة التحكم</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8">
+      <div x-show="toast" x-cloak x-transition class="fixed top-20 inset-x-0 z-50 flex justify-center px-4">
+        <div class="bg-flag-black text-white text-sm rounded-full px-5 py-2.5 shadow-lg" x-text="toast"></div>
+      </div>
+
+      <div x-show="loading" class="text-center py-16 text-flag-ink/40"><i class="fas fa-circle-notch fa-spin text-xl"></i></div>
+
+      <div x-show="!loading && sessions.length === 0" x-cloak class="de-card p-10 text-center">
+        <i class="fas fa-calendar-xmark text-3xl text-flag-ink/30 mb-4"></i>
+        <h2 class="font-bold mb-1">لا توجد حصص مجدولة</h2>
+        <p class="text-sm text-flag-ink/60">ستظهر هنا حصصك المباشرة بمجرد تسجيلك في مجموعة ونشر المدرّس للموعد.</p>
+      </div>
+
+      <template x-if="!loading && upcoming.length">
+        <section class="mb-10">
+          <h2 class="text-lg font-bold mb-4">الحصص القادمة</h2>
+          <div class="space-y-4">
+            <template x-for="s in upcoming" :key="s.session_id">
+              <article class="de-card p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+                <div class="flex-shrink-0 text-center sm:w-24">
+                  <div class="text-2xl font-bold font-mono" x-text="timeOf(s.starts_at)"></div>
+                  <div class="text-xs text-flag-ink/50" x-text="dayOf(s.starts_at)"></div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex flex-wrap items-center gap-2 mb-1">
+                    <h3 class="font-bold" x-text="s.title"></h3>
+                    <span class="text-[11px] px-2 py-0.5 rounded-full bg-flag-cream text-flag-ink/60" x-text="s.group_name + (s.level ? ' · ' + s.level : '')"></span>
+                    <span x-show="s.joinable" class="text-[11px] px-2 py-0.5 rounded-full bg-green-100 text-green-700"><i class="fas fa-circle text-[6px]"></i> مفتوحة الآن</span>
+                  </div>
+                  <p class="text-sm text-flag-ink/60" x-text="s.duration_minutes + ' دقيقة · ' + platformName(s.platform)"></p>
+                  <p x-show="s.notes" class="text-sm text-flag-ink/70 mt-1 whitespace-pre-line" x-text="s.notes"></p>
+                </div>
+                <div class="flex-shrink-0">
+                  <button @click="join(s)" :disabled="!s.joinable || joining === s.session_id"
+                          class="de-btn de-btn-primary text-sm px-6 py-2.5 disabled:opacity-40 disabled:cursor-not-allowed">
+                    <i class="fas" :class="joining === s.session_id ? 'fa-circle-notch fa-spin' : 'fa-video'"></i>
+                    <span x-text="s.joinable ? 'انضم الآن' : 'يفتح قبل 15 دقيقة'"></span>
+                  </button>
+                </div>
+              </article>
+            </template>
+          </div>
+        </section>
+      </template>
+
+      <template x-if="!loading && past.length">
+        <section>
+          <h2 class="text-lg font-bold mb-4">الحصص السابقة</h2>
+          <div class="space-y-3">
+            <template x-for="s in past" :key="s.session_id">
+              <article class="de-card p-4 flex flex-wrap items-center gap-3 text-sm">
+                <div class="flex-1 min-w-0">
+                  <div class="font-semibold" x-text="s.title"></div>
+                  <div class="text-xs text-flag-ink/50" x-text="dayOf(s.starts_at) + ' · ' + timeOf(s.starts_at) + ' · ' + s.group_name"></div>
+                </div>
+                <span class="text-xs px-2.5 py-1 rounded-full" :class="s.attended ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-600'"
+                      x-text="s.attended ? 'حضرت' : 'غياب'"></span>
+                <a x-show="s.recording_url" :href="s.recording_url" target="_blank" rel="noopener noreferrer" class="text-flag-red text-xs font-medium"><i class="fas fa-play"></i> التسجيل</a>
+              </article>
+            </template>
+          </div>
+        </section>
+      </template>
+    </main>
+  </div>
+</template>
+
+<script>
+function liveApp() {
+  return {
+    user: null, authChecked: false, gateStatus: 'ok', isStaff: false,
+    sessions: [], loading: true, joining: null, toast: '', _t: null,
+
+    get upcoming() {
+      const now = Date.now();
+      return this.sessions.filter(s => now <= new Date(s.starts_at).getTime() + (s.duration_minutes + 30) * 60000);
+    },
+    get past() {
+      const now = Date.now();
+      return this.sessions.filter(s => now > new Date(s.starts_at).getTime() + (s.duration_minutes + 30) * 60000).reverse();
+    },
+
+    async init() {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { window.location.href = 'index.html'; return; }
+      try {
+        const profile = await sbGetProfile(session.user.id);
+        if (profile.role === 'admin') { window.location.href = 'teacher.html'; return; }
+        this.user = profile;
+        this.isStaff = profile.role === 'teacher';
+        this.gateStatus = profile.membership_status === 'active' ? 'ok' : profile.membership_status;
+        this.authChecked = true;
+        if (this.gateStatus === 'ok') {
+          await this.load();
+          setInterval(() => this.load(true), 60000);
+        }
+      } catch (e) { console.error(e); this.authChecked = true; }
+    },
+
+    async load(silent) {
+      if (!silent) this.loading = true;
+      const { data, error } = await sb.rpc('get_my_class_sessions');
+      if (error) { console.error(error); this.say('تعذّر تحميل الحصص'); }
+      else this.sessions = data || [];
+      this.loading = false;
+    },
+
+    async join(s) {
+      this.joining = s.session_id;
+      // Open the tab synchronously on click so popup blockers allow it.
+      const w = window.open('', '_blank');
+      try {
+        const { data, error } = await sb.rpc('join_class_session', { sid: s.session_id });
+        if (error) throw error;
+        if (w) { w.opener = null; w.location.href = data; } else { window.location.href = data; }
+        this.say('تم تسجيل حضورك ✓');
+        this.load(true);
+      } catch (e) {
+        if (w) w.close();
+        const m = (e.message || '');
+        this.say(m.includes('too_early') ? 'الحصة لم تفتح بعد'
+               : m.includes('session_ended') ? 'انتهت هذه الحصة'
+               : m.includes('not_enrolled') ? 'أنت غير مسجّل في هذه المجموعة'
+               : m.includes('membership') ? 'يلزم اشتراك نشط' : 'تعذّر الانضمام، حاول مرة أخرى');
+        this.load(true);
+      } finally { this.joining = null; }
+    },
+
+    say(m) { this.toast = m; clearTimeout(this._t); this._t = setTimeout(() => this.toast = '', 3500); },
+    platformName(p) { return p === 'zoom' ? 'Zoom' : p === 'meet' ? 'Google Meet' : 'رابط مباشر'; },
+    timeOf(iso) { return new Date(iso).toLocaleTimeString('fr-MA', { hour: '2-digit', minute: '2-digit' }); },
+    dayOf(iso) { return new Date(iso).toLocaleDateString('ar-MA-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long' }); }
+  };
+}
+</script>
+</body>
+</html>
