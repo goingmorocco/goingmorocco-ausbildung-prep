@@ -1019,7 +1019,10 @@
                 },
 
                 async initTracks() {
-                    try { this.myTracks = await epLoadTracks(this.user.id); } catch (e) { this.myTracks = []; }
+                    let loaded = null;
+                    try { loaded = await epLoadTracks(this.user.id); } catch (e) { loaded = null; }
+                    // null = tracks table not installed yet: behave like the old single-language dashboard.
+                    this.myTracks = loaded === null ? ['de'] : loaded;
                     if (!this.myTracks.length) {
                         // New student: ask which language they are learning.
                         this.currentTrack = epTrack();
@@ -1056,8 +1059,7 @@
                 },
 
                 async loadTracksTests() {
-                    const { data } = await sb.from('tests').select('*').eq('is_active', true)
-                        .eq('is_skill_practice', false).eq('track', this.currentTrack);
+                    const { data } = await epTestsQuery(false, this.currentTrack);
                     this.availableTests = (data || []).map(t => ({
                         id: t.id, title: t.title, description: t.description, test_type: t.test_type,
                         level: t.level, duration_minutes: t.duration_minutes, total_questions: t.total_questions,
@@ -1070,7 +1072,7 @@
                         const [subRes, attemptsData, testsRes] = await Promise.all([
                             sb.from('subscriptions').select('*').eq('user_id', this.user.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
                             sbInvoke('test-attempt', { action: 'list' }),
-                            sb.from('tests').select('*').eq('is_active', true).eq('is_skill_practice', false).eq('track', this.currentTrack)
+                            epTestsQuery(false, this.currentTrack)
                         ]);
 
                         if (subRes.data) this.subscription = subRes.data;

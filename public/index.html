@@ -48,7 +48,7 @@
     <!-- Announcement bar -->
     <div class="ep-bar">
         حصص مباشرة في الألمانية والإنجليزية والفرنسية والإسبانية
-        <a href="https://wa.me/212680901375" target="_blank" rel="noopener">احجز مكانك</a>
+        <a href="https://wa.me/212664463723" target="_blank" rel="noopener">احجز مكانك</a>
     </div>
 
     <!-- Header -->
@@ -139,7 +139,7 @@
                         <p class="ep-lead">حصص مباشرة مع أساتذة، واختبارات تدريبية، وتتبّع لتقدّمك. كل ذلك في مكان واحد، بالألمانية والإنجليزية والفرنسية والإسبانية.</p>
                         <div class="ep-hero-cta">
                             <button @click="goPrimary()" class="ep-btn ep-btn-o"><i class="fas fa-bolt"></i> <span x-text="user ? 'لوحة التحكم' : 'ابدأ مجانًا'"></span></button>
-                            <a href="https://wa.me/212680901375" target="_blank" rel="noopener" class="ep-btn ep-btn-out"><i class="fab fa-whatsapp"></i> تحدّث معنا عبر واتساب</a>
+                            <a href="https://wa.me/212664463723" target="_blank" rel="noopener" class="ep-btn ep-btn-out"><i class="fab fa-whatsapp"></i> تحدّث معنا عبر واتساب</a>
                         </div>
                         <div class="ep-checks">
                             <span><i class="fas fa-check-circle"></i>ابدأ مجانًا</span>
@@ -185,7 +185,7 @@
                     get wa(){
                         const fmt = this.mode === 'live' ? window.epT('حصص مباشرة + المنصة') : window.epT('المنصة فقط');
                         const msg = window.epT('مرحبًا EuroPass Academy، أريد التسجيل:') + ' ' + window.epT(this.cur.name) + ' · ' + this.level + ' · ' + fmt;
-                        return 'https://wa.me/212680901375?text=' + encodeURIComponent(msg);
+                        return 'https://wa.me/212664463723?text=' + encodeURIComponent(msg);
                     }
                  }">
             <div class="ep-wrap">
@@ -444,7 +444,7 @@
                 <p>أنشئ حسابك المجاني اليوم، أو راسلنا لنساعدك في اختيار المسار المناسب.</p>
                 <div class="row">
                     <button @click="goPrimary()" class="ep-btn ep-btn-o"><i class="fas fa-bolt"></i> <span x-text="user ? 'لوحة التحكم' : 'ابدأ مجانًا'"></span></button>
-                    <a href="https://wa.me/212680901375" target="_blank" rel="noopener" class="ep-btn ep-btn-wh"><i class="fab fa-whatsapp"></i> تواصل عبر واتساب</a>
+                    <a href="https://wa.me/212664463723" target="_blank" rel="noopener" class="ep-btn ep-btn-wh"><i class="fab fa-whatsapp"></i> تواصل عبر واتساب</a>
                 </div>
             </div>
         </section>
@@ -487,7 +487,7 @@
                     <h4>اتصل بنا</h4>
                     <ul>
                         <li><i class="fas fa-map-marker-alt"></i> الدار البيضاء، المغرب</li>
-                        <li><a href="https://wa.me/212680901375" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> <span dir="ltr">+212 680 901 375</span></a></li>
+                        <li><a href="https://wa.me/212664463723" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i> <span dir="ltr">+212 664 463 723</span></a></li>
                         <li><a href="mailto:hello@europassacademy.com"><i class="fas fa-envelope"></i> hello@europassacademy.com</a></li>
                     </ul>
                 </div>
@@ -499,7 +499,7 @@
         </div>
     </footer>
 
-    <a href="https://wa.me/212680901375" target="_blank" rel="noopener" class="ep-wa" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+    <a href="https://wa.me/212664463723" target="_blank" rel="noopener" class="ep-wa" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
 
     <!-- Mobile sticky CTA -->
     <div class="ep-sticky" x-show="!user && !showModal && !showMobileMenu" x-cloak>
@@ -545,13 +545,13 @@
             <form @submit.prevent="login(email, password)" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-flag-ink/70 mb-2">البريد الإلكتروني</label>
-                    <input type="email" x-model="email" required
+                    <input type="email" x-model="email" required autocomplete="email" dir="ltr"
                            class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-flag-ink/70 mb-2">كلمة المرور</label>
                     <div class="relative">
-                        <input :type="showLoginPassword ? 'text' : 'password'" x-model="password" required
+                        <input :type="showLoginPassword ? 'text' : 'password'" x-model="password" required autocomplete="current-password"
                                class="w-full px-4 py-2.5 pe-11 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
                         <button type="button" @click="showLoginPassword = !showLoginPassword" class="absolute top-1/2 -translate-y-1/2 end-3.5 text-flag-ink/40 hover:text-flag-red">
                             <i class="fas" :class="showLoginPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
@@ -579,7 +579,7 @@
                     <p class="text-sm text-flag-ink/60">أدخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة المرور.</p>
                     <div>
                         <label class="block text-sm font-medium text-flag-ink/70 mb-2">البريد الإلكتروني</label>
-                        <input type="email" x-model="resetEmail" required
+                        <input type="email" x-model="resetEmail" required autocomplete="email" dir="ltr"
                                class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
                     </div>
                     <button type="submit" :disabled="isLoading" class="de-btn de-btn-primary w-full text-sm py-3 disabled:opacity-50"
@@ -599,24 +599,24 @@
                 <div class="grid sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-medium text-flag-ink/70 mb-2">الاسم الكامل</label>
-                        <input type="text" x-model="userData.full_name" required
+                        <input type="text" x-model="userData.full_name" required autocomplete="name" maxlength="120"
                                class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-flag-ink/70 mb-2">رقم الهاتف (اختياري)</label>
-                        <input type="tel" x-model="userData.phone"
+                        <input type="tel" x-model="userData.phone" autocomplete="tel" maxlength="25" dir="ltr" placeholder="+212 6XX XXX XXX"
                                class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
                     </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-flag-ink/70 mb-2">البريد الإلكتروني</label>
-                    <input type="email" x-model="userData.email" required
+                    <input type="email" x-model="userData.email" required autocomplete="email" dir="ltr"
                            class="w-full px-4 py-2.5 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-flag-ink/70 mb-2">كلمة المرور</label>
                     <div class="relative">
-                        <input :type="showRegisterPassword ? 'text' : 'password'" x-model="userData.password" required
+                        <input :type="showRegisterPassword ? 'text' : 'password'" x-model="userData.password" required minlength="8" autocomplete="new-password"
                                class="w-full px-4 py-2.5 pe-11 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
                         <button type="button" @click="showRegisterPassword = !showRegisterPassword" class="absolute top-1/2 -translate-y-1/2 end-3.5 text-flag-ink/40 hover:text-flag-red">
                             <i class="fas" :class="showRegisterPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
@@ -626,12 +626,23 @@
                 <div>
                     <label class="block text-sm font-medium text-flag-ink/70 mb-2">تأكيد كلمة المرور</label>
                     <div class="relative">
-                        <input :type="showRegisterPasswordConfirm ? 'text' : 'password'" x-model="userData.password_confirm" required
+                        <input :type="showRegisterPasswordConfirm ? 'text' : 'password'" x-model="userData.password_confirm" required minlength="8" autocomplete="new-password"
                                class="w-full px-4 py-2.5 pe-11 border border-black/15 rounded-lg focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
                         <button type="button" @click="showRegisterPasswordConfirm = !showRegisterPasswordConfirm" class="absolute top-1/2 -translate-y-1/2 end-3.5 text-flag-ink/40 hover:text-flag-red">
                             <i class="fas" :class="showRegisterPasswordConfirm ? 'fa-eye-slash' : 'fa-eye'"></i>
                         </button>
                     </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-flag-ink/70 mb-2">اللغة التي تريد تعلّمها</label>
+                    <select x-model="userData.track"
+                            class="w-full px-4 py-2.5 border border-black/15 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-flag-red/40 focus:border-flag-red">
+                        <option value="">اختر اللغة (يمكنك تغييرها لاحقًا)</option>
+                        <option value="de">الألمانية</option>
+                        <option value="en">الإنجليزية</option>
+                        <option value="fr">الفرنسية</option>
+                        <option value="es">الإسبانية</option>
+                    </select>
                 </div>
                 <div class="flex items-start gap-2">
                     <input type="checkbox" x-model="userData.terms_accepted" required class="mt-1">

@@ -57,7 +57,11 @@ Deno.serve(async (req) => {
     if (body.action === 'list') {
       let query = admin.from('users').select('*, subscriptions(status, current_period_end, cancel_at_period_end)').neq('role', 'admin');
       if (body.status && body.status !== 'all') query = query.eq('membership_status', body.status);
-      if (body.q) query = query.or(`full_name.ilike.%${body.q}%,email.ilike.%${body.q}%`);
+      if (body.q) {
+        // Strip characters that have meaning inside a PostgREST .or() filter.
+        const q = String(body.q).replace(/[,()%*\\]/g, ' ').trim().slice(0, 80);
+        if (q) query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%`);
+      }
       const { data, error } = await query.order('created_at', { ascending: false });
       if (error) throw error;
       return json({ success: true, members: data });
@@ -79,7 +83,8 @@ Deno.serve(async (req) => {
 
     if (body.action === 'approve') {
       const { member_id } = body;
-      await admin.from('users').update({ membership_status: 'active' }).eq('id', member_id);
+      const upd = await admin.from('users').update({ membership_status: 'active' }).eq('id', member_id);
+      if (upd.error) throw upd.error;
 
       const start = new Date();
       const end = new Date();
@@ -101,13 +106,15 @@ Deno.serve(async (req) => {
     }
 
     if (body.action === 'reject') {
-      await admin.from('users').update({ membership_status: 'rejected' }).eq('id', body.member_id);
+      const rej = await admin.from('users').update({ membership_status: 'rejected' }).eq('id', body.member_id);
+      if (rej.error) throw rej.error;
       await admin.from('subscriptions').update({ status: 'canceled' }).eq('user_id', body.member_id);
       return json({ success: true });
     }
 
     if (body.action === 'reset') {
-      await admin.from('users').update({ membership_status: 'pending' }).eq('id', body.member_id);
+      const rst = await admin.from('users').update({ membership_status: 'pending' }).eq('id', body.member_id);
+      if (rst.error) throw rst.error;
       return json({ success: true });
     }
 

@@ -28,6 +28,7 @@ function homeApp() {
             phone: '',
             password: '',
             password_confirm: '',
+            track: '',
             terms_accepted: false
         },
         tests: [
@@ -222,7 +223,7 @@ function homeApp() {
 
         goPrimary() {
             if (this.user) {
-                window.location.href = this.user.role === 'admin' ? 'admin.html' : 'dashboard.html';
+                window.location.href = this.homeFor(this.user);
                 return;
             }
             this.openSignup();
@@ -247,14 +248,27 @@ function homeApp() {
         },
 
         async login(email, password) {
+            email = (email || '').trim().toLowerCase();
+            if (!email || !password) return;
             this.isLoading = true;
             try {
                 const { data, error } = await sb.auth.signInWithPassword({ email, password });
                 if (error) {
-                    this.showErrorModal('خطأ في تسجيل الدخول', 'البريد الإلكتروني أو كلمة المرور غير صحيحة');
+                    const notConfirmed = /not confirmed/i.test(error.message || '') || error.code === 'email_not_confirmed';
+                    if (notConfirmed) {
+                        try { await sb.auth.resend({ type: 'signup', email }); } catch (e) { /* rate limited: ignore */ }
+                    }
+                    this.showErrorModal('تعذّر تسجيل الدخول', epAuthMessage(error));
                     return;
                 }
-                const profile = await sbGetProfile(data.user.id);
+                let profile;
+                try {
+                    profile = await sbGetProfile(data.user.id);
+                } catch (e) {
+                    await sb.auth.signOut();
+                    this.showErrorModal('تعذّر تسجيل الدخول', 'تم تسجيل دخولك لكن تعذّر تحميل ملفك الشخصي. حاول مرة أخرى، وإن استمر الخطأ راسلنا عبر واتساب.');
+                    return;
+                }
                 if (profile.membership_status === 'rejected') {
                     await sb.auth.signOut();
                     this.showErrorModal('تعذّر تسجيل الدخول', 'تم رفض عضويتك. يرجى التواصل مع الدعم لمزيد من المعلومات.');
@@ -262,33 +276,61 @@ function homeApp() {
                 }
                 this.user = profile;
                 this.closeModal();
-                window.location.href = profile.role === 'admin' ? 'admin.html' : 'dashboard.html';
+                window.location.href = this.homeFor(profile);
             } catch (error) {
-                this.showErrorModal('خطأ في الاتصال', 'حدث خطأ أثناء الاتصال بالخادم');
+                this.showErrorModal('خطأ في الاتصال', epAuthMessage(error));
             } finally {
                 this.isLoading = false;
             }
         },
 
-        async register(userData) {
+        homeFor(profile) {
+            if (profile.role === 'admin') return 'admin.html';
+            if (profile.role === 'teacher') return 'teacher.html';
+            return 'dashboard.html';
+        },
+
+        async register(u) {
+            const name = (u.full_name || '').trim();
+            const email = (u.email || '').trim().toLowerCase();
+            const password = u.password || '';
+            const phone = (u.phone || '').replace(/[^\d+]/g, '').slice(0, 20) || null;
+            const bad = (m) => this.showErrorModal('تعذّر إنشاء الحساب', m);
+            if (name.length < 2) return bad('اكتب اسمك الكامل.');
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return bad('البريد الإلكتروني غير صالح. تأكد من كتابته بشكل صحيح.');
+            if (password.length < 8) return bad('كلمة المرور قصيرة. استعمل 8 أحرف على الأقل.');
+            if (password !== u.password_confirm) return bad('كلمتا المرور غير متطابقتين.');
+            if (!u.terms_accepted) return bad('يجب الموافقة على شروط الاستخدام وسياسة الخصوصية.');
+
             this.isLoading = true;
             try {
-                const { error } = await sb.auth.signUp({
-                    email: userData.email,
-                    password: userData.password,
-                    options: { data: { full_name: userData.full_name, phone: userData.phone || null } }
+                const dir = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+                const meta = { full_name: name, phone };
+                if (['de', 'en', 'fr', 'es'].includes(u.track)) meta.track = u.track;
+                const { data, error } = await sb.auth.signUp({
+                    email, password,
+                    options: { data: meta, emailRedirectTo: window.location.origin + dir + 'index.html' }
                 });
                 if (error) {
-                    this.showErrorModal('خطأ في التسجيل', error.message === 'User already registered'
-                        ? 'البريد الإلكتروني موجود بالفعل' : error.message);
+                    bad(epAuthMessage(error));
                     return;
                 }
-                this.showSuccessModal('تم التسجيل بنجاح', 'تم إنشاء حسابك وهو الآن قيد المراجعة. سنُفعّل وصولك الكامل بعد تأكيد الاشتراك من طرف الإدارة.');
-                setTimeout(() => {
-                    this.closeModal();
-                }, 2000);
+                // With e-mail confirmation on, an existing address is not an error:
+                // Supabase returns a user with no identities.
+                if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+                    bad(epAuthMessage({ code: 'user_already_exists' }));
+                    return;
+                }
+                if (meta.track) { try { localStorage.setItem('ep_track', meta.track); } catch (e) { /* ignore */ }
+                }
+                if (data.session) {
+                    this.showSuccessModal('تم إنشاء حسابك', 'مرحبًا بك! جارٍ تحويلك إلى لوحة التحكم...');
+                    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
+                } else {
+                    this.showSuccessModal('تم إنشاء حسابك', 'أرسلنا رسالة تأكيد إلى بريدك الإلكتروني. افتح الرابط الموجود فيها (تحقق من الرسائل غير المرغوب فيها أيضًا) ثم سجّل الدخول.');
+                }
             } catch (error) {
-                this.showErrorModal('خطأ في الاتصال', 'حدث خطأ أثناء الاتصال بالخادم');
+                bad(epAuthMessage(error));
             } finally {
                 this.isLoading = false;
             }
@@ -303,7 +345,7 @@ function homeApp() {
                 const redirectTo = window.location.origin + dir + 'reset-password.html';
                 const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
                 if (error) {
-                    this.showErrorModal('تعذّر إرسال الرابط', 'تأكد من صحة البريد الإلكتروني وحاول مرة أخرى.');
+                    this.showErrorModal('تعذّر إرسال الرابط', epAuthMessage(error));
                     return;
                 }
                 this.resetEmailSent = true;

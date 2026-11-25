@@ -2859,5 +2859,105 @@ window.EP_DICT = {
 "?",
 "?",
 "?"
+],
+"تعذّر إنشاء الحساب": [
+"Couldn't create the account",
+"Impossible de créer le compte",
+"No se pudo crear la cuenta"
+],
+"تم إنشاء حسابك": [
+"Your account has been created",
+"Votre compte a été créé",
+"Tu cuenta ha sido creada"
+],
+"اكتب اسمك الكامل.": [
+"Please enter your full name.",
+"Veuillez saisir votre nom complet.",
+"Escribe tu nombre completo."
+],
+"البريد الإلكتروني غير صالح. تأكد من كتابته بشكل صحيح.": [
+"The email address is not valid. Check that it is typed correctly.",
+"L'adresse e-mail n'est pas valide. Vérifiez qu'elle est bien saisie.",
+"El correo electrónico no es válido. Comprueba que esté bien escrito."
+],
+"كلمة المرور قصيرة. استعمل 8 أحرف على الأقل.": [
+"Password too short. Use at least 8 characters.",
+"Mot de passe trop court. Utilisez au moins 8 caractères.",
+"Contraseña demasiado corta. Usa al menos 8 caracteres."
+],
+"كلمتا المرور غير متطابقتين.": [
+"The two passwords do not match.",
+"Les deux mots de passe ne correspondent pas.",
+"Las dos contraseñas no coinciden."
+],
+"يجب الموافقة على شروط الاستخدام وسياسة الخصوصية.": [
+"You must accept the terms of use and the privacy policy.",
+"Vous devez accepter les conditions d'utilisation et la politique de confidentialité.",
+"Debes aceptar los términos de uso y la política de privacidad."
+],
+"مرحبًا بك! جارٍ تحويلك إلى لوحة التحكم...": [
+"Welcome! Taking you to your dashboard...",
+"Bienvenue ! Redirection vers votre tableau de bord...",
+"¡Bienvenido! Te llevamos a tu panel..."
+],
+"أرسلنا رسالة تأكيد إلى بريدك الإلكتروني. افتح الرابط الموجود فيها (تحقق من الرسائل غير المرغوب فيها أيضًا) ثم سجّل الدخول.": [
+"We sent a confirmation email to your address. Open the link inside (check your spam folder too), then log in.",
+"Nous avons envoyé un e-mail de confirmation. Ouvrez le lien qu'il contient (vérifiez aussi vos courriers indésirables), puis connectez-vous.",
+"Te enviamos un correo de confirmación. Abre el enlace que contiene (revisa también el spam) y luego inicia sesión."
+],
+"تم تسجيل دخولك لكن تعذّر تحميل ملفك الشخصي. حاول مرة أخرى، وإن استمر الخطأ راسلنا عبر واتساب.": [
+"You were signed in but your profile could not be loaded. Try again, and if the error continues message us on WhatsApp.",
+"Connexion réussie mais votre profil n'a pas pu être chargé. Réessayez, et si l'erreur persiste écrivez-nous sur WhatsApp.",
+"Iniciaste sesión pero no se pudo cargar tu perfil. Inténtalo de nuevo y, si el error continúa, escríbenos por WhatsApp."
+],
+"هذا البريد الإلكتروني مسجّل بالفعل. سجّل الدخول، أو استعمل «نسيت كلمة المرور؟» إن لزم.": [
+"This email is already registered. Log in, or use “Forgot your password?” if needed.",
+"Cet e-mail est déjà enregistré. Connectez-vous, ou utilisez « Mot de passe oublié ? » si besoin.",
+"Este correo ya está registrado. Inicia sesión o usa «¿Olvidaste tu contraseña?» si es necesario."
+],
+"تم تجاوز عدد المحاولات أو رسائل البريد المسموح بها مؤقتًا. انتظر قليلًا ثم حاول مرة أخرى، أو راسلنا عبر واتساب.": [
+"The allowed number of attempts or emails has been temporarily exceeded. Wait a little and try again, or message us on WhatsApp.",
+"Le nombre de tentatives ou d'e-mails autorisés est temporairement dépassé. Patientez un peu puis réessayez, ou écrivez-nous sur WhatsApp.",
+"Se superó temporalmente el número de intentos o correos permitidos. Espera un poco e inténtalo de nuevo, o escríbenos por WhatsApp."
+],
+"كلمة المرور ضعيفة. استعمل 8 أحرف على الأقل مع أرقام وحروف.": [
+"Password too weak. Use at least 8 characters with letters and numbers.",
+"Mot de passe trop faible. Utilisez au moins 8 caractères avec lettres et chiffres.",
+"Contraseña demasiado débil. Usa al menos 8 caracteres con letras y números."
+],
+"التسجيل مغلق مؤقتًا. تواصل معنا عبر واتساب.": [
+"Registration is temporarily closed. Contact us on WhatsApp.",
+"Les inscriptions sont temporairement fermées. Contactez-nous sur WhatsApp.",
+"El registro está cerrado temporalmente. Contáctanos por WhatsApp."
+],
+"لم يتم تأكيد بريدك الإلكتروني بعد. افتح رسالة التأكيد التي أرسلناها إليك ثم سجّل الدخول.": [
+"Your email is not confirmed yet. Open the confirmation message we sent you, then log in.",
+"Votre e-mail n'est pas encore confirmé. Ouvrez le message de confirmation que nous vous avons envoyé, puis connectez-vous.",
+"Tu correo aún no está confirmado. Abre el mensaje de confirmación que te enviamos y luego inicia sesión."
+],
+"تعذّر إنشاء الحساب بسبب خطأ في الخادم. حاول مرة أخرى، وإن استمر الخطأ راسلنا عبر واتساب.": [
+"The account could not be created because of a server error. Try again, and if it continues message us on WhatsApp.",
+"Le compte n'a pas pu être créé à cause d'une erreur serveur. Réessayez, et si cela continue écrivez-nous sur WhatsApp.",
+"No se pudo crear la cuenta por un error del servidor. Inténtalo de nuevo y, si continúa, escríbenos por WhatsApp."
+],
+"تعذّر الاتصال بالخادم. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.": [
+"Couldn't reach the server. Check your internet connection and try again.",
+"Impossible de joindre le serveur. Vérifiez votre connexion Internet et réessayez.",
+"No se pudo conectar con el servidor. Revisa tu conexión a Internet e inténtalo de nuevo."
+],
+"حدث خطأ غير متوقع. حاول مرة أخرى، وإن استمر الخطأ راسلنا عبر واتساب.": [
+"An unexpected error occurred. Try again, and if it continues message us on WhatsApp.",
+"Une erreur inattendue s'est produite. Réessayez, et si cela continue écrivez-nous sur WhatsApp.",
+"Ocurrió un error inesperado. Inténtalo de nuevo y, si continúa, escríbenos por WhatsApp."
+],
+"اللغة التي تريد تعلّمها": [
+"The language you want to learn",
+"La langue que vous voulez apprendre",
+"El idioma que quieres aprender"
+],
+"اختر اللغة (يمكنك تغييرها لاحقًا)": [
+"Choose a language (you can change it later)",
+"Choisissez une langue (modifiable plus tard)",
+"Elige un idioma (puedes cambiarlo después)"
 ]
 };

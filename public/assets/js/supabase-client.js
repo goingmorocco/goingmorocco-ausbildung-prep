@@ -14,9 +14,43 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // have to repeat the same Supabase query/invoke boilerplate.
 
 async function sbGetProfile(userId) {
-  const { data, error } = await sb.from('users').select('*').eq('id', userId).single();
-  if (error) throw error;
+  let { data, error } = await sb.from('users').select('*').eq('id', userId).maybeSingle();
+  if (!data) {
+    // Signed-in account with no profile row (signup trigger missed it, or the
+    // account predates it): ask the database to create it, then use that.
+    try {
+      const r = await sb.rpc('ensure_my_profile');
+      if (!r.error && r.data) data = Array.isArray(r.data) ? r.data[0] : r.data;
+    } catch (e) { /* function not installed yet -> fall through */ }
+  }
+  if (!data) throw error || new Error('profile_missing');
   return data;
+}
+
+// Turn a Supabase Auth error into a clear Arabic message for the user.
+function epAuthMessage(err) {
+  const msg = String((err && (err.message || err.error_description)) || '').toLowerCase();
+  const code = String((err && (err.code || err.error_code)) || '').toLowerCase();
+  const has = (...k) => k.some(x => msg.includes(x) || code.includes(x));
+  if (has('already registered', 'already been registered', 'user_already_exists'))
+    return 'هذا البريد الإلكتروني مسجّل بالفعل. سجّل الدخول، أو استعمل «نسيت كلمة المرور؟» إن لزم.';
+  if (has('rate limit', 'over_email_send_rate_limit', 'over_request_rate_limit', 'too many'))
+    return 'تم تجاوز عدد المحاولات أو رسائل البريد المسموح بها مؤقتًا. انتظر قليلًا ثم حاول مرة أخرى، أو راسلنا عبر واتساب.';
+  if (has('weak_password', 'password should', 'password is too'))
+    return 'كلمة المرور ضعيفة. استعمل 8 أحرف على الأقل مع أرقام وحروف.';
+  if (has('valid email', 'email_address_invalid', 'invalid email', 'unable to validate email'))
+    return 'البريد الإلكتروني غير صالح. تأكد من كتابته بشكل صحيح.';
+  if (has('signup_disabled', 'signups not allowed', 'signups are disabled'))
+    return 'التسجيل مغلق مؤقتًا. تواصل معنا عبر واتساب.';
+  if (has('email not confirmed', 'email_not_confirmed'))
+    return 'لم يتم تأكيد بريدك الإلكتروني بعد. افتح رسالة التأكيد التي أرسلناها إليك ثم سجّل الدخول.';
+  if (has('invalid login credentials', 'invalid_credentials'))
+    return 'البريد الإلكتروني أو كلمة المرور غير صحيحة';
+  if (has('database error', 'unexpected_failure'))
+    return 'تعذّر إنشاء الحساب بسبب خطأ في الخادم. حاول مرة أخرى، وإن استمر الخطأ راسلنا عبر واتساب.';
+  if (has('failed to fetch', 'networkerror', 'network request failed', 'load failed'))
+    return 'تعذّر الاتصال بالخادم. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.';
+  return 'حدث خطأ غير متوقع. حاول مرة أخرى، وإن استمر الخطأ راسلنا عبر واتساب.';
 }
 
 async function sbInvoke(functionName, body) {
@@ -162,12 +196,25 @@ function epSetTrack(id) {
     try { localStorage.setItem('ep_track', id); } catch (e) { /* ignore */ }
 }
 
+// Returns null when the user_tracks table is not installed (migration not run yet).
 async function epLoadTracks(userId) {
-    const { data } = await sb.from('user_tracks').select('track').eq('user_id', userId);
+    const { data, error } = await sb.from('user_tracks').select('track').eq('user_id', userId);
+    if (error) return null;
     return (data || []).map(r => r.track);
 }
 
 async function epAddTrack(userId, id) {
     const { error } = await sb.from('user_tracks').insert({ user_id: userId, track: id });
-    return !error || error.code === '23505';
+    // Duplicate = already has it. Missing table = migration not run: keep going locally.
+    return !error || error.code === '23505' || error.code === '42P01' || error.code === 'PGRST205';
+}
+
+// tests query that keeps working if the `track` column has not been added yet.
+async function epTestsQuery(skillPractice, track) {
+    let q = sb.from('tests').select('*').eq('is_active', true).eq('is_skill_practice', skillPractice).eq('track', track);
+    let r = await q;
+    if (r.error) {
+        r = await sb.from('tests').select('*').eq('is_active', true).eq('is_skill_practice', skillPractice);
+    }
+    return r;
 }
