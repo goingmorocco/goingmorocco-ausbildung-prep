@@ -38,7 +38,10 @@
     var idx = lang === 'ar' ? -1 : ['en', 'fr', 'es'].indexOf(lang);
     var exact = {}, parts = [];
 
+    var built = false;
     function build() {
+        if (built) return;
+        built = true;
         var d = window.EP_DICT || {};
         Object.keys(d).forEach(function (k) {
             var nk = norm(k), v = d[k][idx];
@@ -52,6 +55,7 @@
 
     var cache = {};
     function tr(text) {
+        build();
         var n = norm(text);
         if (cache[n] !== undefined) return cache[n];
         var out = exact[n];
@@ -89,7 +93,8 @@
         if (n.nodeType === 3) { doText(n); return; }
         if (n.nodeType !== 1) return;
         var tag = n.tagName;
-        if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'TEXTAREA' && false) return;
+        if (tag === 'SCRIPT' || tag === 'STYLE') return;
+        if (n.getAttribute && n.getAttribute('translate') === 'no') return;
         doEl(n);
         for (var c = n.firstChild; c; c = c.nextSibling) walk(c);
         // <template> content (Alpine clones it later, we translate the clone then)
@@ -121,7 +126,15 @@
         setTimeout(finish, 1500);
     }
 
+    window.epLangs = LANGS;
+    window.epSetLang = function (id) {
+        try { localStorage.setItem('ep_lang', id); } catch (e) { /* ignore */ }
+        var u = new URL(location.href); u.searchParams.delete('lang');
+        location.href = u.toString();
+    };
+
     function widget() {
+        if (document.body.hasAttribute('data-no-lang-widget')) return;
         var wrap = document.createElement('div');
         wrap.id = 'ep-lang';
         wrap.setAttribute('dir', 'ltr');
@@ -130,7 +143,7 @@
         btn.type = 'button';
         btn.setAttribute('aria-label', 'Language');
         btn.style.cssText = 'display:flex;align-items:center;gap:6px;padding:9px 13px;border-radius:999px;border:1px solid rgba(0,0,0,.12);background:#fff;color:#0F172A;box-shadow:0 4px 14px rgba(0,0,0,.15);cursor:pointer;font:inherit;';
-        btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><span>' + cfg.short + '</span>';
+        btn.innerHTML = '<span style="font-size:15px">🌐</span><span>' + cfg.short + '</span>';
         var menu = document.createElement('div');
         menu.style.cssText = 'display:none;position:absolute;bottom:46px;left:0;min-width:140px;background:#fff;border:1px solid rgba(0,0,0,.1);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:6px;';
         LANGS.forEach(function (l) {

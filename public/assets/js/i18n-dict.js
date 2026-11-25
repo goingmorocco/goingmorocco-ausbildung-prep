@@ -2360,69 +2360,504 @@ window.EP_DICT = {
 "Langue étudiée",
 "Idioma de estudio"
 ],
-"المهارات": [
-"Skills",
-"Compétences",
-"Destrezas"
+"حصص مباشرة في الألمانية والإنجليزية والفرنسية والإسبانية": [
+"Live classes in German, English, French and Spanish",
+"Cours en direct d'allemand, d'anglais, de français et d'espagnol",
+"Clases en vivo de alemán, inglés, francés y español"
 ],
-"الطريقة": [
-"How it works",
-"Méthode",
-"Método"
+"احجز مكانك": [
+"Reserve your spot",
+"Réservez votre place",
+"Reserva tu plaza"
 ],
-"المهن": [
-"Careers",
-"Métiers",
-"Profesiones"
+"خطتك": [
+"Your plan",
+"Votre plan",
+"Tu plan"
 ],
-"آراء الطلاب": [
-"Student reviews",
-"Avis d'étudiants",
-"Opiniones de estudiantes"
+"البرامج": [
+"Programs",
+"Programmes",
+"Programas"
 ],
-"نحاكي هيكل": [
-"Modeled on",
-"Sur le modèle de",
-"Basado en"
+"لماذا نحن": [
+"Why us",
+"Pourquoi nous",
+"Por qué nosotros"
 ],
-"أربع مهارات، امتحان واحد تجتازه بثقة": [
-"Four skills, one exam you pass with confidence",
-"Quatre compétences, un examen que vous réussissez avec confiance",
-"Cuatro destrezas, un examen que apruebas con confianza"
+"أكاديمية لغات · 4 لغات · حصص مباشرة": [
+"Language academy · 4 languages · Live classes",
+"Académie de langues · 4 langues · Cours en direct",
+"Academia de idiomas · 4 idiomas · Clases en vivo"
 ],
-"ثلاث خطوات، ثم أنت داخل الامتحان": [
-"Three steps, then you're inside the exam",
-"Trois étapes, puis vous êtes dans l'examen",
-"Tres pasos y ya estás dentro del examen"
+"أتقن لغة أوروبية جديدة وجهّز نفسك": [
+"Master a new European language and get ready for",
+"Maîtrisez une nouvelle langue européenne et préparez",
+"Domina un nuevo idioma europeo y prepárate para"
 ],
-"سعر واضح ووصول كامل": [
-"Clear price, full access",
-"Prix clair, accès complet",
-"Precio claro, acceso completo"
+"لاختبارك القادم": [
+"your next exam",
+"votre prochain examen",
+"tu próximo examen"
 ],
-"طلاب اجتازوا امتحاناتهم": [
-"Students who passed their exams",
-"Des étudiants qui ont réussi leurs examens",
-"Estudiantes que aprobaron sus exámenes"
+"حصص مباشرة مع أساتذة، واختبارات تدريبية، وتتبّع لتقدّمك. كل ذلك في مكان واحد، بالألمانية والإنجليزية والفرنسية والإسبانية.": [
+"Live classes with teachers, practice tests and progress tracking. All in one place, in German, English, French and Spanish.",
+"Cours en direct avec des professeurs, tests d'entraînement et suivi de votre progression. Tout au même endroit, en allemand, anglais, français et espagnol.",
+"Clases en vivo con profesores, exámenes de práctica y seguimiento de tu progreso. Todo en un solo lugar, en alemán, inglés, francés y español."
 ],
-"لا تدخل قاعة الامتحان وأنت تخمّن شكل الأسئلة": [
-"Don't walk into the exam hall guessing what the questions look like",
-"N'entrez pas dans la salle d'examen en devinant la forme des questions",
-"No entres en la sala de examen adivinando cómo serán las preguntas"
+"تحدّث معنا عبر واتساب": [
+"Chat with us on WhatsApp",
+"Écrivez-nous sur WhatsApp",
+"Escríbenos por WhatsApp"
 ],
-"نقبل الدفع عبر بطاقات الائتمان والخصم (Visa وMastercard) وأيضًا عبر البنوك المغربية المحلية. جميع المعاملات مشفّرة.": [
-"We accept credit and debit cards (Visa and Mastercard) and local Moroccan banks. All transactions are encrypted.",
-"Nous acceptons les cartes de crédit et de débit (Visa et Mastercard) ainsi que les banques marocaines locales. Toutes les transactions sont chiffrées.",
-"Aceptamos tarjetas de crédito y débito (Visa y Mastercard) y bancos marroquíes locales. Todas las transacciones están cifradas."
+"الاشتراك 200 درهم/شهر": [
+"Subscription 200 MAD/month",
+"Abonnement 200 MAD/mois",
+"Suscripción 200 MAD/mes"
 ],
-"القائمة": [
-"Menu",
-"Menu",
-"Menú"
+"إلغاء في أي وقت": [
+"Cancel anytime",
+"Résiliation à tout moment",
+"Cancela cuando quieras"
 ],
-"ألمانيا": [
-"Germany",
-"Allemagne",
-"Alemania"
+"حصص مباشرة": [
+"Live classes",
+"Cours en direct",
+"Clases en vivo"
+],
+"عبر Zoom أو Meet": [
+"On Zoom or Meet",
+"Sur Zoom ou Meet",
+"Por Zoom o Meet"
+],
+"تتبّع تقدّمك": [
+"Track your progress",
+"Suivez votre progression",
+"Sigue tu progreso"
+],
+"لوحة تحكم شخصية": [
+"Personal dashboard",
+"Tableau de bord personnel",
+"Panel personal"
+],
+"اختبارات تدريبية": [
+"Practice tests",
+"Tests d'entraînement",
+"Exámenes de práctica"
+],
+"بنمط الاختبارات الرسمية": [
+"In the style of the official exams",
+"Au format des examens officiels",
+"Con el formato de los exámenes oficiales"
+],
+"الاختبارات الدولية التي نُحضّر لها": [
+"International exams we prepare you for",
+"Examens internationaux que nous préparons",
+"Exámenes internacionales para los que te preparamos"
+],
+"صمّم خطتك": [
+"Build your plan",
+"Composez votre plan",
+"Diseña tu plan"
+],
+"اختر لغتك ومستواك في": [
+"Choose your language and level in",
+"Choisissez votre langue et votre niveau en",
+"Elige tu idioma y nivel en"
+],
+"3 خطوات": [
+"3 steps",
+"3 étapes",
+"3 pasos"
+],
+"اختر ما يناسبك، ثم تواصل معنا لنؤكد لك المجموعة المناسبة والسعر.": [
+"Pick what suits you, then contact us and we'll confirm the right group and the price.",
+"Choisissez ce qui vous convient, puis contactez-nous : nous vous confirmerons le groupe adapté et le tarif.",
+"Elige lo que más te convenga y contáctanos: te confirmaremos el grupo adecuado y el precio."
+],
+"اختر اللغة": [
+"Choose the language",
+"Choisissez la langue",
+"Elige el idioma"
+],
+"اختر مستواك": [
+"Choose your level",
+"Choisissez votre niveau",
+"Elige tu nivel"
+],
+"اختر طريقة التعلّم": [
+"Choose how to learn",
+"Choisissez votre façon d'apprendre",
+"Elige cómo aprender"
+],
+"حصص مباشرة + المنصة": [
+"Live classes + platform",
+"Cours en direct + plateforme",
+"Clases en vivo + plataforma"
+],
+"مع أستاذ داخل مجموعة": [
+"With a teacher in a group",
+"Avec un professeur, en groupe",
+"Con un profesor en grupo"
+],
+"المنصة فقط": [
+"Platform only",
+"Plateforme seule",
+"Solo la plataforma"
+],
+"اختبارات وتمارين وملفات": [
+"Tests, exercises and files",
+"Tests, exercices et fichiers",
+"Exámenes, ejercicios y archivos"
+],
+"ملخص اختياراتك": [
+"Summary of your choices",
+"Résumé de vos choix",
+"Resumen de tus elecciones"
+],
+"السعر حسب المجموعة": [
+"Price depends on the group",
+"Tarif selon le groupe",
+"Precio según el grupo"
+],
+"نؤكده لك عبر واتساب": [
+"We'll confirm it on WhatsApp",
+"Nous le confirmons sur WhatsApp",
+"Te lo confirmamos por WhatsApp"
+],
+"أرسل خطتك عبر واتساب": [
+"Send your plan on WhatsApp",
+"Envoyez votre plan sur WhatsApp",
+"Envía tu plan por WhatsApp"
+],
+"دون التزام، ويمكنك الإلغاء في أي وقت.": [
+"No commitment, cancel anytime.",
+"Sans engagement, résiliable à tout moment.",
+"Sin compromiso, cancela cuando quieras."
+],
+"مرحبًا EuroPass Academy، أريد التسجيل:": [
+"Hello EuroPass Academy, I'd like to sign up:",
+"Bonjour EuroPass Academy, je souhaite m'inscrire :",
+"Hola EuroPass Academy, quiero inscribirme:"
+],
+"كل ما تحتاجه لتتعلّم": [
+"Everything you need to learn",
+"Tout ce qu'il faut pour apprendre",
+"Todo lo que necesitas para aprender"
+],
+"في مكان واحد": [
+"in one place",
+"au même endroit",
+"en un solo lugar"
+],
+"ثلاث أدوات تعمل معًا لتوصلك إلى هدفك أسرع.": [
+"Three tools that work together to get you to your goal faster.",
+"Trois outils qui travaillent ensemble pour vous mener plus vite à votre objectif.",
+"Tres herramientas que trabajan juntas para llevarte a tu meta más rápido."
+],
+"انضم إلى حصتك بنقرة واحدة عبر Zoom أو Google Meet، ويُسجَّل حضورك تلقائيًا.": [
+"Join your class with one click on Zoom or Google Meet, and your attendance is logged automatically.",
+"Rejoignez votre cours en un clic sur Zoom ou Google Meet, et votre présence est enregistrée automatiquement.",
+"Únete a tu clase con un clic en Zoom o Google Meet y tu asistencia se registra automáticamente."
+],
+"تمرّن على الاستماع والقراءة والكتابة بنمط الاختبارات الرسمية، وتابع نتائجك بعد كل محاولة.": [
+"Practise listening, reading and writing in the format of the official exams, and follow your results after every attempt.",
+"Entraînez-vous à l'écoute, à la lecture et à l'écriture au format des examens officiels, et suivez vos résultats après chaque essai.",
+"Practica comprensión auditiva, lectura y escritura con el formato de los exámenes oficiales y consulta tus resultados tras cada intento."
+],
+"تتبّع التقدّم": [
+"Progress tracking",
+"Suivi de la progression",
+"Seguimiento del progreso"
+],
+"لوحة تحكم تعرض نقاط قوتك وضعفك، فتعرف بالضبط ما الذي يحتاج إلى مراجعة.": [
+"A dashboard showing your strengths and weaknesses, so you know exactly what to review.",
+"Un tableau de bord qui montre vos points forts et faibles, pour savoir exactement quoi réviser.",
+"Un panel que muestra tus puntos fuertes y débiles para que sepas exactamente qué repasar."
+],
+"ما الذي يعيقك؟": [
+"What's holding you back?",
+"Qu'est-ce qui vous freine ?",
+"¿Qué te frena?"
+],
+"التعلّم بمفردك صعب...": [
+"Learning alone is hard...",
+"Apprendre seul, c'est difficile...",
+"Aprender solo es difícil..."
+],
+"لهذا بنينا الحل": [
+"so we built the solution",
+"alors nous avons créé la solution",
+"por eso creamos la solución"
+],
+"لا أعرف من أين أبدأ": [
+"I don't know where to start",
+"Je ne sais pas par où commencer",
+"No sé por dónde empezar"
+],
+"نحدد معك مستواك ونقترح عليك مسارًا واضحًا خطوة بخطوة.": [
+"We assess your level with you and suggest a clear path, step by step.",
+"Nous évaluons votre niveau avec vous et vous proposons un parcours clair, étape par étape.",
+"Evaluamos tu nivel contigo y te proponemos un camino claro, paso a paso."
+],
+"أتعلّم وحدي دون متابعة": [
+"I study alone with no follow-up",
+"J'apprends seul, sans suivi",
+"Aprendo solo y sin seguimiento"
+],
+"حصص مباشرة مع أستاذ، وحضور مسجَّل، وتتبّع لتقدّمك.": [
+"Live classes with a teacher, recorded attendance and progress tracking.",
+"Cours en direct avec un professeur, présence enregistrée et suivi de votre progression.",
+"Clases en vivo con un profesor, asistencia registrada y seguimiento de tu progreso."
+],
+"لا أعرف إن كنت جاهزًا للاختبار": [
+"I don't know if I'm ready for the exam",
+"Je ne sais pas si je suis prêt pour l'examen",
+"No sé si estoy listo para el examen"
+],
+"اختبارات تدريبية تحاكي الاختبار الحقيقي مع نتائج مفصّلة.": [
+"Practice tests that mirror the real exam, with detailed results.",
+"Des tests d'entraînement fidèles à l'examen réel, avec des résultats détaillés.",
+"Exámenes de práctica que simulan el examen real, con resultados detallados."
+],
+"تعلّم من أي مكان، في الوقت الذي يناسبك": [
+"Learn from anywhere, whenever it suits you",
+"Apprenez où vous voulez, quand vous voulez",
+"Aprende desde cualquier lugar, cuando quieras"
+],
+"ادخل إلى منصتك من الهاتف أو الحاسوب، وراجع دروسك وتمرّن متى شئت.": [
+"Log in from your phone or computer, review your lessons and practise whenever you like.",
+"Connectez-vous depuis votre téléphone ou votre ordinateur, révisez vos cours et entraînez-vous quand vous voulez.",
+"Entra desde el móvil o el ordenador, repasa tus lecciones y practica cuando quieras."
+],
+"على هاتفك": [
+"On your phone",
+"Sur votre téléphone",
+"En tu móvil"
+],
+"المنصة تعمل على جميع الأجهزة.": [
+"The platform works on every device.",
+"La plateforme fonctionne sur tous les appareils.",
+"La plataforma funciona en todos los dispositivos."
+],
+"4 لغات": [
+"4 languages",
+"4 langues",
+"4 idiomas"
+],
+"حساب واحد لجميع لغاتك.": [
+"One account for all your languages.",
+"Un seul compte pour toutes vos langues.",
+"Una sola cuenta para todos tus idiomas."
+],
+"ملفات وموارد": [
+"Files and resources",
+"Fichiers et ressources",
+"Archivos y recursos"
+],
+"مراجع وملفات لكل مسار.": [
+"References and files for every track.",
+"Références et fichiers pour chaque parcours.",
+"Referencias y archivos para cada ruta."
+],
+"دعم مباشر": [
+"Direct support",
+"Assistance directe",
+"Soporte directo"
+],
+"فريقنا متاح عبر واتساب.": [
+"Our team is available on WhatsApp.",
+"Notre équipe est disponible sur WhatsApp.",
+"Nuestro equipo está disponible por WhatsApp."
+],
+"برامجنا": [
+"Our language",
+"Nos",
+"Nuestros"
+],
+"اللغوية": [
+"programs",
+"programmes de langues",
+"programas de idiomas"
+],
+"اختر اللغة التي تريدها، وستجد لوحة تحكم ومحتوى مخصصًا لها.": [
+"Pick the language you want and you'll find a dashboard and content made for it.",
+"Choisissez la langue qui vous intéresse : vous trouverez un tableau de bord et des contenus dédiés.",
+"Elige el idioma que quieras y encontrarás un panel y contenidos pensados para él."
+],
+"عرض الكل": [
+"View all",
+"Voir tout",
+"Ver todo"
+],
+"من A1 إلى C1 مع تحضير لاختبارات Goethe وtelc وÖSD.": [
+"From A1 to C1, with preparation for the Goethe, telc and ÖSD exams.",
+"Du A1 au C1, avec préparation aux examens Goethe, telc et ÖSD.",
+"De A1 a C1, con preparación para los exámenes Goethe, telc y ÖSD."
+],
+"تحضير لاختبارات IELTS وTOEFL مع دروس وتمارين وملفات.": [
+"Preparation for IELTS and TOEFL with lessons, exercises and files.",
+"Préparation à l'IELTS et au TOEFL avec cours, exercices et fichiers.",
+"Preparación para IELTS y TOEFL con lecciones, ejercicios y archivos."
+],
+"تحضير لاختبارات DELF وDALF وTCF مع حصص مباشرة.": [
+"Preparation for DELF, DALF and TCF with live classes.",
+"Préparation au DELF, au DALF et au TCF avec des cours en direct.",
+"Preparación para DELF, DALF y TCF con clases en vivo."
+],
+"تحضير لاختبارات DELE وSIELE مع دروس وتمارين.": [
+"Preparation for DELE and SIELE with lessons and exercises.",
+"Préparation au DELE et au SIELE avec cours et exercices.",
+"Preparación para DELE y SIELE con lecciones y ejercicios."
+],
+"كيف يعمل EuroPass Academy؟": [
+"How does EuroPass Academy work?",
+"Comment fonctionne EuroPass Academy ?",
+"¿Cómo funciona EuroPass Academy?"
+],
+"ثلاث خطوات بسيطة وتبدأ التعلّم.": [
+"Three simple steps and you're learning.",
+"Trois étapes simples et vous commencez à apprendre.",
+"Tres sencillos pasos y ya estás aprendiendo."
+],
+"سجّل مجانًا في دقيقة واحدة واختر لغتك.": [
+"Sign up free in one minute and choose your language.",
+"Inscrivez-vous gratuitement en une minute et choisissez votre langue.",
+"Regístrate gratis en un minuto y elige tu idioma."
+],
+"انضم وتمرّن": [
+"Join and practise",
+"Rejoignez et pratiquez",
+"Únete y practica"
+],
+"انضم إلى حصة مباشرة أو ابدأ الاختبارات التدريبية والتمارين.": [
+"Join a live class or start the practice tests and exercises.",
+"Rejoignez un cours en direct ou lancez les tests d'entraînement et les exercices.",
+"Únete a una clase en vivo o empieza los exámenes de práctica y los ejercicios."
+],
+"تابع تقدّمك": [
+"Follow your progress",
+"Suivez votre progression",
+"Sigue tu progreso"
+],
+"راجع نتائجك وحضورك من لوحة التحكم، وطوّر نقاط ضعفك.": [
+"Review your results and attendance from the dashboard and work on your weak spots.",
+"Consultez vos résultats et votre présence depuis le tableau de bord et travaillez vos points faibles.",
+"Revisa tus resultados y tu asistencia desde el panel y trabaja tus puntos débiles."
+],
+"لماذا EuroPass Academy؟": [
+"Why EuroPass Academy?",
+"Pourquoi EuroPass Academy ?",
+"¿Por qué EuroPass Academy?"
+],
+"حصص مباشرة حقيقية": [
+"Real live classes",
+"De vrais cours en direct",
+"Clases en vivo de verdad"
+],
+"مع أستاذ ومجموعة، وليست مجرد فيديوهات مسجّلة.": [
+"With a teacher and a group, not just recorded videos.",
+"Avec un professeur et un groupe, pas seulement des vidéos enregistrées.",
+"Con un profesor y un grupo, no solo vídeos grabados."
+],
+"أربع لغات في حساب واحد": [
+"Four languages in one account",
+"Quatre langues dans un seul compte",
+"Cuatro idiomas en una sola cuenta"
+],
+"لكل لغة لوحة تحكم ومحتوى واختبارات خاصة بها.": [
+"Each language has its own dashboard, content and tests.",
+"Chaque langue a son propre tableau de bord, ses contenus et ses tests.",
+"Cada idioma tiene su propio panel, contenidos y exámenes."
+],
+"اختبارات تحاكي الواقع": [
+"Tests that mirror the real thing",
+"Des tests proches de la réalité",
+"Exámenes que simulan la realidad"
+],
+"تمارين بنمط الاختبارات الرسمية مع تصحيح ونتائج.": [
+"Exercises in the official exam format, with marking and results.",
+"Des exercices au format des examens officiels, avec correction et résultats.",
+"Ejercicios con el formato de los exámenes oficiales, con corrección y resultados."
+],
+"أسعار واضحة": [
+"Clear pricing",
+"Des tarifs clairs",
+"Precios claros"
+],
+"200 درهم/شهر للمنصة، وإلغاء في أي وقت.": [
+"200 MAD/month for the platform, cancel anytime.",
+"200 MAD/mois pour la plateforme, résiliable à tout moment.",
+"200 MAD/mes por la plataforma, cancela cuando quieras."
+],
+"إجابات سريعة على أكثر ما يسأل عنه طلابنا.": [
+"Quick answers to what our students ask most.",
+"Des réponses rapides aux questions les plus posées par nos élèves.",
+"Respuestas rápidas a lo que más preguntan nuestros estudiantes."
+],
+"كيف تعمل الحصص المباشرة؟": [
+"How do the live classes work?",
+"Comment fonctionnent les cours en direct ?",
+"¿Cómo funcionan las clases en vivo?"
+],
+"ينشر الأستاذ رابط Zoom أو Google Meet لكل حصة. تدخل إلى لوحة التحكم وتضغط «انضمام» فيُسجَّل حضورك تلقائيًا ثم تفتح الحصة مباشرة.": [
+"The teacher posts a Zoom or Google Meet link for each class. You open your dashboard and press “Join”, your attendance is logged automatically and the class opens right away.",
+"Le professeur publie un lien Zoom ou Google Meet pour chaque cours. Vous ouvrez votre tableau de bord et cliquez sur « Rejoindre » : votre présence est enregistrée automatiquement et le cours s'ouvre aussitôt.",
+"El profesor publica un enlace de Zoom o Google Meet para cada clase. Entras a tu panel y pulsas «Unirse»: tu asistencia se registra automáticamente y la clase se abre al instante."
+],
+"ما اللغات المتاحة؟": [
+"Which languages are available?",
+"Quelles langues sont proposées ?",
+"¿Qué idiomas hay disponibles?"
+],
+"نقدّم الألمانية والإنجليزية والفرنسية والإسبانية. الاختبارات التدريبية متاحة الآن للألمانية، وسنضيفها تباعًا لباقي اللغات.": [
+"We offer German, English, French and Spanish. Practice tests are available now for German, and we'll add them for the other languages step by step.",
+"Nous proposons l'allemand, l'anglais, le français et l'espagnol. Les tests d'entraînement sont disponibles dès maintenant pour l'allemand, et seront ajoutés progressivement pour les autres langues.",
+"Ofrecemos alemán, inglés, francés y español. Los exámenes de práctica ya están disponibles para alemán y los iremos añadiendo para los demás idiomas."
+],
+"جاهز لتبدأ رحلتك؟": [
+"Ready to start your journey?",
+"Prêt à commencer votre parcours ?",
+"¿Listo para empezar tu camino?"
+],
+"أنشئ حسابك المجاني اليوم، أو راسلنا لنساعدك في اختيار المسار المناسب.": [
+"Create your free account today, or message us and we'll help you choose the right track.",
+"Créez votre compte gratuit dès aujourd'hui, ou écrivez-nous pour que nous vous aidions à choisir le bon parcours.",
+"Crea tu cuenta gratuita hoy o escríbenos y te ayudamos a elegir la ruta adecuada."
+],
+"تواصل عبر واتساب": [
+"Contact us on WhatsApp",
+"Contactez-nous sur WhatsApp",
+"Contáctanos por WhatsApp"
+],
+"أكاديمية لتعلّم الألمانية والإنجليزية والفرنسية والإسبانية، مع حصص مباشرة واختبارات تدريبية وتتبّع للتقدّم.": [
+"An academy for learning German, English, French and Spanish, with live classes, practice tests and progress tracking.",
+"Une académie pour apprendre l'allemand, l'anglais, le français et l'espagnol, avec cours en direct, tests d'entraînement et suivi de la progression.",
+"Una academia para aprender alemán, inglés, francés y español, con clases en vivo, exámenes de práctica y seguimiento del progreso."
+],
+"طالبة تتعلم عبر الإنترنت": [
+"Student learning online",
+"Étudiante qui apprend en ligne",
+"Estudiante aprendiendo en línea"
+],
+"حصة مباشرة عبر الإنترنت": [
+"Live online class",
+"Cours en direct en ligne",
+"Clase en vivo en línea"
+],
+"طالبة تتعلم بالسماعات": [
+"Student learning with headphones",
+"Étudiante qui apprend avec un casque",
+"Estudiante aprendiendo con auriculares"
+],
+"درهم / شهر": [
+"MAD / month",
+"MAD / mois",
+"MAD / mes"
+],
+"؟": [
+"?",
+"?",
+"?"
 ]
 };
