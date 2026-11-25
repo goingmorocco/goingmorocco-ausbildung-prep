@@ -2359,5 +2359,70 @@ window.EP_DICT = {
 "Course language",
 "Langue étudiée",
 "Idioma de estudio"
+],
+"المهارات": [
+"Skills",
+"Compétences",
+"Destrezas"
+],
+"الطريقة": [
+"How it works",
+"Méthode",
+"Método"
+],
+"المهن": [
+"Careers",
+"Métiers",
+"Profesiones"
+],
+"آراء الطلاب": [
+"Student reviews",
+"Avis d'étudiants",
+"Opiniones de estudiantes"
+],
+"نحاكي هيكل": [
+"Modeled on",
+"Sur le modèle de",
+"Basado en"
+],
+"أربع مهارات، امتحان واحد تجتازه بثقة": [
+"Four skills, one exam you pass with confidence",
+"Quatre compétences, un examen que vous réussissez avec confiance",
+"Cuatro destrezas, un examen que apruebas con confianza"
+],
+"ثلاث خطوات، ثم أنت داخل الامتحان": [
+"Three steps, then you're inside the exam",
+"Trois étapes, puis vous êtes dans l'examen",
+"Tres pasos y ya estás dentro del examen"
+],
+"سعر واضح ووصول كامل": [
+"Clear price, full access",
+"Prix clair, accès complet",
+"Precio claro, acceso completo"
+],
+"طلاب اجتازوا امتحاناتهم": [
+"Students who passed their exams",
+"Des étudiants qui ont réussi leurs examens",
+"Estudiantes que aprobaron sus exámenes"
+],
+"لا تدخل قاعة الامتحان وأنت تخمّن شكل الأسئلة": [
+"Don't walk into the exam hall guessing what the questions look like",
+"N'entrez pas dans la salle d'examen en devinant la forme des questions",
+"No entres en la sala de examen adivinando cómo serán las preguntas"
+],
+"نقبل الدفع عبر بطاقات الائتمان والخصم (Visa وMastercard) وأيضًا عبر البنوك المغربية المحلية. جميع المعاملات مشفّرة.": [
+"We accept credit and debit cards (Visa and Mastercard) and local Moroccan banks. All transactions are encrypted.",
+"Nous acceptons les cartes de crédit et de débit (Visa et Mastercard) ainsi que les banques marocaines locales. Toutes les transactions sont chiffrées.",
+"Aceptamos tarjetas de crédito y débito (Visa y Mastercard) y bancos marroquíes locales. Todas las transacciones están cifradas."
+],
+"القائمة": [
+"Menu",
+"Menu",
+"Menú"
+],
+"ألمانيا": [
+"Germany",
+"Allemagne",
+"Alemania"
 ]
 };
