@@ -47,7 +47,7 @@ body.ep-home *{box-sizing:border-box}
 
 /* announcement bar */
 .ep-bar{background:var(--ep-navy2);color:#fff;font-size:14px;text-align:center;padding:9px 16px}
-.ep-bar a{color:var(--ep-orange-lt);font-weight:700;margin-inline-start:10px;text-decoration:underline}
+.ep-bar a{color:#fff;font-weight:700;margin-inline-start:10px;text-decoration:underline}
 
 /* header */
 .ep-head{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid transparent;transition:.2s}
@@ -123,9 +123,9 @@ body.ep-home *{box-sizing:border-box}
 .ep-sum .sub{color:rgba(255,255,255,.7);font-size:14px;margin-bottom:22px}
 .ep-sum ul{list-style:none;padding:0;margin:0 0 22px;display:grid;gap:12px}
 .ep-sum li{display:flex;align-items:center;gap:10px;font-size:15px}
-.ep-sum li i{color:var(--ep-orange-lt)}
+.ep-sum li i{color:#fff}
 .ep-sum-price{background:rgba(255,255,255,.1);border-radius:14px;padding:16px;margin-bottom:18px}
-.ep-sum-price b{font-size:34px;color:var(--ep-orange-lt);font-weight:800}
+.ep-sum-price b{font-size:34px;color:#fff;font-weight:800}
 .ep-sum-price span{opacity:.8;font-size:14px}
 .ep-sum .ep-btn{width:100%;margin-top:10px}
 .ep-sum .note{margin-top:14px;font-size:12.5px;opacity:.7;text-align:center}
@@ -160,7 +160,7 @@ body.ep-home *{box-sizing:border-box}
 .ep-tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:44px}
 @media(min-width:900px){.ep-tiles{grid-template-columns:repeat(4,1fr)}}
 .ep-tile{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:24px;backdrop-filter:blur(6px)}
-.ep-tile i{font-size:26px;color:var(--ep-orange-lt);margin-bottom:14px;display:block}
+.ep-tile i{font-size:26px;color:#fff;margin-bottom:14px;display:block}
 .ep-tile b{display:block;font-size:18px;margin-bottom:6px}
 .ep-tile span{font-size:14px;opacity:.8;line-height:1.6}
 
@@ -222,7 +222,7 @@ body.ep-home *{box-sizing:border-box}
 @media(min-width:800px){.ep-foot-grid{grid-template-columns:1.5fr 1fr 1fr 1.3fr}}
 .ep-foot h4{color:#fff;font-size:17px;margin-bottom:16px}
 .ep-foot ul{list-style:none;padding:0;margin:0;display:grid;gap:10px;font-size:15px}
-.ep-foot a:hover{color:var(--ep-orange-lt)}
+.ep-foot a:hover{color:#fff}
 .ep-foot .ep-logo{color:#fff;margin-bottom:14px}
 .ep-foot p{font-size:15px;line-height:1.75}
 .ep-soc{display:flex;gap:10px;margin-top:18px}
@@ -249,4 +249,8 @@ body.ep-home *{box-sizing:border-box}
 .ep-opts.c5{grid-template-columns:repeat(3,1fr)}
 @media(min-width:640px){.ep-opts.c5{grid-template-columns:repeat(5,1fr)}}
 
-.ep-foot .ep-logo b{color:var(--ep-orange-lt)}
+.ep-foot .ep-logo b{color:#fff}
+
+/* WhatsApp buttons turn green on hover */
+.ep-btn.ep-wa-btn:hover{background:#25D366;border-color:#25D366;color:#fff;transform:translateY(-2px)}
+.ep-wa:hover{background:#1DB954}
