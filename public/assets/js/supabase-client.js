@@ -24,6 +24,13 @@ async function sbGetProfile(userId) {
     } catch (e) { /* function not installed yet -> fall through */ }
   }
   if (!data) throw error || new Error('profile_missing');
+  // Paid access is time-limited: let the database downgrade an expired member.
+  if (data.membership_status === 'active' && data.role === 'student') {
+    try {
+      const r = await sb.rpc('refresh_my_membership');
+      if (!r.error && r.data === 'pending') data = Object.assign({}, data, { membership_status: 'pending' });
+    } catch (e) { /* function not installed yet */ }
+  }
   return data;
 }
 

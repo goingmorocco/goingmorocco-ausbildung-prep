@@ -135,7 +135,7 @@
                                 </span>
                                 <span class="de-badge de-badge-gold" x-show="subscription && subscription.status === 'active'">نشط</span>
 
-                                <button @click="showSubscriptionModal = true" class="de-btn de-btn-gold text-xs py-2 px-4">
+                                <button @click="openSubscription()" class="de-btn de-btn-gold text-xs py-2 px-4">
                                     <i class="fas fa-credit-card"></i> الاشتراك
                                 </button>
                                 <button @click="showLogoutConfirm = true" class="text-flag-ink/50 hover:text-flag-red transition-colors text-sm" title="تسجيل الخروج">
@@ -206,7 +206,7 @@
                                 <a href="hoeren.html" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#0F172A;">
                                     <i class="fas fa-headphones"></i> تدريبات الاستماع
                                 </a>
-                                <button @click="showSubscriptionModal = true; showMobileMenu = false" class="de-btn de-btn-gold w-full text-sm py-2">
+                                <button @click="openSubscription(); showMobileMenu = false" class="de-btn de-btn-gold w-full text-sm py-2">
                                     <i class="fas fa-credit-card"></i> الاشتراك
                                 </button>
                                 <button @click="showLogoutConfirm = true; showMobileMenu = false" class="de-btn w-full text-sm py-2" style="background:#EEEAE0;color:#0F172A;">
@@ -320,6 +320,18 @@
                             لم تخض أي اختبار بعد — ابدأ بواحد من الاختبارات المتاحة أدناه
                         </div>
                     </div>
+                </div>
+
+                <!-- Renewal reminder -->
+                <div x-show="!isFreeTier && subscription && subscription.status === 'active' && daysUntilRenewal() <= 5" x-cloak class="de-card rounded-2xl p-5 mb-8 flex items-center justify-between gap-4 flex-wrap" style="border-color:rgba(228,0,20,0.4);">
+                    <div class="flex items-center gap-3">
+                        <span class="de-stamp de-stamp-onlight h-11 w-11 text-xs"><i class="fas fa-clock"></i></span>
+                        <div>
+                            <h3 class="font-semibold text-flag-ink">اشتراكك على وشك الانتهاء</h3>
+                            <p class="text-sm text-flag-ink/60">جدّد الاشتراك عبر الدفع نقدًا أو بتحويل بنكي للحفاظ على وصولك.</p>
+                        </div>
+                    </div>
+                    <button @click="openSubscription()" class="de-btn de-btn-primary text-sm py-2.5 px-5 flex-shrink-0"><i class="fas fa-credit-card"></i> جدّد الآن</button>
                 </div>
 
                 <!-- Free tier quota banner -->
@@ -839,34 +851,137 @@
         </div>
     </div>
 
-    <!-- ============ Subscription modal ============ -->
-    <div x-show="showSubscriptionModal" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
-        <div class="de-card w-full max-w-md overflow-hidden">
+    <!-- ============ Subscription / payment modal ============ -->
+    <div x-show="showSubscriptionModal" x-cloak x-transition class="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+        <div class="de-card w-full max-w-lg overflow-hidden my-4">
             <div class="de-flag-ribbon"></div>
             <div class="flex items-center justify-between px-6 py-4 border-b border-black/10">
-                <h3 class="font-semibold text-flag-ink"><i class="fas fa-credit-card text-flag-red me-2"></i> حالة الاشتراك</h3>
+                <h3 class="font-semibold text-flag-ink"><i class="fas fa-credit-card text-flag-red me-2"></i> الاشتراك والدفع</h3>
                 <button @click="showSubscriptionModal = false" class="text-flag-ink/40 hover:text-flag-red"><i class="fas fa-times"></i></button>
             </div>
-            <div class="p-6 text-center">
-                <span class="de-stamp de-stamp-onlight h-16 w-16 text-xs mx-auto mb-5"><i class="fas fa-heart-pulse"></i></span>
-
-                <p class="text-sm text-flag-ink/70 mb-6">
-                    <template x-if="subscription && subscription.status === 'active'">
-                        <span>اشتراكك نشط حتى <span class="font-medium" x-text="formatDate(subscription.current_period_end)"></span></span>
+            <div class="p-6 space-y-5 text-sm">
+                <!-- status -->
+                <div class="rounded-xl p-4 text-center" style="background:#F4F1E8;">
+                    <template x-if="subscription && subscription.status === 'active' && daysUntilRenewal() > 0">
+                        <p>اشتراكك نشط حتى <span class="font-semibold" x-text="formatDate(subscription.current_period_end)"></span> <span class="text-flag-ink/50">(<span x-text="daysUntilRenewal()"></span> <span>يومًا متبقيًا</span>)</span></p>
+                    </template>
+                    <template x-if="subscription && subscription.status === 'active' && daysUntilRenewal() <= 0">
+                        <p class="text-flag-red font-medium">انتهت مدة اشتراكك. جدّد الآن حتى لا يتوقف وصولك إلى الاختبارات.</p>
                     </template>
                     <template x-if="!subscription || subscription.status !== 'active'">
-                        <span>لا يوجد اشتراك فعال حاليًا</span>
+                        <p>لا يوجد اشتراك فعال حاليًا</p>
                     </template>
-                </p>
+                </div>
 
-                <ul class="text-start space-y-3 mb-6 text-sm">
+                <ul class="space-y-2">
                     <li class="flex items-center gap-2"><i class="fas fa-check-circle text-emerald-600"></i> وصول غير محدود لجميع الاختبارات</li>
                     <li class="flex items-center gap-2"><i class="fas fa-check-circle text-emerald-600"></i> تقييم تفصيلي مع شرح الأخطاء</li>
                 </ul>
 
-                <button @click="renewSubscription()" :disabled="renewing" class="de-btn de-btn-primary w-full text-sm py-3 disabled:opacity-50">
-                    <span x-text="renewing ? 'جاري التجديد...' : 'تجديد الاشتراك (200 درهم / شهريًا)'"></span>
-                </button>
+                <!-- pending payments notice -->
+                <div x-show="pendingPayments().length" class="rounded-xl p-4 border border-amber-300 bg-amber-50 text-amber-900">
+                    <i class="fas fa-hourglass-half me-1"></i> لديك دفعة قيد المراجعة. سيتم تفعيل اشتراكك بعد تأكيدها من الإدارة، وغالبًا خلال يوم عمل.
+                </div>
+
+                <!-- how to pay -->
+                <div>
+                    <h4 class="font-semibold text-flag-ink mb-1">طريقة الدفع</h4>
+                    <p class="text-flag-ink/60 mb-3">السعر: <span class="font-semibold text-flag-ink"><span x-text="priceFor(payForm.months)"></span> <span>درهم</span></span> <span class="text-flag-ink/50">(<span x-text="paySettings.price_mad"></span> <span>درهم</span> / <span>شهريًا</span>)</span></p>
+                    <div class="grid grid-cols-3 gap-2 mb-3">
+                        <button type="button" @click="payForm.method = 'cash'" :class="payForm.method === 'cash' ? 'border-flag-red bg-flag-red/5 text-flag-ink' : 'border-black/10 text-flag-ink/60'" class="border-2 rounded-xl py-3 px-2 text-xs font-medium"><i class="fas fa-money-bill-wave block text-lg mb-1"></i> نقدًا بالأكاديمية</button>
+                        <button type="button" @click="payForm.method = 'cih'" :class="payForm.method === 'cih' ? 'border-flag-red bg-flag-red/5 text-flag-ink' : 'border-black/10 text-flag-ink/60'" class="border-2 rounded-xl py-3 px-2 text-xs font-medium"><i class="fas fa-building-columns block text-lg mb-1"></i> تحويل CIH</button>
+                        <button type="button" @click="payForm.method = 'attijariwafa'" :class="payForm.method === 'attijariwafa' ? 'border-flag-red bg-flag-red/5 text-flag-ink' : 'border-black/10 text-flag-ink/60'" class="border-2 rounded-xl py-3 px-2 text-xs font-medium"><i class="fas fa-building-columns block text-lg mb-1"></i> تحويل التجاري وفا بنك</button>
+                    </div>
+
+                    <div class="rounded-xl border border-black/10 p-4 space-y-2">
+                        <template x-if="payForm.method === 'cash'">
+                            <div>
+                                <p>ادفع المبلغ نقدًا في مقر الأكاديمية وسنفعّل اشتراكك مباشرة بعد الاستلام.</p>
+                                <p class="text-flag-ink/60 mt-2 whitespace-pre-line" x-show="paySettings.cash_info" x-text="paySettings.cash_info"></p>
+                            </div>
+                        </template>
+                        <template x-if="payForm.method === 'cih'">
+                            <div>
+                                <p class="text-flag-ink/60 mb-1">حوّل المبلغ إلى حساب CIH Bank:</p>
+                                <template x-if="paySettings.cih_rib">
+                                    <div>
+                                        <p>المستفيد: <span class="font-semibold" x-text="paySettings.cih_holder"></span></p>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span dir="ltr" class="font-mono text-sm bg-flag-black/5 rounded px-2 py-1 break-all" x-text="paySettings.cih_rib"></span>
+                                            <button type="button" @click="copyText(paySettings.cih_rib)" class="text-flag-red text-xs"><i class="fas fa-copy"></i> نسخ</button>
+                                        </div>
+                                    </div>
+                                </template>
+                                <p x-show="!paySettings.cih_rib" class="text-flag-ink/60">سيتم إعلانك بتفاصيل الحساب قريبًا. تواصل معنا عبر واتساب للحصول عليها.</p>
+                            </div>
+                        </template>
+                        <template x-if="payForm.method === 'attijariwafa'">
+                            <div>
+                                <p class="text-flag-ink/60 mb-1">حوّل المبلغ إلى حساب التجاري وفا بنك (Attijariwafa bank):</p>
+                                <template x-if="paySettings.awb_rib">
+                                    <div>
+                                        <p>المستفيد: <span class="font-semibold" x-text="paySettings.awb_holder"></span></p>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span dir="ltr" class="font-mono text-sm bg-flag-black/5 rounded px-2 py-1 break-all" x-text="paySettings.awb_rib"></span>
+                                            <button type="button" @click="copyText(paySettings.awb_rib)" class="text-flag-red text-xs"><i class="fas fa-copy"></i> نسخ</button>
+                                        </div>
+                                    </div>
+                                </template>
+                                <p x-show="!paySettings.awb_rib" class="text-flag-ink/60">سيتم إعلانك بتفاصيل الحساب قريبًا. تواصل معنا عبر واتساب للحصول عليها.</p>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- declare payment -->
+                <form @submit.prevent="submitPayment()" class="space-y-3">
+                    <div>
+                        <label class="block text-xs text-flag-ink/60 mb-1">عدد الأشهر</label>
+                        <select x-model.number="payForm.months" class="w-full border border-black/15 rounded-lg px-3 py-2 bg-white">
+                            <option :value="1">شهر واحد</option>
+                            <option :value="3">3 أشهر</option>
+                            <option :value="6">6 أشهر</option>
+                            <option :value="12">12 شهرًا</option>
+                        </select>
+                    </div>
+                    <template x-if="payForm.method !== 'cash'">
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs text-flag-ink/60 mb-1">مرجع التحويل (اختياري)</label>
+                                <input type="text" x-model="payForm.reference" maxlength="120" dir="ltr" class="w-full border border-black/15 rounded-lg px-3 py-2" placeholder="Réf. / N° opération">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-flag-ink/60 mb-1">صورة وصل التحويل (صورة أو PDF، حتى 5 ميغابايت)</label>
+                                <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" @change="payForm.file = $event.target.files[0] || null" class="w-full text-xs">
+                            </div>
+                        </div>
+                    </template>
+                    <div>
+                        <label class="block text-xs text-flag-ink/60 mb-1">ملاحظة (اختياري)</label>
+                        <input type="text" x-model="payForm.note" maxlength="300" class="w-full border border-black/15 rounded-lg px-3 py-2">
+                    </div>
+                    <button type="submit" :disabled="submittingPay" class="de-btn de-btn-primary w-full text-sm py-3 disabled:opacity-50">
+                        <span x-text="submittingPay ? 'جاري الإرسال...' : (payForm.method === 'cash' ? 'سأدفع نقدًا — أعلموا الإدارة' : 'لقد أجريت التحويل — أرسل للتأكيد')"></span>
+                    </button>
+                    <p class="text-xs text-flag-ink/50 text-center">يُفعَّل الاشتراك بعد تأكيد الإدارة استلام المبلغ.</p>
+                </form>
+
+                <!-- history -->
+                <div x-show="payments.length">
+                    <h4 class="font-semibold text-flag-ink mb-2">سجل الدفعات</h4>
+                    <div class="space-y-2">
+                        <template x-for="p in payments" :key="p.id">
+                            <div class="rounded-lg border border-black/10 p-3 flex items-center justify-between gap-3">
+                                <div>
+                                    <div class="font-medium"><span x-text="p.amount"></span> <span>درهم</span> · <span x-text="methodLabel(p.method)"></span></div>
+                                    <div class="text-xs text-flag-ink/50"><span x-text="formatDate(p.created_at)"></span><span x-show="p.status === 'confirmed' && p.period_end"> · <span>حتى</span> <span x-text="formatDate(p.period_end)"></span></span></div>
+                                    <div class="text-xs text-flag-red mt-1" x-show="p.status === 'rejected' && p.admin_note" x-text="p.admin_note"></div>
+                                </div>
+                                <span class="text-xs rounded-full px-3 py-1 whitespace-nowrap" :class="p.status === 'confirmed' ? 'bg-emerald-100 text-emerald-800' : (p.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800')" x-text="p.status === 'confirmed' ? 'مؤكدة' : (p.status === 'rejected' ? 'مرفوضة' : 'قيد المراجعة')"></span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -917,7 +1032,7 @@
                 </p>
                 <div class="flex gap-3">
                     <button @click="showUpgradePrompt = false" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#0F172A;">لاحقًا</button>
-                    <button @click="showUpgradePrompt = false; showSubscriptionModal = true;" class="de-btn de-btn-primary flex-1 text-sm py-2.5">اشترك الآن</button>
+                    <button @click="showUpgradePrompt = false; openSubscription();" class="de-btn de-btn-primary flex-1 text-sm py-2.5">اشترك الآن</button>
                 </div>
             </div>
         </div>
@@ -954,7 +1069,10 @@
                 showMobileMenu: false,
                 showSubscriptionModal: false,
                 showLogoutConfirm: false,
-                renewing: false,
+                submittingPay: false,
+                payments: [],
+                paySettings: { price_mad: 200, cih_holder: '', cih_rib: '', awb_holder: '', awb_rib: '', cash_info: '' },
+                payForm: { method: 'cash', months: 1, reference: '', note: '', file: null },
                 toast: '',
 
                 // Test-taking state
@@ -1481,38 +1599,61 @@
                     }
                 },
 
-                async renewSubscription() {
-                    this.renewing = true;
+                async openSubscription() {
+                    this.showSubscriptionModal = true;
+                    await this.loadPayments();
+                },
+
+                async loadPayments() {
                     try {
-                        const start = new Date();
-                        const end = new Date();
-                        end.setMonth(end.getMonth() + 1);
+                        const [st, pays] = await Promise.all([
+                            sb.from('payment_settings').select('*').eq('id', 1).maybeSingle(),
+                            sb.from('payments').select('*').eq('user_id', this.user.id).order('created_at', { ascending: false }).limit(20)
+                        ]);
+                        if (st.data) this.paySettings = st.data;
+                        if (pays.data) this.payments = pays.data;
+                    } catch (e) { console.error(e); }
+                },
 
-                        let error;
-                        if (this.subscription && this.subscription.id) {
-                            ({ error } = await sb.from('subscriptions').update({
-                                status: 'active', current_period_start: start.toISOString(),
-                                current_period_end: end.toISOString(), cancel_at_period_end: false
-                            }).eq('id', this.subscription.id));
-                        } else {
-                            ({ error } = await sb.from('subscriptions').insert({
-                                user_id: this.user.id, status: 'active',
-                                current_period_start: start.toISOString(), current_period_end: end.toISOString()
-                            }));
-                        }
+                pendingPayments() { return this.payments.filter(p => p.status === 'pending'); },
+                priceFor(months) { return Math.round(Number(this.paySettings.price_mad || 0) * (months || 1) * 100) / 100; },
+                methodLabel(m) { return m === 'cash' ? 'نقدًا' : (m === 'cih' ? 'تحويل CIH' : 'تحويل التجاري وفا بنك'); },
 
-                        if (!error) {
-                            this.showToast('تم تجديد الاشتراك بنجاح');
-                            this.showSubscriptionModal = false;
-                            this.loadDashboardData();
-                        } else {
-                            this.showToast('تعذّر تجديد الاشتراك');
+                async copyText(t) {
+                    try { await navigator.clipboard.writeText(t); this.showToast('تم النسخ'); } catch (e) { this.showToast(t); }
+                },
+
+                async submitPayment() {
+                    if (this.submittingPay) return;
+                    const f = this.payForm;
+                    if (f.method !== 'cash' && !f.file && !(f.reference || '').trim()) {
+                        this.showToast('أرفق صورة وصل التحويل أو اكتب مرجع التحويل');
+                        return;
+                    }
+                    if (f.file && f.file.size > 5 * 1024 * 1024) { this.showToast('الملف كبير جدًا (الحد الأقصى 5 ميغابايت)'); return; }
+                    this.submittingPay = true;
+                    try {
+                        let proofPath = null;
+                        if (f.method !== 'cash' && f.file) {
+                            const ext = (f.file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 5) || 'jpg';
+                            proofPath = this.user.id + '/' + Date.now() + '.' + ext;
+                            const up = await sb.storage.from('payment-proofs').upload(proofPath, f.file, { contentType: f.file.type, upsert: false });
+                            if (up.error) throw up.error;
                         }
+                        const { error } = await sb.rpc('submit_payment', {
+                            p_method: f.method, p_months: f.months,
+                            p_reference: f.reference || null, p_proof_path: proofPath, p_note: f.note || null
+                        });
+                        if (error) throw error;
+                        this.payForm = { method: f.method, months: 1, reference: '', note: '', file: null };
+                        this.showToast('تم إرسال الدفعة. سنؤكدها في أقرب وقت.');
+                        await this.loadPayments();
                     } catch (e) {
                         console.error(e);
-                        this.showToast('حدث خطأ أثناء تجديد الاشتراك');
+                        const m = String((e && e.message) || '');
+                        this.showToast(m.includes('Too many pending') ? 'لديك دفعات قيد المراجعة بالفعل. انتظر تأكيدها.' : 'تعذّر إرسال الدفعة. حاول مرة أخرى أو راسلنا عبر واتساب.');
                     } finally {
-                        this.renewing = false;
+                        this.submittingPay = false;
                     }
                 },
 

@@ -1,5 +1,245 @@
 /* Generated phrase dictionary: Arabic source -> [en, fr, es] */
 window.EP_DICT = {
+"الاشتراك والدفع": [
+"Subscription & payment",
+"Abonnement et paiement",
+"Suscripción y pago"
+],
+"اشتراكك نشط حتى": [
+"Your subscription is active until",
+"Votre abonnement est actif jusqu'au",
+"Tu suscripción está activa hasta"
+],
+"يومًا متبقيًا": [
+"days left",
+"jours restants",
+"días restantes"
+],
+"انتهت مدة اشتراكك. جدّد الآن حتى لا يتوقف وصولك إلى الاختبارات.": [
+"Your subscription has ended. Renew now so you don't lose access to the tests.",
+"Votre abonnement est terminé. Renouvelez-le maintenant pour ne pas perdre l'accès aux tests.",
+"Tu suscripción ha terminado. Renuévala ahora para no perder el acceso a los exámenes."
+],
+"لا يوجد اشتراك فعال حاليًا": [
+"No active subscription",
+"Aucun abonnement actif",
+"Sin suscripción activa"
+],
+"وصول غير محدود لجميع الاختبارات": [
+"Unlimited access to all exams",
+"Accès illimité à tous les examens",
+"Acceso ilimitado a todos los exámenes"
+],
+"تقييم تفصيلي مع شرح الأخطاء": [
+"Detailed evaluation with explanations of mistakes",
+"Évaluation détaillée avec explication des erreurs",
+"Evaluación detallada con explicación de los errores"
+],
+"لديك دفعة قيد المراجعة. سيتم تفعيل اشتراكك بعد تأكيدها من الإدارة، وغالبًا خلال يوم عمل.": [
+"You have a payment under review. Your subscription will be activated once the administration confirms it, usually within one working day.",
+"Vous avez un paiement en cours de vérification. Votre abonnement sera activé dès sa confirmation par l'administration, généralement sous un jour ouvré.",
+"Tienes un pago en revisión. Tu suscripción se activará cuando la administración lo confirme, normalmente en un día laborable."
+],
+"طريقة الدفع": [
+"Payment method",
+"Mode de paiement",
+"Método de pago"
+],
+"السعر:": [
+"Price:",
+"Prix :",
+"Precio:"
+],
+"شهريًا": [
+"per month",
+"par mois",
+"al mes"
+],
+"نقدًا بالأكاديمية": [
+"Cash at the academy",
+"Espèces à l'académie",
+"Efectivo en la academia"
+],
+"تحويل CIH": [
+"CIH transfer",
+"Virement CIH",
+"Transferencia CIH"
+],
+"تحويل التجاري وفا بنك": [
+"Attijariwafa bank transfer",
+"Virement Attijariwafa bank",
+"Transferencia Attijariwafa bank"
+],
+"ادفع المبلغ نقدًا في مقر الأكاديمية وسنفعّل اشتراكك مباشرة بعد الاستلام.": [
+"Pay the amount in cash at the academy and we will activate your subscription right after we receive it.",
+"Payez le montant en espèces à l'académie et nous activerons votre abonnement dès réception.",
+"Paga el importe en efectivo en la academia y activaremos tu suscripción en cuanto lo recibamos."
+],
+"حوّل المبلغ إلى حساب CIH Bank:": [
+"Transfer the amount to the CIH Bank account:",
+"Virez le montant sur le compte CIH Bank :",
+"Transfiere el importe a la cuenta de CIH Bank:"
+],
+"حوّل المبلغ إلى حساب التجاري وفا بنك (Attijariwafa bank):": [
+"Transfer the amount to the Attijariwafa bank account:",
+"Virez le montant sur le compte Attijariwafa bank :",
+"Transfiere el importe a la cuenta de Attijariwafa bank:"
+],
+"المستفيد:": [
+"Beneficiary:",
+"Bénéficiaire :",
+"Beneficiario:"
+],
+"نسخ": [
+"Copy",
+"Copier",
+"Copiar"
+],
+"سيتم إعلانك بتفاصيل الحساب قريبًا. تواصل معنا عبر واتساب للحصول عليها.": [
+"The account details will be announced soon. Contact us on WhatsApp to get them.",
+"Les coordonnées du compte seront communiquées bientôt. Contactez-nous sur WhatsApp pour les obtenir.",
+"Los datos de la cuenta se publicarán pronto. Escríbenos por WhatsApp para obtenerlos."
+],
+"عدد الأشهر": [
+"Number of months",
+"Nombre de mois",
+"Número de meses"
+],
+"شهر واحد": [
+"1 month",
+"1 mois",
+"1 mes"
+],
+"3 أشهر": [
+"3 months",
+"3 mois",
+"3 meses"
+],
+"6 أشهر": [
+"6 months",
+"6 mois",
+"6 meses"
+],
+"12 شهرًا": [
+"12 months",
+"12 mois",
+"12 meses"
+],
+"مرجع التحويل (اختياري)": [
+"Transfer reference (optional)",
+"Référence du virement (facultatif)",
+"Referencia de la transferencia (opcional)"
+],
+"صورة وصل التحويل (صورة أو PDF، حتى 5 ميغابايت)": [
+"Photo of the transfer receipt (image or PDF, up to 5 MB)",
+"Photo du reçu de virement (image ou PDF, jusqu'à 5 Mo)",
+"Foto del comprobante de transferencia (imagen o PDF, hasta 5 MB)"
+],
+"ملاحظة (اختياري)": [
+"Note (optional)",
+"Note (facultatif)",
+"Nota (opcional)"
+],
+"جاري الإرسال...": [
+"Sending...",
+"Envoi...",
+"Enviando..."
+],
+"سأدفع نقدًا — أعلموا الإدارة": [
+"I will pay in cash — notify the administration",
+"Je paierai en espèces — prévenir l'administration",
+"Pagaré en efectivo — avisar a la administración"
+],
+"لقد أجريت التحويل — أرسل للتأكيد": [
+"I have made the transfer — send for confirmation",
+"J'ai effectué le virement — envoyer pour confirmation",
+"He hecho la transferencia — enviar para confirmar"
+],
+"يُفعَّل الاشتراك بعد تأكيد الإدارة استلام المبلغ.": [
+"The subscription is activated once the administration confirms receipt of the payment.",
+"L'abonnement est activé une fois la réception du paiement confirmée par l'administration.",
+"La suscripción se activa cuando la administración confirma la recepción del pago."
+],
+"سجل الدفعات": [
+"Payment history",
+"Historique des paiements",
+"Historial de pagos"
+],
+"مؤكدة": [
+"Confirmed",
+"Confirmé",
+"Confirmado"
+],
+"مرفوضة": [
+"Rejected",
+"Refusé",
+"Rechazado"
+],
+"قيد المراجعة": [
+"Under review",
+"En cours de vérification",
+"En revisión"
+],
+"حتى": [
+"until",
+"jusqu'au",
+"hasta"
+],
+"اشتراكك على وشك الانتهاء": [
+"Your subscription is about to end",
+"Votre abonnement arrive à échéance",
+"Tu suscripción está a punto de terminar"
+],
+"جدّد الاشتراك عبر الدفع نقدًا أو بتحويل بنكي للحفاظ على وصولك.": [
+"Renew by paying in cash or by bank transfer to keep your access.",
+"Renouvelez en payant en espèces ou par virement bancaire pour conserver votre accès.",
+"Renueva pagando en efectivo o por transferencia bancaria para conservar tu acceso."
+],
+"جدّد الآن": [
+"Renew now",
+"Renouveler maintenant",
+"Renovar ahora"
+],
+"نقدًا": [
+"Cash",
+"Espèces",
+"Efectivo"
+],
+"تم النسخ": [
+"Copied",
+"Copié",
+"Copiado"
+],
+"أرفق صورة وصل التحويل أو اكتب مرجع التحويل": [
+"Attach the transfer receipt or enter the transfer reference",
+"Joignez le reçu du virement ou saisissez sa référence",
+"Adjunta el comprobante de la transferencia o escribe la referencia"
+],
+"الملف كبير جدًا (الحد الأقصى 5 ميغابايت)": [
+"The file is too large (maximum 5 MB)",
+"Le fichier est trop volumineux (5 Mo maximum)",
+"El archivo es demasiado grande (máximo 5 MB)"
+],
+"تم إرسال الدفعة. سنؤكدها في أقرب وقت.": [
+"Payment submitted. We will confirm it as soon as possible.",
+"Paiement envoyé. Nous le confirmerons dès que possible.",
+"Pago enviado. Lo confirmaremos lo antes posible."
+],
+"لديك دفعات قيد المراجعة بالفعل. انتظر تأكيدها.": [
+"You already have payments under review. Please wait for their confirmation.",
+"Vous avez déjà des paiements en cours de vérification. Veuillez attendre leur confirmation.",
+"Ya tienes pagos en revisión. Espera a que se confirmen."
+],
+"تعذّر إرسال الدفعة. حاول مرة أخرى أو راسلنا عبر واتساب.": [
+"Couldn't submit the payment. Try again or message us on WhatsApp.",
+"Impossible d'envoyer le paiement. Réessayez ou écrivez-nous sur WhatsApp.",
+"No se pudo enviar el pago. Inténtalo de nuevo o escríbenos por WhatsApp."
+],
+"ندفع بسهولة ودون بطاقة بنكية: نقدًا في مقر الأكاديمية، أو بتحويل بنكي إلى حسابنا في CIH Bank أو التجاري وفا بنك. بعد الدفع يؤكد فريقنا استلام المبلغ ويُفعَّل اشتراكك، وتجد تفاصيل الحسابات داخل حسابك في صفحة الاشتراك.": [
+"Pay easily without a bank card: in cash at the academy, or by bank transfer to our CIH Bank or Attijariwafa bank account. After payment our team confirms receipt and your subscription is activated. The account details are in your account, on the subscription page.",
+"Payez simplement, sans carte bancaire : en espèces à l'académie, ou par virement sur notre compte CIH Bank ou Attijariwafa bank. Après le paiement, notre équipe confirme la réception et votre abonnement est activé. Les coordonnées des comptes se trouvent dans votre compte, sur la page Abonnement.",
+"Paga fácilmente sin tarjeta bancaria: en efectivo en la academia o por transferencia a nuestra cuenta de CIH Bank o Attijariwafa bank. Tras el pago, nuestro equipo confirma la recepción y se activa tu suscripción. Los datos de las cuentas están en tu cuenta, en la página de suscripción."
+],
 "EuroPass Academy - الألمانية · الإنجليزية · الفرنسية · الإسبانية": [
 "EuroPass Academy - German · English · French · Spanish",
 "EuroPass Academy - Allemand · Anglais · Français · Espagnol",
@@ -525,20 +765,10 @@ window.EP_DICT = {
 "par mois · résiliable à tout moment",
 "al mes · cancela cuando quieras"
 ],
-"وصول غير محدود لجميع الاختبارات": [
-"Unlimited access to all exams",
-"Accès illimité à tous les examens",
-"Acceso ilimitado a todos los exámenes"
-],
 "جميع المواد التعليمية والدورات": [
 "All learning materials and courses",
 "Tous les supports et cours",
 "Todos los materiales y cursos"
-],
-"تقييم تفصيلي مع شرح الأخطاء": [
-"Detailed evaluation with explanations of mistakes",
-"Évaluation détaillée avec explication des erreurs",
-"Evaluación detallada con explicación de los errores"
 ],
 "تتبع التقدم والإحصاءات الشخصية": [
 "Progress tracking and personal statistics",
@@ -714,11 +944,6 @@ window.EP_DICT = {
 "Enter your email and we'll send you a link to reset your password.",
 "Saisissez votre e-mail et nous vous enverrons un lien de réinitialisation.",
 "Introduce tu correo y te enviaremos un enlace para restablecer tu contraseña."
-],
-"جاري الإرسال...": [
-"Sending...",
-"Envoi...",
-"Enviando..."
 ],
 "إرسال رابط الاستعادة": [
 "Send reset link",
@@ -1279,16 +1504,6 @@ window.EP_DICT = {
 "Subscription status",
 "État de l'abonnement",
 "Estado de la suscripción"
-],
-"اشتراكك نشط حتى": [
-"Your subscription is active until",
-"Votre abonnement est actif jusqu'au",
-"Tu suscripción está activa hasta"
-],
-"لا يوجد اشتراك فعال حاليًا": [
-"No active subscription",
-"Aucun abonnement actif",
-"Sin suscripción activa"
 ],
 "جاري التجديد...": [
 "Renewing...",

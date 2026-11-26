@@ -195,6 +195,14 @@
                               class="absolute -top-1.5 -end-1.5 h-5 min-w-[1.25rem] px-1 rounded-full bg-flag-gold text-white text-[10px] font-bold font-mono flex items-center justify-center"
                               x-text="stats.pending"></span>
                     </button>
+                    <button @click="activeTab = 'payments'; loadPayments()"
+                            class="px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors relative"
+                            :class="activeTab === 'payments' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'">
+                        <i class="fas fa-money-check-dollar me-1"></i> المدفوعات
+                        <span x-show="pendingPaymentsCount > 0" x-cloak
+                              class="absolute -top-1.5 -end-1.5 h-5 min-w-[1.25rem] px-1 rounded-full bg-flag-gold text-white text-[10px] font-bold font-mono flex items-center justify-center"
+                              x-text="pendingPaymentsCount"></span>
+                    </button>
                     <button @click="activeTab = 'notifications'; loadEvents()"
                             class="px-5 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors"
                             :class="activeTab === 'notifications' ? 'bg-flag-black text-white' : 'bg-white text-flag-ink/60 border border-black/10 hover:border-flag-red/40'">
@@ -368,8 +376,12 @@
                                             </td>
                                             <td class="px-5 py-4">
                                                 <div class="flex items-center gap-2 flex-wrap">
+                                                    <button @click="openRecordPayment(m)"
+                                                            class="h-8 w-8 rounded-lg bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors" title="تسجيل دفعة">
+                                                        <i class="fas fa-money-bill-wave"></i>
+                                                    </button>
                                                     <button x-show="m.membership_status !== 'active'" @click="approve(m.id)"
-                                                            class="h-8 w-8 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors" title="موافقة">
+                                                            class="h-8 w-8 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 transition-colors" title="تفعيل مجاني (شهر واحد)">
                                                         <i class="fas fa-check"></i>
                                                     </button>
                                                     <button x-show="m.membership_status !== 'rejected'" @click="reject(m.id)"
@@ -397,6 +409,116 @@
                                 <i class="fas fa-circle-notch fa-spin"></i> جاري التحميل...
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- ===== Payments tab ===== -->
+                <div x-show="activeTab === 'payments'" x-cloak class="space-y-6">
+                    <div class="de-card rounded-2xl overflow-hidden">
+                        <div class="px-6 py-4 border-b border-black/10 flex items-center justify-between gap-3 flex-wrap">
+                            <h3 class="font-semibold text-flag-ink"><i class="fas fa-money-check-dollar text-flag-red me-2"></i> الدفعات</h3>
+                            <div class="flex gap-2 text-xs">
+                                <button @click="payFilter = 'pending'; loadPayments()" :class="payFilter === 'pending' ? 'bg-flag-black text-white' : 'bg-white border border-black/10 text-flag-ink/60'" class="px-4 py-2 rounded-full">قيد المراجعة</button>
+                                <button @click="payFilter = 'all'; loadPayments()" :class="payFilter === 'all' ? 'bg-flag-black text-white' : 'bg-white border border-black/10 text-flag-ink/60'" class="px-4 py-2 rounded-full">الكل</button>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="bg-flag-cream text-flag-ink/60 text-xs">
+                                    <tr>
+                                        <th class="text-start px-5 py-3 font-medium">الطالب</th>
+                                        <th class="text-start px-5 py-3 font-medium">المبلغ / الطريقة</th>
+                                        <th class="text-start px-5 py-3 font-medium hidden md:table-cell">التاريخ</th>
+                                        <th class="text-start px-5 py-3 font-medium">الحالة</th>
+                                        <th class="text-start px-5 py-3 font-medium">إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-black/5">
+                                    <template x-for="p in payments" :key="p.id">
+                                        <tr class="hover:bg-flag-cream/60">
+                                            <td class="px-5 py-4">
+                                                <div class="font-medium" x-text="p.student ? p.student.full_name : '—'"></div>
+                                                <div class="text-xs text-flag-ink/50" x-text="p.student ? p.student.email : ''"></div>
+                                            </td>
+                                            <td class="px-5 py-4">
+                                                <div class="font-medium"><span x-text="p.amount"></span> درهم · <span x-text="p.months"></span> شهر</div>
+                                                <div class="text-xs text-flag-ink/50" x-text="methodLabel(p.method)"></div>
+                                                <div class="text-xs text-flag-ink/50 font-mono" dir="ltr" x-show="p.reference" x-text="p.reference"></div>
+                                                <div class="text-xs text-flag-ink/60 mt-1" x-show="p.student_note" x-text="p.student_note"></div>
+                                                <button x-show="p.proof_path" @click="viewProof(p)" class="text-xs text-flag-red mt-1"><i class="fas fa-paperclip"></i> عرض الوصل</button>
+                                            </td>
+                                            <td class="px-5 py-4 text-xs text-flag-ink/60 hidden md:table-cell">
+                                                <div x-text="formatDate(p.created_at)"></div>
+                                                <div x-show="p.period_end">حتى <span x-text="formatDate(p.period_end)"></span></div>
+                                            </td>
+                                            <td class="px-5 py-4">
+                                                <span class="text-xs rounded-full px-3 py-1 whitespace-nowrap" :class="p.status === 'confirmed' ? 'bg-emerald-100 text-emerald-800' : (p.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800')" x-text="p.status === 'confirmed' ? 'مؤكدة' : (p.status === 'rejected' ? 'مرفوضة' : 'قيد المراجعة')"></span>
+                                            </td>
+                                            <td class="px-5 py-4">
+                                                <div class="flex gap-2" x-show="p.status === 'pending'">
+                                                    <button @click="confirmPayment(p)" class="h-8 px-3 rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 text-xs"><i class="fas fa-check"></i> تأكيد الاستلام</button>
+                                                    <button @click="rejectPayment(p)" class="h-8 px-3 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-xs"><i class="fas fa-xmark"></i> رفض</button>
+                                                </div>
+                                                <div class="text-xs text-flag-ink/50" x-show="p.status !== 'pending' && p.admin_note" x-text="p.admin_note"></div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                            <div x-show="!paymentsLoading && payments.length === 0" class="p-10 text-center text-sm text-flag-ink/40">لا توجد دفعات</div>
+                            <div x-show="paymentsLoading" x-cloak class="p-10 text-center text-sm text-flag-ink/40"><i class="fas fa-circle-notch fa-spin"></i> جاري التحميل...</div>
+                        </div>
+                    </div>
+
+                    <div class="de-card rounded-2xl p-6">
+                        <h3 class="font-semibold text-flag-ink mb-1"><i class="fas fa-sliders text-flag-red me-2"></i> إعدادات الدفع</h3>
+                        <p class="text-xs text-flag-ink/50 mb-4">هذه التفاصيل تظهر للطلاب في نافذة الاشتراك.</p>
+                        <form @submit.prevent="savePaySettings()" class="grid sm:grid-cols-2 gap-4 text-sm">
+                            <div><label class="block text-xs text-flag-ink/60 mb-1">السعر الشهري (درهم)</label>
+                                <input type="number" min="1" step="1" x-model.number="paySettings.price_mad" class="w-full border border-black/15 rounded-lg px-3 py-2"></div>
+                            <div><label class="block text-xs text-flag-ink/60 mb-1">أيام السماح بعد انتهاء الاشتراك</label>
+                                <input type="number" min="0" max="60" step="1" x-model.number="paySettings.grace_days" class="w-full border border-black/15 rounded-lg px-3 py-2"></div>
+                            <div><label class="block text-xs text-flag-ink/60 mb-1">CIH — اسم صاحب الحساب</label>
+                                <input type="text" x-model="paySettings.cih_holder" class="w-full border border-black/15 rounded-lg px-3 py-2"></div>
+                            <div><label class="block text-xs text-flag-ink/60 mb-1">CIH — RIB</label>
+                                <input type="text" dir="ltr" x-model="paySettings.cih_rib" class="w-full border border-black/15 rounded-lg px-3 py-2 font-mono"></div>
+                            <div><label class="block text-xs text-flag-ink/60 mb-1">التجاري وفا بنك — اسم صاحب الحساب</label>
+                                <input type="text" x-model="paySettings.awb_holder" class="w-full border border-black/15 rounded-lg px-3 py-2"></div>
+                            <div><label class="block text-xs text-flag-ink/60 mb-1">التجاري وفا بنك — RIB</label>
+                                <input type="text" dir="ltr" x-model="paySettings.awb_rib" class="w-full border border-black/15 rounded-lg px-3 py-2 font-mono"></div>
+                            <div class="sm:col-span-2"><label class="block text-xs text-flag-ink/60 mb-1">معلومات الدفع نقدًا (العنوان، ساعات الاستقبال)</label>
+                                <textarea rows="2" x-model="paySettings.cash_info" class="w-full border border-black/15 rounded-lg px-3 py-2"></textarea></div>
+                            <div class="sm:col-span-2"><button type="submit" :disabled="savingPaySettings" class="de-btn de-btn-primary text-sm py-2.5 px-6 disabled:opacity-50">حفظ الإعدادات</button></div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Record payment modal -->
+                <div x-show="recordTarget" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
+                    <div class="de-card w-full max-w-md overflow-hidden">
+                        <div class="de-flag-ribbon"></div>
+                        <form @submit.prevent="recordPayment()" class="p-6 space-y-3 text-sm">
+                            <h3 class="font-semibold text-flag-ink">تسجيل دفعة — <span x-text="recordTarget && recordTarget.full_name"></span></h3>
+                            <p class="text-xs text-flag-ink/50">يُفعَّل الاشتراك فورًا ويُضاف إلى المدة الحالية إن كان ساريًا.</p>
+                            <div><label class="block text-xs text-flag-ink/60 mb-1">طريقة الدفع</label>
+                                <select x-model="recordForm.method" class="w-full border border-black/15 rounded-lg px-3 py-2 bg-white">
+                                    <option value="cash">نقدًا</option><option value="cih">تحويل CIH</option><option value="attijariwafa">تحويل التجاري وفا بنك</option>
+                                </select></div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div><label class="block text-xs text-flag-ink/60 mb-1">عدد الأشهر</label>
+                                    <input type="number" min="1" max="12" x-model.number="recordForm.months" class="w-full border border-black/15 rounded-lg px-3 py-2"></div>
+                                <div><label class="block text-xs text-flag-ink/60 mb-1">المبلغ (درهم)</label>
+                                    <input type="number" min="0" step="1" x-model.number="recordForm.amount" :placeholder="paySettings.price_mad * (recordForm.months || 1)" class="w-full border border-black/15 rounded-lg px-3 py-2"></div>
+                            </div>
+                            <div><label class="block text-xs text-flag-ink/60 mb-1">مرجع / رقم الوصل (اختياري)</label>
+                                <input type="text" x-model="recordForm.reference" maxlength="120" class="w-full border border-black/15 rounded-lg px-3 py-2"></div>
+                            <div><label class="block text-xs text-flag-ink/60 mb-1">ملاحظة (اختياري)</label>
+                                <input type="text" x-model="recordForm.note" maxlength="300" class="w-full border border-black/15 rounded-lg px-3 py-2"></div>
+                            <div class="flex gap-3 pt-2">
+                                <button type="button" @click="recordTarget = null" class="de-btn flex-1 text-sm py-2.5" style="background:#EEEAE0;color:#0F172A;">إلغاء</button>
+                                <button type="submit" :disabled="recordingPay" class="de-btn de-btn-primary flex-1 text-sm py-2.5 disabled:opacity-50">تسجيل وتفعيل</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
@@ -1330,6 +1452,10 @@
                 activeTab: 'overview',
                 stats: { total: 0, pending: 0, active: 0, rejected: 0, activeSubscriptions: 0 },
 
+                payments: [], payFilter: 'pending', paymentsLoading: false, pendingPaymentsCount: 0,
+                paySettings: { price_mad: 200, grace_days: 3, cih_holder: '', cih_rib: '', awb_holder: '', awb_rib: '', cash_info: '' },
+                savingPaySettings: false, recordTarget: null, recordingPay: false,
+                recordForm: { method: 'cash', months: 1, amount: null, reference: '', note: '' },
                 members: [], memberFilter: 'all', memberSearch: '', membersLoading: false,
                 notifications: [], notifyTitle: '', notifyMessage: '', notifyLink: '', notifyAudience: 'all', sending: false,
                 deleteNotificationTarget: null,
@@ -1425,6 +1551,7 @@
                 },
 
                 loadAll() {
+                    this.loadPaymentsCount();
                     this.loadStats();
                     this.loadMembers();
                     this.loadNotifications();
@@ -1458,6 +1585,91 @@
                         const data = await sbInvoke('admin-notifications', { action: 'list' });
                         if (data.success) this.notifications = data.notifications;
                     } catch (e) { console.error(e); }
+                },
+
+                methodLabel(m) { return m === 'cash' ? 'نقدًا' : (m === 'cih' ? 'تحويل CIH' : 'تحويل التجاري وفا بنك'); },
+
+                async loadPaymentsCount() {
+                    try {
+                        const { count } = await sb.from('payments').select('id', { count: 'exact', head: true }).eq('status', 'pending');
+                        this.pendingPaymentsCount = count || 0;
+                    } catch (e) { console.error(e); }
+                },
+
+                async loadPayments() {
+                    this.paymentsLoading = true;
+                    try {
+                        let q = sb.from('payments').select('*, student:users!payments_user_id_fkey(full_name, email)').order('created_at', { ascending: false }).limit(200);
+                        if (this.payFilter === 'pending') q = q.eq('status', 'pending');
+                        const [pays, st] = await Promise.all([q, sb.from('payment_settings').select('*').eq('id', 1).maybeSingle()]);
+                        if (pays.error) throw pays.error;
+                        this.payments = pays.data || [];
+                        if (st.data) this.paySettings = st.data;
+                        this.loadPaymentsCount();
+                    } catch (e) { console.error(e); this.showToast('تعذّر تحميل الدفعات'); }
+                    finally { this.paymentsLoading = false; }
+                },
+
+                async viewProof(p) {
+                    const { data, error } = await sb.storage.from('payment-proofs').createSignedUrl(p.proof_path, 300);
+                    if (error || !data) { this.showToast('تعذّر فتح الوصل'); return; }
+                    window.open(data.signedUrl, '_blank', 'noopener');
+                },
+
+                async confirmPayment(p) {
+                    const { error } = await sb.rpc('admin_confirm_payment', { p_payment: p.id });
+                    if (error) { console.error(error); this.showToast('تعذّر التأكيد: ' + error.message); return; }
+                    this.showToast('تم تأكيد الدفعة وتفعيل الاشتراك');
+                    this.loadPayments(); this.loadStats(); this.loadMembers();
+                },
+
+                async rejectPayment(p) {
+                    const note = window.prompt('سبب الرفض (يظهر للطالب):', '');
+                    if (note === null) return;
+                    const { error } = await sb.rpc('admin_reject_payment', { p_payment: p.id, p_note: note });
+                    if (error) { console.error(error); this.showToast('تعذّر الرفض'); return; }
+                    this.showToast('تم رفض الدفعة');
+                    this.loadPayments();
+                },
+
+                async savePaySettings() {
+                    this.savingPaySettings = true;
+                    try {
+                        const s = this.paySettings;
+                        const { error } = await sb.from('payment_settings').update({
+                            price_mad: s.price_mad, grace_days: s.grace_days,
+                            cih_holder: (s.cih_holder || '').trim(), cih_rib: (s.cih_rib || '').trim(),
+                            awb_holder: (s.awb_holder || '').trim(), awb_rib: (s.awb_rib || '').trim(),
+                            cash_info: (s.cash_info || '').trim(), updated_at: new Date().toISOString()
+                        }).eq('id', 1);
+                        if (error) throw error;
+                        this.showToast('تم حفظ إعدادات الدفع');
+                    } catch (e) { console.error(e); this.showToast('تعذّر الحفظ، تحقق من القيم'); }
+                    finally { this.savingPaySettings = false; }
+                },
+
+                openRecordPayment(m) {
+                    this.recordTarget = m;
+                    this.recordForm = { method: 'cash', months: 1, amount: null, reference: '', note: '' };
+                },
+
+                async recordPayment() {
+                    if (this.recordingPay || !this.recordTarget) return;
+                    this.recordingPay = true;
+                    try {
+                        const f = this.recordForm;
+                        const { error } = await sb.rpc('admin_record_payment', {
+                            p_user: this.recordTarget.id, p_method: f.method, p_months: f.months || 1,
+                            p_amount: (f.amount === null || f.amount === '' ? null : f.amount),
+                            p_reference: f.reference || null, p_note: f.note || null
+                        });
+                        if (error) throw error;
+                        this.showToast('تم تسجيل الدفعة وتفعيل الاشتراك');
+                        this.recordTarget = null;
+                        this.loadStats(); this.loadMembers(); this.loadPaymentsCount();
+                        if (this.activeTab === 'payments') this.loadPayments();
+                    } catch (e) { console.error(e); this.showToast('تعذّر تسجيل الدفعة: ' + (e.message || '')); }
+                    finally { this.recordingPay = false; }
                 },
 
                 async approve(id) {
