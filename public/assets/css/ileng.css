@@ -254,3 +254,8 @@ body.ep-home *{box-sizing:border-box}
 /* WhatsApp buttons turn green on hover */
 .ep-btn.ep-wa-btn:hover{background:#25D366;border-color:#25D366;color:#fff;transform:translateY(-2px)}
 .ep-wa:hover{background:#1DB954}
+
+/* Primary buttons on navy/blue backgrounds are white for contrast */
+.ep-sum .ep-btn-o,.ep-band .ep-btn-o,.ep-cta .ep-btn-o{background:#fff;color:var(--ep-navy);box-shadow:0 8px 22px -8px rgba(0,0,0,.35)}
+.ep-sum .ep-btn-o:hover,.ep-band .ep-btn-o:hover,.ep-cta .ep-btn-o:hover{background:#E8EEFF;color:var(--ep-navy)}
+.ep-cta .ep-btn-wh{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}
