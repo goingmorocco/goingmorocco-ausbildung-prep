@@ -240,6 +240,26 @@ window.EP_DICT = {
 "Payez simplement, sans carte bancaire : en espèces à l'académie, ou par virement sur notre compte CIH Bank ou Attijariwafa bank. Après le paiement, notre équipe confirme la réception et votre abonnement est activé. Les coordonnées des comptes se trouvent dans votre compte, sur la page Abonnement.",
 "Paga fácilmente sin tarjeta bancaria: en efectivo en la academia o por transferencia a nuestra cuenta de CIH Bank o Attijariwafa bank. Tras el pago, nuestro equipo confirma la recepción y se activa tu suscripción. Los datos de las cuentas están en tu cuenta, en la página de suscripción."
 ],
+"اللغة التي تريد الاشتراك فيها": [
+"Language you want to subscribe to",
+"Langue pour laquelle vous souhaitez vous abonner",
+"Idioma al que quieres suscribirte"
+],
+"مشترك": [
+"Subscribed",
+"Abonné",
+"Suscrito"
+],
+"غير مشترك": [
+"Not subscribed",
+"Non abonné",
+"Sin suscripción"
+],
+"الاشتراك خاص بكل لغة: يمنحك الدورات والمواد والحصص المباشرة للغة المختارة فقط.": [
+"Subscriptions are per language: you get the courses, materials and live classes of the chosen language only.",
+"L'abonnement est propre à chaque langue : il donne accès aux cours, aux supports et aux classes en direct de la langue choisie uniquement.",
+"La suscripción es por idioma: te da acceso solo a los cursos, materiales y clases en vivo del idioma elegido."
+],
 "EuroPass Academy - الألمانية · الإنجليزية · الفرنسية · الإسبانية": [
 "EuroPass Academy - German · English · French · Spanish",
 "EuroPass Academy - Allemand · Anglais · Français · Espagnol",

@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
     const body = await req.json();
 
     if (body.action === 'list') {
-      let query = admin.from('users').select('*, subscriptions(status, current_period_end, cancel_at_period_end)').neq('role', 'admin');
+      let query = admin.from('users').select('*, track_access(track, status, current_period_end)').neq('role', 'admin');
       if (body.status && body.status !== 'all') query = query.eq('membership_status', body.status);
       if (body.q) {
         // Strip characters that have meaning inside a PostgREST .or() filter.
@@ -75,8 +75,8 @@ Deno.serve(async (req) => {
       const active = data.filter((u: any) => u.membership_status === 'active').length;
       const rejected = data.filter((u: any) => u.membership_status === 'rejected').length;
       const { count: activeSubscriptions } = await admin
-        .from('subscriptions')
-        .select('id', { count: 'exact', head: true })
+        .from('track_access')
+        .select('user_id', { count: 'exact', head: true })
         .eq('status', 'active');
       return json({ success: true, stats: { total, pending, active, rejected, activeSubscriptions: activeSubscriptions || 0 } });
     }
@@ -86,21 +86,19 @@ Deno.serve(async (req) => {
       const upd = await admin.from('users').update({ membership_status: 'active' }).eq('id', member_id);
       if (upd.error) throw upd.error;
 
+      // Free one-month grant: for every language the student follows (German if none).
+      const { data: tr } = await admin.from('user_tracks').select('track').eq('user_id', member_id);
+      const tracks = (tr && tr.length ? tr.map((r: any) => r.track) : ['de']);
       const start = new Date();
       const end = new Date();
       end.setMonth(end.getMonth() + 1);
-
-      const { data: existing } = await admin.from('subscriptions').select('id').eq('user_id', member_id).maybeSingle();
-      if (existing) {
-        await admin
-          .from('subscriptions')
-          .update({ status: 'active', current_period_start: start.toISOString(), current_period_end: end.toISOString(), cancel_at_period_end: false })
-          .eq('id', existing.id);
-      } else {
-        await admin.from('subscriptions').insert({
-          user_id: member_id, status: 'active',
-          current_period_start: start.toISOString(), current_period_end: end.toISOString()
-        });
+      for (const track of tracks) {
+        const { error: e } = await admin.from('track_access').upsert({
+          user_id: member_id, track, status: 'active',
+          current_period_start: start.toISOString(), current_period_end: end.toISOString(),
+          updated_at: start.toISOString()
+        }, { onConflict: 'user_id,track' });
+        if (e) throw e;
       }
       return json({ success: true });
     }
@@ -108,13 +106,14 @@ Deno.serve(async (req) => {
     if (body.action === 'reject') {
       const rej = await admin.from('users').update({ membership_status: 'rejected' }).eq('id', body.member_id);
       if (rej.error) throw rej.error;
-      await admin.from('subscriptions').update({ status: 'canceled' }).eq('user_id', body.member_id);
+      await admin.from('track_access').update({ status: 'canceled' }).eq('user_id', body.member_id);
       return json({ success: true });
     }
 
     if (body.action === 'reset') {
       const rst = await admin.from('users').update({ membership_status: 'pending' }).eq('id', body.member_id);
       if (rst.error) throw rst.error;
+      await admin.from('track_access').update({ status: 'canceled' }).eq('user_id', body.member_id);
       return json({ success: true });
     }
 

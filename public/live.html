@@ -169,7 +169,7 @@ function liveApp() {
         if (profile.role === 'admin') { window.location.href = 'teacher.html'; return; }
         this.user = profile;
         this.isStaff = profile.role === 'teacher';
-        this.gateStatus = profile.membership_status === 'active' ? 'ok' : profile.membership_status;
+        this.gateStatus = epHasTrack(profile) ? 'ok' : (profile.membership_status === 'rejected' ? 'rejected' : 'pending');
         this.authChecked = true;
         if (this.gateStatus === 'ok') {
           await this.load();

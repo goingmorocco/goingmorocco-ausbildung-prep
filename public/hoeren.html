@@ -453,7 +453,7 @@
                             return;
                         }
                         this.user = profile;
-                        this.isFreeTier = profile.membership_status !== 'active';
+                        this.isFreeTier = !epHasTrack(profile);
                         this.gateStatus = profile.membership_status === 'rejected' ? 'rejected' : 'ok';
                         this.authChecked = true;
 

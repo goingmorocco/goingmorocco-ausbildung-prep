@@ -860,15 +860,35 @@
                 <button @click="showSubscriptionModal = false" class="text-flag-ink/40 hover:text-flag-red"><i class="fas fa-times"></i></button>
             </div>
             <div class="p-6 space-y-5 text-sm">
-                <!-- status -->
+                <!-- language -->
+                <div>
+                    <h4 class="font-semibold text-flag-ink mb-2">اللغة التي تريد الاشتراك فيها</h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <template x-for="t in tracks" :key="t.id">
+                            <button type="button" @click="payForm.track = t.id"
+                                    :class="payForm.track === t.id ? 'border-flag-red bg-flag-red/5' : 'border-black/10'"
+                                    class="border-2 rounded-xl py-2 px-2 text-xs font-medium text-flag-ink text-center">
+                                <span class="text-xl block" x-text="t.flag"></span>
+                                <span x-text="t.ar"></span>
+                                <span class="block text-[10px] mt-0.5" :class="isPaidRow(accessFor(t.id)) ? 'text-emerald-700' : 'text-flag-ink/40'">
+                                    <template x-if="isPaidRow(accessFor(t.id))"><span>مشترك</span></template>
+                                    <template x-if="!isPaidRow(accessFor(t.id))"><span>غير مشترك</span></template>
+                                </span>
+                            </button>
+                        </template>
+                    </div>
+                    <p class="text-xs text-flag-ink/50 mt-2">الاشتراك خاص بكل لغة: يمنحك الدورات والمواد والحصص المباشرة للغة المختارة فقط.</p>
+                </div>
+
+                <!-- status of the selected language -->
                 <div class="rounded-xl p-4 text-center" style="background:#F4F1E8;">
-                    <template x-if="subscription && subscription.status === 'active' && daysUntilRenewal() > 0">
-                        <p>اشتراكك نشط حتى <span class="font-semibold" x-text="formatDate(subscription.current_period_end)"></span> <span class="text-flag-ink/50">(<span x-text="daysUntilRenewal()"></span> <span>يومًا متبقيًا</span>)</span></p>
+                    <template x-if="isPaidRow(accessFor(payForm.track)) && daysLeft(accessFor(payForm.track)) > 0">
+                        <p>اشتراكك نشط حتى <span class="font-semibold" x-text="formatDate(accessFor(payForm.track).current_period_end)"></span> <span class="text-flag-ink/50">(<span x-text="daysLeft(accessFor(payForm.track))"></span> <span>يومًا متبقيًا</span>)</span></p>
                     </template>
-                    <template x-if="subscription && subscription.status === 'active' && daysUntilRenewal() <= 0">
+                    <template x-if="isPaidRow(accessFor(payForm.track)) && daysLeft(accessFor(payForm.track)) <= 0">
                         <p class="text-flag-red font-medium">انتهت مدة اشتراكك. جدّد الآن حتى لا يتوقف وصولك إلى الاختبارات.</p>
                     </template>
-                    <template x-if="!subscription || subscription.status !== 'active'">
+                    <template x-if="!isPaidRow(accessFor(payForm.track))">
                         <p>لا يوجد اشتراك فعال حاليًا</p>
                     </template>
                 </div>
@@ -973,7 +993,7 @@
                         <template x-for="p in payments" :key="p.id">
                             <div class="rounded-lg border border-black/10 p-3 flex items-center justify-between gap-3">
                                 <div>
-                                    <div class="font-medium"><span x-text="p.amount"></span> <span>درهم</span> · <span x-text="methodLabel(p.method)"></span></div>
+                                    <div class="font-medium"><span x-text="trackInfo(p.track || 'de').flag"></span> <span x-text="p.amount"></span> <span>درهم</span> · <span x-text="methodLabel(p.method)"></span></div>
                                     <div class="text-xs text-flag-ink/50"><span x-text="formatDate(p.created_at)"></span><span x-show="p.status === 'confirmed' && p.period_end"> · <span>حتى</span> <span x-text="formatDate(p.period_end)"></span></span></div>
                                     <div class="text-xs text-flag-red mt-1" x-show="p.status === 'rejected' && p.admin_note" x-text="p.admin_note"></div>
                                 </div>
@@ -1069,10 +1089,11 @@
                 showMobileMenu: false,
                 showSubscriptionModal: false,
                 showLogoutConfirm: false,
+                accessRows: [],
                 submittingPay: false,
                 payments: [],
                 paySettings: { price_mad: 200, cih_holder: '', cih_rib: '', awb_holder: '', awb_rib: '', cash_info: '' },
-                payForm: { method: 'cash', months: 1, reference: '', note: '', file: null },
+                payForm: { method: 'cash', track: 'de', months: 1, reference: '', note: '', file: null },
                 toast: '',
 
                 // Test-taking state
@@ -1121,12 +1142,13 @@
                             return;
                         }
                         this.user = profile;
-                        this.isFreeTier = profile.membership_status !== 'active';
+                        this.isFreeTier = !epHasTrack(profile);
                         this.gateStatus = profile.membership_status === 'rejected' ? 'rejected' : 'ok';
                         this.authChecked = true;
 
                         if (this.gateStatus === 'ok') {
                             await this.initTracks();
+                            this.isFreeTier = !epHasTrack(this.user, this.currentTrack);
                             this.loadDashboardData();
                             if (this.isFreeTier) this.loadFreeQuota();
                         }
@@ -1167,6 +1189,9 @@
                 async switchTrack(id) {
                     this.currentTrack = id;
                     epSetTrack(id);
+                    this.isFreeTier = !epHasTrack(this.user, id);
+                    this.refreshSubscription();
+                    if (this.isFreeTier) this.loadFreeQuota();
                     this.applyTrackToAttempts();
                     this.availableTests = [];
                     await this.loadTracksTests();
@@ -1188,12 +1213,12 @@
                 async loadDashboardData() {
                     try {
                         const [subRes, attemptsData, testsRes] = await Promise.all([
-                            sb.from('subscriptions').select('*').eq('user_id', this.user.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+                            sb.from('track_access').select('*').eq('user_id', this.user.id),
                             sbInvoke('test-attempt', { action: 'list' }),
                             epTestsQuery(false, this.currentTrack)
                         ]);
 
-                        if (subRes.data) this.subscription = subRes.data;
+                        if (subRes.data) { this.accessRows = subRes.data; this.refreshSubscription(); }
                         if (attemptsData.success) { this.allAttempts = attemptsData.attempts; this.applyTrackToAttempts(); }
                         if (testsRes.data) {
                             this.availableTests = testsRes.data.map(t => ({
@@ -1600,16 +1625,37 @@
                 },
 
                 async openSubscription() {
+                    this.payForm.track = this.currentTrack;
                     this.showSubscriptionModal = true;
                     await this.loadPayments();
                 },
 
+                refreshSubscription() {
+                    this.subscription = this.accessRows.find(r => r.track === this.currentTrack) || null;
+                },
+
+                accessFor(track) { return this.accessRows.find(r => r.track === track) || null; },
+                daysLeft(row) {
+                    if (!row || !row.current_period_end) return 0;
+                    return Math.max(0, Math.ceil((new Date(row.current_period_end) - new Date()) / 86400000));
+                },
+                isPaidRow(row) {
+                    return !!row && row.status === 'active' && new Date(row.current_period_end) >= new Date(Date.now() - 3 * 86400000);
+                },
+
                 async loadPayments() {
                     try {
-                        const [st, pays] = await Promise.all([
+                        const [st, pays, acc] = await Promise.all([
                             sb.from('payment_settings').select('*').eq('id', 1).maybeSingle(),
-                            sb.from('payments').select('*').eq('user_id', this.user.id).order('created_at', { ascending: false }).limit(20)
+                            sb.from('payments').select('*').eq('user_id', this.user.id).order('created_at', { ascending: false }).limit(20),
+                            sb.from('track_access').select('*').eq('user_id', this.user.id)
                         ]);
+                        if (acc.data) {
+                            this.accessRows = acc.data; this.refreshSubscription();
+                            const paid = acc.data.filter(r => this.isPaidRow(r)).map(r => r.track);
+                            this.user = Object.assign({}, this.user, { paid_tracks: paid });
+                            this.isFreeTier = !paid.includes(this.currentTrack);
+                        }
                         if (st.data) this.paySettings = st.data;
                         if (pays.data) this.payments = pays.data;
                     } catch (e) { console.error(e); }
@@ -1641,11 +1687,11 @@
                             if (up.error) throw up.error;
                         }
                         const { error } = await sb.rpc('submit_payment', {
-                            p_method: f.method, p_months: f.months,
+                            p_method: f.method, p_months: f.months, p_track: f.track,
                             p_reference: f.reference || null, p_proof_path: proofPath, p_note: f.note || null
                         });
                         if (error) throw error;
-                        this.payForm = { method: f.method, months: 1, reference: '', note: '', file: null };
+                        this.payForm = { method: f.method, track: f.track, months: 1, reference: '', note: '', file: null };
                         this.showToast('تم إرسال الدفعة. سنؤكدها في أقرب وقت.');
                         await this.loadPayments();
                     } catch (e) {

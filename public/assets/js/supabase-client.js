@@ -31,6 +31,18 @@ async function sbGetProfile(userId) {
       if (!r.error && r.data === 'pending') data = Object.assign({}, data, { membership_status: 'pending' });
     } catch (e) { /* function not installed yet */ }
   }
+  // Paid access is per language: which tracks has this student paid for?
+  let paid = [];
+  if (data.membership_status === 'active' || data.role === 'admin') {
+    try {
+      const r = await sb.rpc('my_paid_tracks');
+      if (!r.error && Array.isArray(r.data)) paid = r.data;
+      else if (r.error) paid = null; // function missing (migration not run yet)
+    } catch (e) { paid = null; }
+  }
+  // paid === null => per-language access not installed; fall back to the old all-or-nothing flag.
+  data = Object.assign({}, data, { paid_tracks: paid === null
+    ? (data.membership_status === 'active' ? EP_TRACKS.map(t => t.id) : []) : paid });
   return data;
 }
 
@@ -190,6 +202,13 @@ const EP_TRACKS = [
     { id: 'fr', flag: '🇫🇷', ar: 'الفرنسية' },
     { id: 'es', flag: '🇪🇸', ar: 'الإسبانية' }
 ];
+
+// Has the student paid for this language (default: the one currently selected)?
+function epHasTrack(profile, track) {
+  const t = track || epTrack();
+  if (profile && profile.role === 'admin') return true;
+  return !!(profile && Array.isArray(profile.paid_tracks) && profile.paid_tracks.includes(t));
+}
 
 function epTrack() {
     try {

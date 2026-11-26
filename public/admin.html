@@ -367,10 +367,10 @@
                                                 <span class="de-badge" :class="statusBadgeClass(m.membership_status)" x-text="statusLabel(m.membership_status)"></span>
                                             </td>
                                             <td class="px-5 py-4 text-xs text-flag-ink/60 hidden lg:table-cell">
-                                                <template x-if="m.subscription">
-                                                    <span>ينتهي <span x-text="formatDate(m.subscription.current_period_end)"></span></span>
+                                                <template x-for="a in m.access" :key="a.track">
+                                                    <div><span x-text="trackName(a.track)"></span> · <span x-text="formatDate(a.current_period_end)"></span></div>
                                                 </template>
-                                                <template x-if="!m.subscription">
+                                                <template x-if="!m.access.length">
                                                     <span class="text-flag-ink/30">لا يوجد</span>
                                                 </template>
                                             </td>
@@ -441,7 +441,7 @@
                                                 <div class="text-xs text-flag-ink/50" x-text="p.student ? p.student.email : ''"></div>
                                             </td>
                                             <td class="px-5 py-4">
-                                                <div class="font-medium"><span x-text="p.amount"></span> درهم · <span x-text="p.months"></span> شهر</div>
+                                                <div class="font-medium"><span x-text="p.amount"></span> درهم · <span x-text="p.months"></span> شهر · <span x-text="trackName(p.track || 'de')"></span></div>
                                                 <div class="text-xs text-flag-ink/50" x-text="methodLabel(p.method)"></div>
                                                 <div class="text-xs text-flag-ink/50 font-mono" dir="ltr" x-show="p.reference" x-text="p.reference"></div>
                                                 <div class="text-xs text-flag-ink/60 mt-1" x-show="p.student_note" x-text="p.student_note"></div>
@@ -500,6 +500,10 @@
                         <form @submit.prevent="recordPayment()" class="p-6 space-y-3 text-sm">
                             <h3 class="font-semibold text-flag-ink">تسجيل دفعة — <span x-text="recordTarget && recordTarget.full_name"></span></h3>
                             <p class="text-xs text-flag-ink/50">يُفعَّل الاشتراك فورًا ويُضاف إلى المدة الحالية إن كان ساريًا.</p>
+                            <div><label class="block text-xs text-flag-ink/60 mb-1">اللغة</label>
+                                <select x-model="recordForm.track" class="w-full border border-black/15 rounded-lg px-3 py-2 bg-white">
+                                    <option value="de">🇩🇪 الألمانية</option><option value="en">🇬🇧 الإنجليزية</option><option value="fr">🇫🇷 الفرنسية</option><option value="es">🇪🇸 الإسبانية</option>
+                                </select></div>
                             <div><label class="block text-xs text-flag-ink/60 mb-1">طريقة الدفع</label>
                                 <select x-model="recordForm.method" class="w-full border border-black/15 rounded-lg px-3 py-2 bg-white">
                                     <option value="cash">نقدًا</option><option value="cih">تحويل CIH</option><option value="attijariwafa">تحويل التجاري وفا بنك</option>
@@ -1455,7 +1459,7 @@
                 payments: [], payFilter: 'pending', paymentsLoading: false, pendingPaymentsCount: 0,
                 paySettings: { price_mad: 200, grace_days: 3, cih_holder: '', cih_rib: '', awb_holder: '', awb_rib: '', cash_info: '' },
                 savingPaySettings: false, recordTarget: null, recordingPay: false,
-                recordForm: { method: 'cash', months: 1, amount: null, reference: '', note: '' },
+                recordForm: { method: 'cash', track: 'de', months: 1, amount: null, reference: '', note: '' },
                 members: [], memberFilter: 'all', memberSearch: '', membersLoading: false,
                 notifications: [], notifyTitle: '', notifyMessage: '', notifyLink: '', notifyAudience: 'all', sending: false,
                 deleteNotificationTarget: null,
@@ -1573,7 +1577,7 @@
                         if (data.success) {
                             this.members = data.members.map(m => ({
                                 ...m,
-                                subscription: Array.isArray(m.subscriptions) ? (m.subscriptions[0] || null) : (m.subscriptions || null)
+                                access: (Array.isArray(m.track_access) ? m.track_access : []).filter(a => a.status === 'active')
                             }));
                         }
                     } catch (e) { console.error(e); }
@@ -1587,6 +1591,7 @@
                     } catch (e) { console.error(e); }
                 },
 
+                trackName(t) { return { de: '🇩🇪 الألمانية', en: '🇬🇧 الإنجليزية', fr: '🇫🇷 الفرنسية', es: '🇪🇸 الإسبانية' }[t] || t; },
                 methodLabel(m) { return m === 'cash' ? 'نقدًا' : (m === 'cih' ? 'تحويل CIH' : 'تحويل التجاري وفا بنك'); },
 
                 async loadPaymentsCount() {
@@ -1650,7 +1655,7 @@
 
                 openRecordPayment(m) {
                     this.recordTarget = m;
-                    this.recordForm = { method: 'cash', months: 1, amount: null, reference: '', note: '' };
+                    this.recordForm = { method: 'cash', track: 'de', months: 1, amount: null, reference: '', note: '' };
                 },
 
                 async recordPayment() {
@@ -1659,7 +1664,7 @@
                     try {
                         const f = this.recordForm;
                         const { error } = await sb.rpc('admin_record_payment', {
-                            p_user: this.recordTarget.id, p_method: f.method, p_months: f.months || 1,
+                            p_user: this.recordTarget.id, p_track: f.track, p_method: f.method, p_months: f.months || 1,
                             p_amount: (f.amount === null || f.amount === '' ? null : f.amount),
                             p_reference: f.reference || null, p_note: f.note || null
                         });

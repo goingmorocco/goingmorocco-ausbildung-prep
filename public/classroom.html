@@ -349,7 +349,7 @@
                             return;
                         }
                         this.user = profile;
-                        this.gateStatus = profile.membership_status === 'active' ? 'ok' : profile.membership_status;
+                        this.gateStatus = epHasTrack(profile) ? 'ok' : (profile.membership_status === 'rejected' ? 'rejected' : 'pending');
                         this.authChecked = true;
 
                         if (this.gateStatus === 'ok') {
