@@ -242,7 +242,7 @@
     </template>
 
     <!-- ============ PDF viewer modal ============ -->
-    <div x-show="viewingPdf" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/70 backdrop-blur-sm p-4">
+    <div x-show="viewingPdf" x-cloak x-transition class="fixed inset-0 z-[80] flex items-center justify-center bg-flag-black/70 backdrop-blur-sm p-4">
         <div class="de-card w-full max-w-4xl h-[90vh] overflow-hidden flex flex-col">
             <div class="de-flag-ribbon"></div>
             <div class="flex items-center justify-between px-6 py-4 border-b border-black/10 flex-shrink-0">
@@ -260,7 +260,7 @@
          not x-show) so closing it actually stops playback/loading --
          and since this is the only video player on the page, at most
          one video can ever be loading at once. -->
-    <div x-show="viewingVideo" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/70 backdrop-blur-sm p-4">
+    <div x-show="viewingVideo" x-cloak x-transition class="fixed inset-0 z-[80] flex items-center justify-center bg-flag-black/70 backdrop-blur-sm p-4">
         <div class="de-card w-full max-w-2xl overflow-hidden">
             <div class="de-flag-ribbon"></div>
             <div class="flex items-center justify-between px-5 py-3 border-b border-black/10">

@@ -526,56 +526,45 @@
     </template>
 
     <!-- ============ Test-taking modal ============ -->
-    <div x-show="showTestModal" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
-        <div class="de-card w-full overflow-hidden flex flex-col transition-all duration-300"
-             :class="testModalExpanded ? 'max-w-6xl h-[95vh]' : 'max-w-2xl max-h-[92vh]'">
+    <div x-show="showTestModal" x-cloak x-transition class="ep-fs" @keydown.escape.window="showTestModal && closeTestModal()">
+        <div class="ep-fs-card">
             <div class="de-flag-ribbon"></div>
-            <div class="flex items-center justify-between px-6 py-4 border-b border-black/10 flex-shrink-0">
-                <h3 class="font-semibold text-flag-ink" x-text="activeTest ? activeTest.title : 'جارٍ التحميل...'"></h3>
-                <div class="flex items-center gap-3">
-                    <button @click="testModalExpanded = !testModalExpanded" class="text-flag-ink/40 hover:text-flag-red" :title="testModalExpanded ? 'تصغير' : 'تكبير'">
-                        <i class="fas" :class="testModalExpanded ? 'fa-down-left-and-up-right-to-center' : 'fa-up-right-and-down-left-from-center'"></i>
-                    </button>
-                    <button @click="closeTestModal()" class="text-flag-ink/40 hover:text-flag-red"><i class="fas fa-times"></i></button>
-                </div>
+            <div class="ep-fs-head">
+                <h3 class="font-semibold text-flag-ink truncate" x-text="activeTest ? activeTest.title : 'جارٍ التحميل...'"></h3>
+                <button type="button" @click="closeTestModal()" class="ep-fs-close" aria-label="إغلاق"><i class="fas fa-times"></i> <span>إغلاق</span></button>
             </div>
 
-            <!-- Question view -->
-            <div class="p-6 overflow-y-auto" x-show="activeTest && !testResults">
-                <div class="mb-4 flex items-center justify-between bg-flag-cream rounded-lg p-3">
-                    <span class="text-xs text-flag-ink/50">الوقت المتبقي</span>
-                    <span class="font-mono text-lg font-semibold text-flag-red" x-text="formatCountdown(timeLeftSeconds)"></span>
-                </div>
-
-                <template x-if="activeTest">
-                    <div>
-                        <div class="mb-6">
-                            <div class="flex justify-between mb-2 text-xs text-flag-ink/50">
-                                <span>السؤال <span x-text="currentQuestionIndex + 1"></span> من <span x-text="gradedItems.length"></span></span>
-                                <span x-text="Math.round(((currentQuestionIndex + 1) / gradedItems.length) * 100) + '%'"></span>
+            <!-- Question view: full-screen split (content left, answers right) -->
+            <div class="ep-fs-body" x-show="activeTest && !testResults">
+                <template x-if="activeTest && currentQuestion">
+                    <div class="ep-fs-flex">
+                        <div class="ep-fs-top">
+                            <div class="ep-prog">
+                                <div class="flex justify-between mb-1 text-xs text-flag-ink/60">
+                                    <span>السؤال <span x-text="currentQuestionIndex + 1"></span> من <span x-text="gradedItems.length"></span></span>
+                                    <span x-text="Math.round(((currentQuestionIndex + 1) / gradedItems.length) * 100) + '%'"></span>
+                                </div>
+                                <div class="w-full bg-black/10 rounded-full h-2">
+                                    <div class="de-flag-ribbon rounded-full h-2" :style="{ width: (((currentQuestionIndex + 1) / gradedItems.length) * 100) + '%' }"></div>
+                                </div>
                             </div>
-                            <div class="w-full bg-black/10 rounded-full h-2">
-                                <div class="de-flag-ribbon rounded-full h-2" :style="{ width: (((currentQuestionIndex + 1) / gradedItems.length) * 100) + '%' }"></div>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <i class="fas fa-clock text-flag-ink/40 text-xs"></i>
+                                <span class="font-mono text-lg font-semibold text-flag-red" x-text="formatCountdown(timeLeftSeconds)"></span>
                             </div>
                         </div>
-
-                        <template x-if="currentQuestion">
-                            <div>
-                                <div class="flex items-center gap-2 mb-3">
+                        <div class="ep-split" :class="(currentQuestion.sectionPassage || currentQuestion.sectionAudioUrl) ? '' : 'ep-single'">
+                            <section class="ep-pane ep-pane-content" x-show="currentQuestion.sectionPassage || currentQuestion.sectionAudioUrl">
+<div class="flex items-center gap-2 mb-3">
                                     <span class="de-badge de-badge-red" x-text="currentQuestion.sectionName"></span>
                                     <span class="text-xs text-flag-ink/40" x-show="currentQuestion.sectionOfficialMinutes">
                                         <i class="fas fa-clock"></i> <span x-text="currentQuestion.sectionOfficialMinutes"></span> دقيقة في الاختبار الرسمي
                                     </span>
                                 </div>
                                 <p class="text-xs text-flag-ink/50 mb-3" x-show="currentQuestion.sectionInstructions" x-text="currentQuestion.sectionInstructions"></p>
-
-                                <!-- Expanded mode with a passage/transcript: show side-by-side instead of
-                                     stacked, so a long passage doesn't push the question off-screen. -->
-                                <div :class="testModalExpanded && currentQuestion.sectionPassage ? 'grid grid-cols-2 gap-6 items-start' : ''">
-                                    <div>
                                         <!-- Listening sections with real audio: play audio, transcript hidden behind a toggle (matches real exam conditions) -->
                                         <template x-if="currentQuestion.sectionType === 'listening' && currentQuestion.sectionAudioUrl && !audioFailed">
-                                            <div class="de-card rounded-xl p-4 mb-4 bg-flag-cream" :class="testModalExpanded ? 'max-h-[65vh] overflow-y-auto' : ''">
+                                            <div class="de-card rounded-xl p-4 mb-4 bg-flag-cream">
                                                 <audio :src="currentQuestion.sectionAudioUrl" controls preload="none"
                                                        @error="audioFailed = true; showTranscript = true"
                                                        class="w-full mb-3"></audio>
@@ -589,16 +578,24 @@
 
                                         <!-- Reading/language sections, or listening without generated audio yet: show the passage directly -->
                                         <div class="de-card rounded-xl p-4 mb-4 bg-flag-cream"
-                                             :class="testModalExpanded ? 'max-h-[65vh] overflow-y-auto' : ''"
+                                            
                                              x-show="currentQuestion.sectionPassage && !(currentQuestion.sectionType === 'listening' && currentQuestion.sectionAudioUrl && !audioFailed)">
                                             <p class="text-xs text-flag-ink/40 mb-2" x-show="currentQuestion.sectionType === 'listening'">
                                                 <i class="fas fa-circle-info"></i> الاستماع الصوتي غير متاح بعد لهذا القسم — نص بديل للقراءة
                                             </p>
                                             <p class="text-sm text-flag-ink/80 whitespace-pre-line" x-text="currentQuestion.sectionPassage"></p>
                                         </div>
-                                    </div>
-
-                                    <div class="de-card rounded-xl p-5 mb-6" :class="testModalExpanded && currentQuestion.sectionPassage ? 'max-h-[65vh] overflow-y-auto' : ''">
+                            </section>
+                            <section class="ep-pane ep-pane-answers">
+                                <div class="ep-inner">
+<div x-show="!(currentQuestion.sectionPassage || currentQuestion.sectionAudioUrl)"><div class="flex items-center gap-2 mb-3">
+                                    <span class="de-badge de-badge-red" x-text="currentQuestion.sectionName"></span>
+                                    <span class="text-xs text-flag-ink/40" x-show="currentQuestion.sectionOfficialMinutes">
+                                        <i class="fas fa-clock"></i> <span x-text="currentQuestion.sectionOfficialMinutes"></span> دقيقة في الاختبار الرسمي
+                                    </span>
+                                </div>
+                                <p class="text-xs text-flag-ink/50 mb-3" x-show="currentQuestion.sectionInstructions" x-text="currentQuestion.sectionInstructions"></p></div>
+                                    <div class="de-card rounded-xl p-5">
                                         <p class="font-medium text-flag-ink mb-4" x-text="currentQuestion.question_text"></p>
 
                                         <div class="mb-4">
@@ -624,10 +621,9 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </template>
-
-                        <div class="flex items-center justify-between gap-3">
+                            </section>
+                        </div>
+                        <div class="ep-fs-foot">
                             <button @click="currentQuestionIndex = Math.max(0, currentQuestionIndex - 1)"
                                     :disabled="currentQuestionIndex === 0"
                                     class="de-btn text-sm py-2 px-4 disabled:opacity-40" style="background:#EEEAE0;color:#0F172A;">
@@ -651,7 +647,7 @@
             </div>
 
             <!-- Results view -->
-            <div class="p-6 text-center overflow-y-auto" x-show="testResults" x-cloak>
+            <div class="ep-fs-scroll text-center" x-show="testResults" x-cloak>
                 <template x-if="testResults">
                     <div>
                         <i class="fas fa-chart-bar text-4xl mb-3" :class="testResults.passed ? 'text-emerald-600' : 'text-red-600'"></i>
@@ -760,14 +756,14 @@
     </div>
 
     <!-- ============ Attempt detail modal (from history) ============ -->
-    <div x-show="showAttemptDetailModal" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
-        <div class="de-card w-full max-w-2xl overflow-hidden max-h-[92vh] flex flex-col">
+    <div x-show="showAttemptDetailModal" x-cloak x-transition class="ep-fs" @keydown.escape.window="showAttemptDetailModal && closeAttemptDetail()">
+        <div class="ep-fs-card">
             <div class="de-flag-ribbon"></div>
-            <div class="flex items-center justify-between px-6 py-4 border-b border-black/10 flex-shrink-0">
-                <h3 class="font-semibold text-flag-ink" x-text="selectedAttemptDetail ? selectedAttemptDetail.test_title : ''"></h3>
-                <button @click="closeAttemptDetail()" class="text-flag-ink/40 hover:text-flag-red"><i class="fas fa-times"></i></button>
+            <div class="ep-fs-head">
+                <h3 class="font-semibold text-flag-ink truncate" x-text="selectedAttemptDetail ? selectedAttemptDetail.test_title : ''"></h3>
+                <button type="button" @click="closeAttemptDetail()" class="ep-fs-close" aria-label="إغلاق"><i class="fas fa-times"></i> <span>إغلاق</span></button>
             </div>
-            <div class="p-6 text-center overflow-y-auto" x-show="selectedAttemptDetail">
+            <div class="ep-fs-scroll text-center" x-show="selectedAttemptDetail">
                 <template x-if="selectedAttemptDetail">
                     <div>
                         <div class="text-3xl font-bold mb-1" x-text="selectedAttemptDetail.score_percentage + '%'"></div>
@@ -852,14 +848,15 @@
     </div>
 
     <!-- ============ Subscription / payment modal ============ -->
-    <div x-show="showSubscriptionModal" x-cloak x-transition class="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-        <div class="de-card w-full max-w-lg overflow-hidden my-4">
+    <div x-show="showSubscriptionModal" x-cloak x-transition class="ep-fs" @keydown.escape.window="showSubscriptionModal = false">
+        <div class="ep-fs-card">
             <div class="de-flag-ribbon"></div>
-            <div class="flex items-center justify-between px-6 py-4 border-b border-black/10">
+            <div class="ep-fs-head">
                 <h3 class="font-semibold text-flag-ink"><i class="fas fa-credit-card text-flag-red me-2"></i> الاشتراك والدفع</h3>
-                <button @click="showSubscriptionModal = false" class="text-flag-ink/40 hover:text-flag-red"><i class="fas fa-times"></i></button>
+                <button type="button" @click="showSubscriptionModal = false" class="ep-fs-close" aria-label="إغلاق"><i class="fas fa-times"></i> <span>إغلاق</span></button>
             </div>
-            <div class="p-6 space-y-5 text-sm">
+            <div class="ep-fs-body"><div class="ep-split ep-flow" style="flex:1 1 auto;">
+                <section class="ep-pane ep-pane-content"><div class="space-y-5 text-sm max-w-xl mx-auto">
                 <!-- language -->
                 <div>
                     <h4 class="font-semibold text-flag-ink mb-2">اللغة التي تريد الاشتراك فيها</h4>
@@ -953,6 +950,8 @@
                     </div>
                 </div>
 
+                </div></section>
+                <section class="ep-pane ep-pane-answers"><div class="ep-inner space-y-5 text-sm">
                 <!-- declare payment -->
                 <form @submit.prevent="submitPayment()" class="space-y-3">
                     <div>
@@ -1002,7 +1001,8 @@
                         </template>
                     </div>
                 </div>
-            </div>
+                </div></section>
+            </div></div>
         </div>
     </div>
 
@@ -1041,7 +1041,7 @@
     </div>
 
     <!-- ============ Upgrade prompt ============ -->
-    <div x-show="showUpgradePrompt" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
+    <div x-show="showUpgradePrompt" x-cloak x-transition class="fixed inset-0 z-[80] flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
         <div class="de-card w-full max-w-sm overflow-hidden text-center">
             <div class="de-flag-ribbon"></div>
             <div class="p-8">

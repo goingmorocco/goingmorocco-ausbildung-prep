@@ -357,3 +357,54 @@ body {
 h1, h2, h3 {
   line-height: 1.8;
 }
+
+/* --------------------------------------------------------------------
+   Full-screen exam / practice modals (language-agnostic)
+   Content (passage / audio / prompt) on one side, answers on the other.
+   Used by every test lightbox: dashboard, skill-practice, hoeren,
+   lesen, schreiben (+ essay) and any future language page.
+   -------------------------------------------------------------------- */
+.ep-fs { position: fixed; inset: 0; z-index: 65; display: flex; flex-direction: column; background: #fff; }
+.ep-fs[x-cloak] { display: none !important; }
+.ep-fs-card { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; background: #fff; }
+.ep-fs-head { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 20px; border-bottom: 1px solid rgba(15,23,42,.1); background: #fff; }
+.ep-fs-close { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px;
+  background: #0F172A; color: #fff; font-weight: 600; font-size: 14px; cursor: pointer; border: 0; flex-shrink: 0; }
+.ep-fs-close:hover { background: #b91c1c; }
+.ep-fs-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.ep-fs-body[style*="display: none"] { display: none !important; }
+.ep-fs-flex { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.ep-fs-top { flex: 0 0 auto; display: flex; align-items: center; gap: 16px; padding: 10px 20px;
+  background: #F6F7F9; border-bottom: 1px solid rgba(15,23,42,.06); }
+.ep-fs-top .ep-prog { flex: 1 1 auto; min-width: 0; }
+.ep-split { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+.ep-pane { min-height: 0; overflow-y: auto; padding: 24px 28px; -webkit-overflow-scrolling: touch; }
+.ep-pane-content { background: #F6F7F9; border-inline-end: 1px solid rgba(15,23,42,.1); }
+.ep-pane-answers { background: #fff; }
+.ep-pane-answers > .ep-inner { max-width: 720px; margin-inline: auto; }
+.ep-split.ep-single { grid-template-columns: minmax(0,1fr); }
+.ep-split.ep-single .ep-pane-content { display: none; }
+.ep-fs-foot { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 20px; border-top: 1px solid rgba(15,23,42,.1); background: #fff; }
+.ep-fs-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 24px 20px; }
+.ep-fs-scroll > div { max-width: 900px; margin-inline: auto; }
+.ep-fs .de-card:hover { transform: none; box-shadow: none; border-color: rgba(15,23,42,.08); }
+.ep-fs .ep-pane-content .de-card { background: #fff; }
+@media (max-width: 899px) {
+  .ep-split { grid-template-columns: minmax(0,1fr); grid-template-rows: minmax(0,40%) minmax(0,60%); }
+  .ep-split.ep-single { grid-template-rows: minmax(0,1fr); }
+  .ep-pane { padding: 16px; }
+  .ep-pane-content { border-inline-end: 0; border-bottom: 1px solid rgba(15,23,42,.1); }
+  .ep-fs-head { padding: 8px 12px; } .ep-fs-top, .ep-fs-foot { padding-inline: 12px; }
+}
+@media (max-width: 899px) {
+  .ep-split.ep-flow { display: block; overflow-y: auto; }
+  .ep-split.ep-flow .ep-pane { overflow: visible; }
+}
+/* Always content on the LEFT, answers on the RIGHT, whatever the UI language;
+   the text inside each pane keeps the page's own direction. */
+.ep-split { direction: ltr; }
+html[dir="rtl"] .ep-pane { direction: rtl; }
+html[dir="ltr"] .ep-pane { direction: ltr; }
+@media (max-width: 899px) { .ep-split { direction: inherit; } }

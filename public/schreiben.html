@@ -165,44 +165,45 @@
     </template>
 
     <!-- ============ Test-taking modal (expandable) ============ -->
-    <div x-show="showTestModal" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
-        <div class="de-card w-full overflow-hidden flex flex-col transition-all duration-300"
-             :class="testModalExpanded ? 'max-w-4xl h-[95vh]' : 'max-w-2xl max-h-[92vh]'">
+    <div x-show="showTestModal" x-cloak x-transition class="ep-fs" @keydown.escape.window="showTestModal && closeTestModal()">
+        <div class="ep-fs-card">
             <div class="de-flag-ribbon"></div>
-            <div class="flex items-center justify-between px-6 py-4 border-b border-black/10 flex-shrink-0">
+            <div class="ep-fs-head">
                 <h3 class="font-semibold text-flag-ink truncate" x-text="activeTest ? activeTest.title : ''"></h3>
-                <div class="flex items-center gap-3 flex-shrink-0">
-                    <button @click="testModalExpanded = !testModalExpanded" class="text-flag-ink/40 hover:text-flag-red" :title="testModalExpanded ? 'تصغير' : 'تكبير'">
-                        <i class="fas" :class="testModalExpanded ? 'fa-down-left-and-up-right-to-center' : 'fa-up-right-and-down-left-from-center'"></i>
-                    </button>
-                    <button @click="closeTestModal()" class="text-flag-ink/40 hover:text-flag-red"><i class="fas fa-times"></i></button>
-                </div>
+                <button type="button" @click="closeTestModal()" class="ep-fs-close" aria-label="إغلاق"><i class="fas fa-times"></i> <span>إغلاق</span></button>
             </div>
 
-            <!-- Question view -->
-            <div class="p-6 overflow-y-auto" x-show="currentQuestion && !testResults">
-                <div class="mb-4 flex items-center justify-between bg-flag-cream rounded-lg p-3">
-                    <span class="text-xs text-flag-ink/50">الوقت المتبقي</span>
-                    <span class="font-mono text-lg font-semibold text-flag-red" x-text="formatCountdown(timeLeftSeconds)"></span>
-                </div>
-
+            <!-- Question view: full-screen split (content left, answers right) -->
+            <div class="ep-fs-body" x-show="currentQuestion && !testResults">
                 <template x-if="currentQuestion">
-                    <div>
-                        <div class="mb-6">
-                            <div class="flex justify-between mb-2 text-xs text-flag-ink/50">
-                                <span>السؤال <span x-text="currentQuestionIndex + 1"></span> من <span x-text="gradedItems.length"></span></span>
-                                <span x-text="Math.round(((currentQuestionIndex + 1) / gradedItems.length) * 100) + '%'"></span>
+                    <div class="ep-fs-flex">
+                        <div class="ep-fs-top">
+                            <div class="ep-prog">
+                                <div class="flex justify-between mb-1 text-xs text-flag-ink/60">
+                                    <span>السؤال <span x-text="currentQuestionIndex + 1"></span> من <span x-text="gradedItems.length"></span></span>
+                                    <span x-text="Math.round(((currentQuestionIndex + 1) / gradedItems.length) * 100) + '%'"></span>
+                                </div>
+                                <div class="w-full bg-black/10 rounded-full h-2">
+                                    <div class="de-flag-ribbon rounded-full h-2" :style="{ width: (((currentQuestionIndex + 1) / gradedItems.length) * 100) + '%' }"></div>
+                                </div>
                             </div>
-                            <div class="w-full bg-black/10 rounded-full h-2">
-                                <div class="de-flag-ribbon rounded-full h-2" :style="{ width: (((currentQuestionIndex + 1) / gradedItems.length) * 100) + '%' }"></div>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <i class="fas fa-clock text-flag-ink/40 text-xs"></i>
+                                <span class="font-mono text-lg font-semibold text-flag-red" x-text="formatCountdown(timeLeftSeconds)"></span>
                             </div>
                         </div>
+                        <div class="ep-split" :class="(currentQuestion.sectionPassage || currentQuestion.sectionAudioUrl) ? '' : 'ep-single'">
+                            <section class="ep-pane ep-pane-content" x-show="currentQuestion.sectionPassage || currentQuestion.sectionAudioUrl">
 
-                        <div class="de-card rounded-xl p-4 mb-4 bg-flag-cream" x-show="currentQuestion.sectionPassage">
+                        <div class="de-card rounded-xl p-4 mb-4" x-show="currentQuestion.sectionPassage">
                             <p class="text-sm text-flag-ink/80 whitespace-pre-line" x-text="currentQuestion.sectionPassage"></p>
                         </div>
 
-                        <div class="de-card rounded-xl p-5 mb-6">
+                            </section>
+                            <section class="ep-pane ep-pane-answers">
+                                <div class="ep-inner">
+
+                        <div class="de-card rounded-xl p-5">
                             <p class="font-medium text-flag-ink mb-4" x-text="currentQuestion.question_text"></p>
 
                             <div class="mb-4">
@@ -227,8 +228,10 @@
                                 </template>
                             </div>
                         </div>
-
-                        <div class="flex items-center justify-between gap-3">
+                                </div>
+                            </section>
+                        </div>
+                        <div class="ep-fs-foot">
                             <button @click="currentQuestionIndex = Math.max(0, currentQuestionIndex - 1)" :disabled="currentQuestionIndex === 0"
                                     class="de-btn text-sm py-2 px-4 disabled:opacity-40" style="background:#EEEAE0;color:#0F172A;">
                                 <i class="fas fa-arrow-right"></i> السابق
@@ -247,7 +250,7 @@
             </div>
 
             <!-- Results view -->
-            <div class="p-6 overflow-y-auto text-center" x-show="testResults" x-cloak>
+            <div class="ep-fs-scroll text-center" x-show="testResults" x-cloak>
                 <template x-if="testResults">
                     <div>
                         <i class="fas fa-chart-bar text-4xl mb-3" :class="testResults.passed ? 'text-emerald-600' : 'text-red-600'"></i>
@@ -333,24 +336,20 @@
     </div>
 
     <!-- ============ Essay modal (expandable) ============ -->
-    <div x-show="showEssayModal" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
-        <div class="de-card w-full overflow-hidden flex flex-col transition-all duration-300"
-             :class="essayModalExpanded ? 'max-w-4xl h-[95vh]' : 'max-w-2xl max-h-[92vh]'">
+    <div x-show="showEssayModal" x-cloak x-transition class="ep-fs" @keydown.escape.window="showEssayModal && closeEssayModal()">
+        <div class="ep-fs-card">
             <div class="de-flag-ribbon"></div>
-            <div class="flex items-center justify-between px-6 py-4 border-b border-black/10 flex-shrink-0">
+            <div class="ep-fs-head">
                 <h3 class="font-semibold text-flag-ink truncate" x-text="essayTest ? essayTest.title : ''"></h3>
-                <div class="flex items-center gap-3 flex-shrink-0">
-                    <button @click="essayModalExpanded = !essayModalExpanded" class="text-flag-ink/40 hover:text-flag-red" :title="essayModalExpanded ? 'تصغير' : 'تكبير'">
-                        <i class="fas" :class="essayModalExpanded ? 'fa-down-left-and-up-right-to-center' : 'fa-up-right-and-down-left-from-center'"></i>
-                    </button>
-                    <button @click="closeEssayModal()" class="text-flag-ink/40 hover:text-flag-red"><i class="fas fa-times"></i></button>
-                </div>
+                <button type="button" @click="closeEssayModal()" class="ep-fs-close" aria-label="إغلاق"><i class="fas fa-times"></i> <span>إغلاق</span></button>
             </div>
 
-            <div class="p-6 overflow-y-auto">
+            <div class="ep-fs-body">
                 <template x-if="essayPrompt && !essayGradeResult">
-                    <div>
-                        <div class="de-card rounded-xl p-5 mb-4" style="border-color:rgba(4,42,151,0.4);">
+                    <div class="ep-fs-flex">
+                        <div class="ep-split">
+                            <section class="ep-pane ep-pane-content">
+                                <div class="de-card rounded-xl p-5" style="border-color:rgba(4,42,151,0.4);">
                             <div class="flex items-center gap-2 mb-2">
                                 <span class="de-badge de-badge-gold" x-text="essayPrompt.name"></span>
                                 <span class="text-xs text-flag-ink/40" x-show="essayPrompt.official_duration_minutes">
@@ -360,16 +359,23 @@
                             <p class="text-xs text-flag-ink/50 mb-3" x-show="essayPrompt.instructions" x-text="essayPrompt.instructions"></p>
                             <p class="text-sm font-medium text-flag-ink whitespace-pre-line" x-text="essayPrompt.prompt"></p>
                         </div>
-                        <textarea x-model="essayDraft" rows="9" placeholder="اكتب إجابتك هنا..."
-                                  class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30 mb-4"></textarea>
+                            </section>
+                            <section class="ep-pane ep-pane-answers">
+                                <div class="ep-inner">
+                                    <textarea x-model="essayDraft" rows="14" placeholder="اكتب إجابتك هنا..."
+                                  class="w-full px-3 py-2 border border-black/15 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-flag-red/30 mb-4" style="min-height:40vh;"></textarea>
                         <button @click="gradeEssay()" :disabled="gradingEssay || essayDraft.trim().length < 10"
                                 class="de-btn de-btn-primary w-full text-sm py-3 disabled:opacity-50">
                             <i class="fas" :class="gradingEssay ? 'fa-circle-notch fa-spin' : 'fa-robot'"></i>
                             <span x-text="gradingEssay ? 'جاري التقييم...' : 'قيّم كتابتي بالذكاء الاصطناعي'"></span>
                         </button>
+                                </div>
+                            </section>
+                        </div>
                     </div>
                 </template>
 
+                <div class="ep-fs-scroll" x-show="essayGradeResult" x-cloak>
                 <template x-if="essayGradeResult">
                     <div class="text-center">
                         <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto mb-3">
@@ -440,12 +446,13 @@
                         </div>
                     </div>
                 </template>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- ============ PDF viewer modal ============ -->
-    <div x-show="viewingPdf" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/70 backdrop-blur-sm p-4">
+    <div x-show="viewingPdf" x-cloak x-transition class="fixed inset-0 z-[80] flex items-center justify-center bg-flag-black/70 backdrop-blur-sm p-4">
         <div class="de-card w-full max-w-4xl h-[90vh] overflow-hidden flex flex-col">
             <div class="de-flag-ribbon"></div>
             <div class="flex items-center justify-between px-6 py-4 border-b border-black/10 flex-shrink-0">
@@ -459,7 +466,7 @@
     </div>
 
     <!-- ============ Video lightbox ============ -->
-    <div x-show="viewingVideo" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/70 backdrop-blur-sm p-4">
+    <div x-show="viewingVideo" x-cloak x-transition class="fixed inset-0 z-[80] flex items-center justify-center bg-flag-black/70 backdrop-blur-sm p-4">
         <div class="de-card w-full max-w-2xl overflow-hidden">
             <div class="de-flag-ribbon"></div>
             <div class="flex items-center justify-between px-5 py-3 border-b border-black/10">
@@ -476,7 +483,7 @@
     </div>
 
     <!-- ============ Upgrade prompt ============ -->
-    <div x-show="showUpgradePrompt" x-cloak x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
+    <div x-show="showUpgradePrompt" x-cloak x-transition class="fixed inset-0 z-[80] flex items-center justify-center bg-flag-black/60 backdrop-blur-sm p-4">
         <div class="de-card w-full max-w-sm overflow-hidden text-center">
             <div class="de-flag-ribbon"></div>
             <div class="p-8">
