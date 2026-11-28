@@ -161,8 +161,10 @@ function homeApp() {
             }
             this.loadLatestPosts();
 
-            if (!this.user && new URLSearchParams(window.location.search).get('signup') === '1') {
-                this.$nextTick(() => this.openSignup());
+            if (!this.user) {
+                const q = new URLSearchParams(window.location.search);
+                if (q.get('signup') === '1') this.$nextTick(() => this.openSignup());
+                else if (q.get('login') === '1') this.$nextTick(() => this.openLogin());
             }
         },
 
