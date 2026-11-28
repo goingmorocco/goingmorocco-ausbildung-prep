@@ -312,9 +312,10 @@ html[dir="ltr"] .ep-pane { direction: ltr; }
                                     class="de-btn text-sm py-2 px-4" style="background:#EEEAE0;color:#1E293B;">
                                 التالي <i class="fas fa-arrow-left"></i>
                             </button>
-                            <button x-show="currentQuestionIndex === gradedItems.length - 1" @click="submitPractice()" class="de-btn de-btn-primary text-sm py-2 px-5">
-                                <i class="fas fa-paper-plane"></i> إرسال
-                            </button>
+                            <button @click="(Object.keys(selectedAnswers).length >= gradedItems.length || confirm('لم تجب عن كل الأسئلة بعد. هل تريد الإرسال الآن؟')) && submitPractice()"
+                                    :class="currentQuestionIndex === gradedItems.length - 1 ? 'de-btn de-btn-primary' : 'de-btn'"
+                                    :style="currentQuestionIndex === gradedItems.length - 1 ? '' : 'background:#fff;color:#0F172A;border:2px solid #0F172A;'"
+                                    class="text-sm py-2 px-5"><i class="fas fa-paper-plane"></i> إرسال الإجابات <span class="opacity-70 text-xs" x-text="'(' + Object.keys(selectedAnswers).length + '/' + gradedItems.length + ')'"></span></button>
                         </div>
                     </div>
                 </template>
